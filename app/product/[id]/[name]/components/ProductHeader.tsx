@@ -210,10 +210,10 @@ export default function ProductHeader({ product }: { product?: Product | null })
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start mt-2 lg:mt-6 w-full max-w-7xl mx-auto px-4 md:px-0">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-16 items-start mt-2 lg:mt-6 w-full max-w-7xl mx-auto px-4 md:px-0">
 
       {/* --- Main Section: Horizontal Scrollable Images (Desktop & Mobile) --- */}
-      <div className="lg:col-span-7 order-1 w-full">
+      <div className="lg:col-span-7 order-1 w-full lg:sticky lg:top-28 self-start">
         {/* Mobile: horizontal scrollable carousel */}
         <div className="lg:hidden relative overflow-hidden rounded-[2rem] bg-surface-container-low shadow-2xl shadow-primary/5">
           <div
@@ -374,7 +374,7 @@ export default function ProductHeader({ product }: { product?: Product | null })
       </div>
 
       {/* Product Details Section (Kept mostly the same, minor layout tweaks for padding) */}
-      <div className="lg:col-span-5 lg:h-fit flex flex-col gap-5 lg:gap-4 px-2 lg:px-0 w-full order-2 lg:sticky lg:top-28">
+      <div className="lg:col-span-5 self-start lg:h-fit flex flex-col gap-5 lg:gap-4 px-2 lg:px-0 w-full order-2 lg:sticky lg:top-28">
         <div className="space-y-6">
           <div className="space-y-6">
             <nav className="flex items-center gap-3 text-[10px] font-label text-on-surface-variant uppercase tracking-[0.2em]">
