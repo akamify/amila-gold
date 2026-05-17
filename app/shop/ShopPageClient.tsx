@@ -247,6 +247,23 @@ export default function ShopPageClient() {
                     >
                       <div className="flex flex-row-reverse sm:block gap-4 sm:gap-0 items-center">
 
+                        {/* RIGHT IMAGE */}
+                        <Link
+                          href={`/product/${p.id}/${p.name.toLowerCase().replace(/\s+/g, '-')}`}
+                          className="block order-2 sm:order-none"
+                        >
+                          <div className="relative overflow-hidden rounded-[1rem] bg-surface-container-high w-28 h-30 sm:w-auto sm:h-auto sm:aspect-square sm:mb-8 shadow-sm group-hover:shadow-2xl transition-all duration-700">
+                            <Image
+                              src={p.image}
+                              alt={p.name}
+                              fill
+                              unoptimized
+                              className="object-cover transition-transform duration-1000 group-hover:scale-110"
+                            />
+
+                            <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                          </div>
+                        </Link>
                         {/* LEFT CONTENT */}
                         <div className="flex-1 order-1 sm:order-none">
                           <Link
@@ -304,23 +321,6 @@ export default function ShopPageClient() {
                           </div>
                         </div>
 
-                        {/* RIGHT IMAGE */}
-                        <Link
-                          href={`/product/${p.id}/${p.name.toLowerCase().replace(/\s+/g, '-')}`}
-                          className="block order-2 sm:order-none"
-                        >
-                          <div className="relative overflow-hidden rounded-[1rem] bg-surface-container-high w-28 h-30 sm:w-auto sm:h-auto sm:aspect-square sm:mb-8 shadow-sm group-hover:shadow-2xl transition-all duration-700">
-                            <Image
-                              src={p.image}
-                              alt={p.name}
-                              fill
-                              unoptimized
-                              className="object-cover transition-transform duration-1000 group-hover:scale-110"
-                            />
-
-                            <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                          </div>
-                        </Link>
                       </div>
                     </div>
                   );
