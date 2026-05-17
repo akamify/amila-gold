@@ -342,7 +342,7 @@ export default function ProductHeader({ product }: { product?: Product | null })
           >
             <span className="font-label text-[10px] uppercase tracking-widest opacity-80">Pure</span>
             <span className="font-headline font-black text-2xl leading-none my-0.5">100%</span>
-            <span className="font-headline italic text-xs">Organic</span>
+            <span className="font-headline italic text-xs">Natural</span>
           </motion.div>
 
           <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none z-[1]" />
