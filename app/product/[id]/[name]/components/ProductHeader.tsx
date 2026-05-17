@@ -462,11 +462,11 @@ export default function ProductHeader({ product }: { product?: Product | null })
               <button
                 type="button"
                 onClick={handleShare}
-                className="inline-flex right-2 items-center gap-2 rounded-full border border-outline-variant/40 bg-surface-container-low px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant transition-colors hover:border-primary hover:text-primary"
+                className="inline-flex right-2 items-center gap-2 rounded-full border border-outline-variant/40 bg-surface-container-low p-3 text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant transition-colors hover:border-primary hover:text-primary"
                 aria-label="Share this product"
               >
                 <span className="material-symbols-outlined">share</span>
-                <span className="hidden sm:inline">Share</span>
+                {/* <span className="hidden sm:inline">Share</span> */}
               </button>
             </div>
           </div>
@@ -500,14 +500,6 @@ export default function ProductHeader({ product }: { product?: Product | null })
                 ))}
               </div>
             </div>
-            {isOutOfStock ? (
-              <p className="text-sm font-semibold text-error">Out of stock</p>
-            ) : (
-              <p className="text-sm font-medium text-on-surface-variant">
-                {availableStock} in stock
-              </p>
-            )}
-
 
           </div>
 
