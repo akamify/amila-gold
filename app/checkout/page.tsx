@@ -117,6 +117,7 @@ export default function CheckoutPage() {
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentError, setPaymentError] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<"Razorpay" | "COD">("Razorpay");
   const [buyNowItem, setBuyNowItem] = useState<BuyNowItem | null>(null);
 
   const [addresses, setAddresses] = useState<UserAddress[]>([]);
@@ -286,8 +287,22 @@ export default function CheckoutPage() {
           color: item.color || "",
           price: item.price,
         })),
-        selectedAddressId
+        selectedAddressId,
+        undefined,
+        paymentMethod
       )) as Record<string, unknown>;
+
+      if (paymentMethod === "COD") {
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('sr_buy_now_item');
+        }
+        if (!buyNowItem) {
+          clearCart();
+        }
+        const codOrderId = String(data.order_id || data.local_order_id || "");
+        router.push(`/order/success?order_id=${encodeURIComponent(codOrderId)}`);
+        return;
+      }
 
       const orderId = (data.order as Record<string, unknown>)?.id as string;
       const localOrderId = String(data.local_order_id || "");
@@ -496,6 +511,25 @@ export default function CheckoutPage() {
               </div>
 
               <div className="mt-6 pt-4 border-t border-outline-variant/20 space-y-3">
+                <div className="pb-2">
+                  <p className="mb-2 text-[11px] uppercase tracking-widest text-on-surface-variant font-bold">Payment Method</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod("Razorpay")}
+                      className={`rounded-xl border px-3 py-2 text-xs font-bold ${paymentMethod === "Razorpay" ? "border-primary text-primary bg-primary/5" : "border-outline-variant/30 text-on-surface-variant"}`}
+                    >
+                      Razorpay
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod("COD")}
+                      className={`rounded-xl border px-3 py-2 text-xs font-bold ${paymentMethod === "COD" ? "border-primary text-primary bg-primary/5" : "border-outline-variant/30 text-on-surface-variant"}`}
+                    >
+                      COD
+                    </button>
+                  </div>
+                </div>
                 <div className="flex justify-between text-on-surface-variant">
                   <span>Subtotal</span>
                   <span>{currencySymbol}{subtotal.toFixed(2)}</span>
@@ -517,10 +551,10 @@ export default function CheckoutPage() {
                 className="mt-6 w-full bg-primary text-on-primary py-4 rounded-full font-headline text-lg font-bold tracking-wide hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-xl"
               >
                 <span className="material-symbols-outlined">credit_card</span>
-                <span>{isProcessing ? "Processing..." : `Pay ${currencySymbol}${total.toFixed(2)}`}</span>
+                <span>{isProcessing ? "Processing..." : paymentMethod === "COD" ? "Place COD Order" : `Pay ${currencySymbol}${total.toFixed(2)}`}</span>
               </button>
 
-              <p className="text-center text-on-surface-variant text-xs font-body mt-3">Secure checkout via Razorpay</p>
+              <p className="text-center text-on-surface-variant text-xs font-body mt-3">{paymentMethod === "COD" ? "Cash on Delivery selected" : "Secure checkout via Razorpay"}</p>
               {paymentError ? <p className="text-center text-sm text-error mt-2">{paymentError}</p> : null}
             </div>
           )}

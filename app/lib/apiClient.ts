@@ -163,6 +163,10 @@ export interface AdminOrder {
     status: string;
     payment_status?: string;
     payment_method?: string;
+    refund_reason?: string;
+    refund_upi_id?: string;
+    refund_request_type?: string;
+    refund_requested_at?: string;
     amount?: number;
     createdAt?: string;
     FullName?: string;
@@ -815,12 +819,13 @@ export async function createBackendOrder(
     items: Array<{ product_id: number; quantity: number; size: string; color?: string; price?: number }>,
     address_id?: number,
     promo_code?: string,
+    payment_method?: 'Razorpay' | 'COD',
 ) {
     const email = getUserEmail();
     const cart_id = getCartId();
     return request('/user/create-order', {
         method: 'POST',
-        body: JSON.stringify({ items, address_id: address_id || null, email, cart_id, promo_code: promo_code || '' }),
+        body: JSON.stringify({ items, address_id: address_id || null, email, cart_id, promo_code: promo_code || '', payment_method: payment_method || 'Razorpay' }),
     }, true);
 }
 
@@ -941,19 +946,19 @@ export async function deleteAdminPromo(id: string) {
     });
 }
 
-export async function cancelUserOrder(orderRef: string) {
+export async function cancelUserOrder(orderRef: string, reason: string, refundUpiId?: string) {
     const email = getUserEmail();
     return request('/user/cancel-order', {
         method: 'POST',
-        body: JSON.stringify({ order_id: orderRef, email }),
+        body: JSON.stringify({ order_id: orderRef, email, reason, refund_upi_id: refundUpiId || '' }),
     }, true);
 }
 
-export async function requestUserOrderReturn(orderRef: string, reason = 'Requested by user') {
+export async function requestUserOrderReturn(orderRef: string, reason: string, refundUpiId: string) {
     const email = getUserEmail();
     return request('/user/return-order', {
         method: 'POST',
-        body: JSON.stringify({ order_id: orderRef, reason, email }),
+        body: JSON.stringify({ order_id: orderRef, reason, refund_upi_id: refundUpiId, email }),
     }, true);
 }
 
@@ -1027,6 +1032,10 @@ export async function fetchAdminOrders(): Promise<AdminOrder[]> {
             status: String(row.status || 'pending'),
             payment_status: typeof row.payment_status === 'string' ? row.payment_status : undefined,
             payment_method: typeof row.payment_method === 'string' ? row.payment_method : undefined,
+            refund_reason: typeof row.refund_reason === 'string' ? row.refund_reason : undefined,
+            refund_upi_id: typeof row.refund_upi_id === 'string' ? row.refund_upi_id : undefined,
+            refund_request_type: typeof row.refund_request_type === 'string' ? row.refund_request_type : undefined,
+            refund_requested_at: typeof row.refund_requested_at === 'string' ? row.refund_requested_at : undefined,
             amount: normalizeAmount(explicitAmount, items),
             status_history: (() => {
                 const historyRaw = Array.isArray(row.status_history) ? row.status_history : [];

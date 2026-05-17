@@ -210,7 +210,7 @@ export default function ProductHeader({ product }: { product?: Product | null })
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start mt-2 lg:mt-6 w-full max-w-7xl mx-auto px-4 md:px-6">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start mt-2 lg:mt-6 w-full max-w-7xl mx-auto px-4 md:px-0">
 
       {/* --- Main Section: Horizontal Scrollable Images (Desktop & Mobile) --- */}
       <div className="lg:col-span-7 order-1 w-full">
@@ -383,8 +383,8 @@ export default function ProductHeader({ product }: { product?: Product | null })
               <span className="text-secondary font-black">{product?.collection || "Essentials"}</span>
             </nav>
 
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <h1 className="font-headline text-4xl md:text-5xl lg:text-6xl font-bold text-primary tracking-tighter leading-[1.1] break-words">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-2 min-w-0">
+              <h1 className="min-w-0 font-headline text-4xl md:text-5xl lg:text-6xl font-bold text-primary tracking-tighter leading-[1.1] break-words whitespace-normal">
                 {product?.name ?? 'Premium Product'}
               </h1>
             </div>

@@ -153,7 +153,7 @@ export default function AdminCommunicationsPage() {
                 >
                     <div className="absolute inset-0 bg-red-700/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
                     <span className="relative font-headline text-[10px] tracking-[0.2em] font-bold">
-                        {loading ? 'SYNCING DATA...' : 'REFRESH ENGINE'}
+                        {loading ? 'Refreshing...' : 'Refresh'}
                     </span>
                 </button>
             </header>
@@ -278,7 +278,7 @@ export default function AdminCommunicationsPage() {
                         {loading ? (
                             <div className="flex flex-col items-center justify-center py-32 gap-4 animate-pulse">
                                 <div className="w-12 h-12 border-2 border-red-700 border-t-transparent rounded-full animate-spin" />
-                                <span className="font-headline text-[10px] tracking-[0.4em] uppercase text-white/20">Syncing with Server...</span>
+                                <span className="font-headline text-[10px] tracking-[0.4em] uppercase text-white/20">Syncing...</span>
                             </div>
                         ) : activeTab === 'subscribers' ? (
                             <div className="animate-in slide-in-from-bottom-4 duration-500">

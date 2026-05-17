@@ -19,6 +19,7 @@ type OrderRow = {
   country?: string;
   pinCode?: string;
   payment_method?: string;
+  refund_reason?: string;
   razorpay_payment_id?: string;
   status_history?: Array<{ status?: string; updatedAt?: string }>;
   items?: Array<{ product_id?: number; quantity?: number; price?: number; product_image?: string; product?: { product_code?: string; title?: string; name?: string; product_image?: string[] } }>;
@@ -35,6 +36,10 @@ export default function OrderDetailsPage() {
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [busyAction, setBusyAction] = useState(false);
   const [actionMessage, setActionMessage] = useState("");
+  const [orderActionReason, setOrderActionReason] = useState("");
+  const [orderActionUpi, setOrderActionUpi] = useState("");
+  const [showHelpModal, setShowHelpModal] = useState(false);
+  const [showActionModal, setShowActionModal] = useState(false);
 
   useEffect(() => {
     setIsDataLoading(true);
@@ -118,6 +123,9 @@ export default function OrderDetailsPage() {
     };
   }, [normalizedStatus, order?.createdAt, order?.order_code, order?.order_id, order?.status_history, orderId]);
   const isCancelled = normalizedStatus === "cancelled";
+  const paymentMethod = String(order?.payment_method || "Razorpay");
+  const needsUpiForCancel = canCancel && paymentMethod.toLowerCase() === "razorpay";
+  const needsUpiForReturn = canReturn;
   const baseStatuses = ["confirmed", "processed", "in_transit", "delivered"];
   const tailStatuses = ["rto", "return", "refund"];
   const progressStatuses = isCancelled
@@ -283,46 +291,203 @@ export default function OrderDetailsPage() {
             </div>
 
             {/* Support Badge */}
-            <div className="flex flex-col items-center justify-center text-center p-6 border border-outline-variant/30 rounded-xl hover:bg-surface-container-low transition-colors cursor-pointer group">
-              <p className="text-xs text-on-surface-variant mb-3">Need assistance with this order?</p>
-              <a className="inline-flex items-center justify-center gap-2 text-[10px] font-bold text-secondary uppercase tracking-widest border-b-2 border-secondary pb-1 group-hover:text-primary group-hover:border-primary transition-colors" href="/contact">
-                <span className="material-symbols-outlined text-sm">headset_mic</span>
-                Contact Concierge
-              </a>
-              {(canCancel || canReturn) && (
-                <button
-                  onClick={async () => {
-                    const isCancelAction = canCancel;
-                    const confirmed = window.confirm(isCancelAction ? "Are you sure you want to cancel this order?" : "Are you sure you want to request a return?");
-                    if (!confirmed) return;
-                    try {
-                      setBusyAction(true);
-                      setActionMessage("");
-                      if (isCancelAction) {
-                        await cancelUserOrder(String(order?.order_code || order?.order_id || orderId));
-                        setActionMessage("Order cancelled successfully.");
-                      } else {
-                        await requestUserOrderReturn(String(order?.order_code || order?.order_id || orderId), "Requested from order details page");
-                        setActionMessage("Return request submitted.");
-                      }
-                      const rows = await fetchOrders();
-                      setOrders(Array.isArray(rows) ? (rows as OrderRow[]) : []);
-                    } catch {
-                      setActionMessage(canCancel ? "Unable to cancel order." : "Unable to request return.");
-                    } finally {
-                      setBusyAction(false);
-                    }
-                  }}
-                  disabled={busyAction}
-                  className={`mt-3 px-4 py-2 text-[10px] uppercase tracking-widest font-bold transition-colors disabled:opacity-60 ${canCancel ? "border-b border-error text-error hover:bg-error/5" : "border-b border-primary text-primary hover:bg-primary/5"}`}
-                >
-                  {busyAction ? "Please wait..." : canCancel ? "Cancel Order" : "Request Return"}
-                </button>
-              )}
+            <div className="flex flex-col items-center justify-center text-center p-6 border border-outline-variant/30 rounded-xl hover:bg-surface-container-low transition-colors">
+
+              <p className="text-xs text-on-surface-variant mb-3">
+                Need assistance with this order?
+              </p>
+
+              <button
+                onClick={() => setShowHelpModal(true)}
+                className="inline-flex items-center justify-center gap-2 text-[10px] font-bold text-secondary uppercase tracking-widest border-b-2 border-secondary pb-1 hover:text-primary hover:border-primary transition-colors"
+              >
+                <span className="material-symbols-outlined text-sm">
+                  headset_mic
+                </span>
+
+                Need Help
+              </button>
             </div>
           </div>
         </div>
       </div>
+      {/* Help Modal */}
+      {showHelpModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
+
+          <div className="w-full max-w-sm rounded-2xl bg-surface p-6 shadow-2xl border border-outline-variant/20">
+
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-xl font-headline text-primary font-bold">
+                Need Help?
+              </h2>
+
+              <button
+                onClick={() => setShowHelpModal(false)}
+                className="text-on-surface-variant hover:text-primary transition-colors"
+              >
+                <span className="material-symbols-outlined">
+                  close
+                </span>
+              </button>
+            </div>
+
+            <div className="space-y-3">
+
+              {/* Contact */}
+              <button
+                onClick={() => {
+                  window.location.href = "/contact";
+                }}
+                className="w-full rounded-xl border border-outline-variant/30 px-4 py-3 text-sm font-bold hover:bg-surface-container-low transition-colors"
+              >
+                Contact Support
+              </button>
+
+              {/* Cancel / Return */}
+              {(canCancel || canReturn) && (
+                <button
+                  onClick={() => {
+                    setShowHelpModal(false);
+                    setShowActionModal(true);
+                  }}
+                  className={`w-full rounded-xl px-4 py-3 text-sm font-bold text-white transition-colors ${canCancel
+                    ? "bg-error hover:bg-error/90"
+                    : "bg-primary hover:bg-primary/90"
+                    }`}
+                >
+                  {canCancel ? "Cancel Order" : "Request Return"}
+                </button>
+              )}
+
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Action Modal */}
+      {showActionModal && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 p-4">
+
+          <div className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-2xl border border-outline-variant/20">
+
+            <div className="flex items-center justify-between mb-5">
+
+              <h2 className="text-xl font-headline text-primary font-bold">
+                {canCancel ? "Cancel Order" : "Request Return"}
+              </h2>
+
+              <button
+                onClick={() => setShowActionModal(false)}
+                className="text-on-surface-variant hover:text-primary transition-colors"
+              >
+                <span className="material-symbols-outlined">
+                  close
+                </span>
+              </button>
+            </div>
+
+            <textarea
+              value={orderActionReason}
+              onChange={(e) => setOrderActionReason(e.target.value)}
+              placeholder={canCancel ? "Cancellation reason" : "Return reason"}
+              className="w-full rounded-xl border border-outline-variant/30 px-4 py-3 text-sm outline-none focus:border-primary"
+              rows={4}
+            />
+
+            {(needsUpiForCancel || needsUpiForReturn) ? (
+              <input
+                value={orderActionUpi}
+                onChange={(e) => setOrderActionUpi(e.target.value)}
+                placeholder="Refund UPI ID"
+                className="mt-3 w-full rounded-xl border border-outline-variant/30 px-4 py-3 text-sm outline-none focus:border-primary"
+              />
+            ) : null}
+
+            {actionMessage ? (
+              <p className="mt-3 text-xs text-secondary font-bold">
+                {actionMessage}
+              </p>
+            ) : null}
+
+            <button
+              onClick={async () => {
+                const isCancelAction = canCancel;
+
+                const reason = orderActionReason.trim();
+                const upi = orderActionUpi.trim();
+
+                if (!reason) {
+                  setActionMessage("Please enter reason.");
+                  return;
+                }
+
+                if ((needsUpiForCancel || needsUpiForReturn) && !upi) {
+                  setActionMessage("Please enter refund UPI ID.");
+                  return;
+                }
+
+                try {
+                  setBusyAction(true);
+                  setActionMessage("");
+
+                  if (isCancelAction) {
+                    await cancelUserOrder(
+                      String(order?.order_code || order?.order_id || orderId),
+                      reason,
+                      upi
+                    );
+
+                    setActionMessage("Order cancelled successfully.");
+                  } else {
+                    await requestUserOrderReturn(
+                      String(order?.order_code || order?.order_id || orderId),
+                      reason,
+                      upi
+                    );
+
+                    setActionMessage("Return request submitted.");
+                  }
+
+                  const rows = await fetchOrders();
+
+                  setOrders(
+                    Array.isArray(rows)
+                      ? (rows as OrderRow[])
+                      : []
+                  );
+
+                  setOrderActionReason("");
+                  setOrderActionUpi("");
+
+                  setTimeout(() => {
+                    setShowActionModal(false);
+                  }, 1200);
+
+                } catch {
+                  setActionMessage(
+                    canCancel
+                      ? "Unable to cancel order."
+                      : "Unable to request return."
+                  );
+                } finally {
+                  setBusyAction(false);
+                }
+              }}
+              disabled={busyAction}
+              className={`mt-5 w-full rounded-xl px-4 py-3 text-sm font-bold text-white transition-colors disabled:opacity-60 ${canCancel
+                  ? "bg-error hover:bg-error/90"
+                  : "bg-primary hover:bg-primary/90"
+                }`}
+            >
+              {busyAction
+                ? "Please wait..."
+                : canCancel
+                  ? "Cancel Order"
+                  : "Request Return"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

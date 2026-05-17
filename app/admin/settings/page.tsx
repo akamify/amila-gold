@@ -296,7 +296,7 @@ export default function AdminSettings() {
                         disabled={loading || saving || !dirty} 
                         className="group flex items-center gap-2 bg-white text-black px-8 py-4 rounded-full font-bold transition-all hover:bg-red-700 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed shadow-xl shadow-white/5"
                     >
-                        <Save size={18} className={saving ? "animate-spin" : "group-hover:scale-110 transition-transform"} />
+                        <Save size={18} className={saving ? "" : "group-hover:scale-110 transition-transform"} />
                         {saving ? 'Processing...' : 'Save Configuration'}
                     </button>
                 </div>

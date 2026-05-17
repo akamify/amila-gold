@@ -71,6 +71,36 @@ export default function OrderDetailsModal({ order, currency, onClose, onUpdated 
   const statusHistory = order.status_history ?? [];
   const lineItems = order.items ?? [];
 
+  const normalizedStatus = String(order.status || 'pending').toLowerCase();
+
+  const statusFlowMap: Record<string, string[]> = {
+    pending: ['confirmed', 'cancelled'],
+
+    confirmed: ['processed', 'cancelled'],
+
+    processed: ['in_transit', 'cancelled'],
+
+    in_transit: ['delivered', 'rto'],
+
+    delivered: ['return'],
+
+    return: ['refund'],
+
+    rto: ['refund'],
+
+    refund: ['refund'],
+
+    cancelled: ['cancelled'],
+  };
+
+  const nextStatuses =
+    statusFlowMap[normalizedStatus] || [];
+
+  const availableStatuses = [
+    normalizedStatus,
+    ...nextStatuses.filter((s) => s !== normalizedStatus),
+  ];
+
   const totalAmount = lineItems.reduce((sum, item) => {
     const quantity = Number(item.quantity || 0);
     const price = Number(item.price || 0);
@@ -128,18 +158,15 @@ export default function OrderDetailsModal({ order, currency, onClose, onUpdated 
                     onChange={(e) => setStatusUpdate(e.target.value)}
                     className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-900 outline-none focus:ring-2 focus:ring-slate-100"
                   >
-                    {[
-                      'confirmed',
-                      'processed',
-                      'in_transit',
-                      'delivered',
-                      'rto',
-                      'return',
-                      'refund',
-                      'cancelled',
-                    ].map((s) => (
-                      <option key={s} value={s}>
-                        {formatStatusLabel(s)}
+                    {availableStatuses.map((s) => (
+                      <option
+                        key={s}
+                        value={s}
+                        disabled={s === normalizedStatus}
+                      >
+                        {s === normalizedStatus
+                          ? `${formatStatusLabel(s)}`
+                          : formatStatusLabel(s)}
                       </option>
                     ))}
                   </select>
@@ -310,6 +337,36 @@ export default function OrderDetailsModal({ order, currency, onClose, onUpdated 
                       {order.razorpay_payment_id || '---'}
                     </span>
                   </div>
+                  {order.refund_request_type ? (
+                    <div className="flex justify-between">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                        Refund Type
+                      </span>
+                      <span className="text-[10px] font-black uppercase text-slate-900">
+                        {order.refund_request_type}
+                      </span>
+                    </div>
+                  ) : null}
+                  {order.refund_reason ? (
+                    <div className="flex justify-between gap-3">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                        Refund Reason
+                      </span>
+                      <span className="max-w-[180px] text-right text-[10px] font-black text-slate-900">
+                        {order.refund_reason}
+                      </span>
+                    </div>
+                  ) : null}
+                  {order.refund_upi_id ? (
+                    <div className="flex justify-between gap-3">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                        Refund UPI
+                      </span>
+                      <span className="max-w-[180px] text-right text-[10px] font-black text-slate-900">
+                        {order.refund_upi_id}
+                      </span>
+                    </div>
+                  ) : null}
                 </div>
               </div>
 

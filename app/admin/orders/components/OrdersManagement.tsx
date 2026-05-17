@@ -422,7 +422,7 @@ export default function OrdersManagement() {
           <div className="flex items-center justify-center gap-3 rounded-2xl border border-slate-100 bg-white py-20 text-slate-400">
             <Loader2 size={24} className="animate-spin" />
             <span className="text-[10px] font-black uppercase tracking-widest">
-              Syncing Database...
+              Syncing Orders...
             </span>
           </div>
         )}
