@@ -301,7 +301,7 @@ export default function ProductHeader({ product }: { product?: Product | null })
             </span>
 
             <span className="font-headline italic text-[10px]">
-              Organic
+              Natural
             </span>
           </motion.div>
 
