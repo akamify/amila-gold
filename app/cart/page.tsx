@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/app/context/CartContext";
 import { useSiteSettings } from "@/app/context/SiteSettingsContext";
+import { fetchBackendProducts, matchVariantByCartSize } from "@/app/lib/backendProducts";
 
 const SHIPPING = 0;
 
@@ -94,6 +95,41 @@ export default function CartPage() {
   const { settings } = useSiteSettings();
   const currencySymbol = settings.currencySymbol || "Rs.";
 
+  const [stockByItem, setStockByItem] = React.useState<Record<string, number>>({});
+
+  React.useEffect(() => {
+    const loadStock = async () => {
+      if (!items.length) {
+        setStockByItem({});
+        return;
+      }
+      try {
+        const products = await fetchBackendProducts();
+        const map = new Map(products.map((product) => [product.id, product]));
+        const next: Record<string, number> = {};
+        items.forEach((item) => {
+          const product = map.get(item.id);
+          const variant = product ? matchVariantByCartSize(product, item.size) : undefined;
+          const available = variant
+            ? Math.max(0, Number(variant.stock || 0))
+            : product
+              ? Math.max(0, Number(product.quantity || 0))
+              : 0;
+          next[`${item.id}|${item.size}|${item.color}`] = available;
+        });
+        setStockByItem(next);
+      } catch {
+        setStockByItem({});
+      }
+    };
+    loadStock();
+  }, [items]);
+
+  const hasOutOfStockItems = items.some((item) => {
+    const key = `${item.id}|${item.size}|${item.color}`;
+    return (stockByItem[key] ?? 0) <= 0;
+  });
+
   const subtotal = items.reduce((sum, item) => sum + item.price * item.qty, 0);
   const total = subtotal + SHIPPING;
 
@@ -161,6 +197,13 @@ export default function CartPage() {
 
                 {/* Product Details */}
                 <div className="flex-1 flex flex-col justify-between">
+                  {(() => {
+                    const key = `${item.id}|${item.size}|${item.color}`;
+                    const available = stockByItem[key] ?? 0;
+                    return available <= 0 ? (
+                      <p className="mb-2 text-xs font-semibold text-error">Out of stock</p>
+                    ) : null;
+                  })()}
                   <div className="flex justify-between items-start gap-4">
                     <div>
                       <h3 className="text-xl font-bold text-primary mb-1 group-hover:text-primary-container transition-colors">
@@ -200,7 +243,12 @@ export default function CartPage() {
                       </span>
                       <button
                         onClick={() => updateQty(item.id, item.size, 1, item.color)}
-                        className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-white hover:shadow-sm text-primary transition-all"
+                        className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-white hover:shadow-sm text-primary transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                        disabled={(() => {
+                          const key = `${item.id}|${item.size}|${item.color}`;
+                          const available = stockByItem[key] ?? 0;
+                          return available <= 0 || item.qty >= available;
+                        })()}
                       >
                         <span className="material-symbols-outlined text-base">add</span>
                       </button>
@@ -248,14 +296,21 @@ export default function CartPage() {
             </div>
 
             <Link
-              href="/checkout"
-              className="mt-10 w-full bg-primary text-white py-5 rounded-[1.5rem] font-bold text-lg hover:shadow-2xl hover:shadow-primary/30 transition-all flex items-center justify-center gap-3 active:scale-[0.98] group"
+              href={hasOutOfStockItems ? "#" : "/checkout"}
+              onClick={(event) => {
+                if (hasOutOfStockItems) event.preventDefault();
+              }}
+              aria-disabled={hasOutOfStockItems}
+              className="mt-10 w-full bg-primary text-white py-5 rounded-[1.5rem] font-bold text-lg hover:shadow-2xl hover:shadow-primary/30 transition-all flex items-center justify-center gap-3 active:scale-[0.98] group disabled:opacity-50"
             >
               Secure Checkout
               <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
             </Link>
 
             <div className="mt-8 flex flex-col gap-4">
+              {hasOutOfStockItems ? (
+                <p className="text-xs font-semibold text-error">Remove out-of-stock items to continue checkout.</p>
+              ) : null}
                <div className="flex items-center gap-3 text-on-surface-variant/60">
                   <span className="material-symbols-outlined text-primary/60 text-lg">verified</span>
                   <p className="text-xs font-medium">Authenticity Guaranteed</p>

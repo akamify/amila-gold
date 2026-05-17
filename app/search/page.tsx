@@ -109,6 +109,8 @@ export default function SearchPage() {
   };
 
   const handleAddToCart = (product: Product) => {
+    const inStock = Number(product.quantity || 0) > 0 || Object.values(product.stockByVariant || {}).some((qty) => Number(qty || 0) > 0);
+    if (!inStock) return;
     addItem({
       id: product.id,
       name: product.name,
@@ -280,6 +282,7 @@ export default function SearchPage() {
             ) : (
               <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-10 gap-y-20">
                 {getSortedResults().slice((currentPage - 1) * PRODUCTS_PER_PAGE, currentPage * PRODUCTS_PER_PAGE).map((p) => {
+                  const inStock = Number(p.quantity || 0) > 0 || Object.values(p.stockByVariant || {}).some((qty) => Number(qty || 0) > 0);
                   const inCart = isVariantInCart(p.id, selectedWeights[0] || "1kg", "");
                   return (
                     <motion.div layout initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} key={p.id} className="group relative">
@@ -294,12 +297,16 @@ export default function SearchPage() {
                               whileTap={{ scale: 0.95 }}
                               onClick={(e) => {
                                 e.preventDefault();
-                                if (!inCart) handleAddToCart(p);
-                                else window.location.href = "/cart";
+                                if (inCart) {
+                                  window.location.href = "/cart";
+                                  return;
+                                }
+                                if (inStock) handleAddToCart(p);
                               }}
-                              className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-xl backdrop-blur-md transition-all duration-500 ${inCart ? "bg-secondary text-on-secondary" : "bg-white/90 text-primary hover:bg-primary hover:text-white"}`}
+                              disabled={!inCart && !inStock}
+                              className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-xl backdrop-blur-md transition-all duration-500 ${inCart ? "bg-secondary text-on-secondary" : "bg-white/90 text-primary hover:bg-primary hover:text-white"} disabled:opacity-50 disabled:cursor-not-allowed`}
                             >
-                              <span className="material-symbols-outlined text-2xl">{inCart ? "shopping_bag" : "add_shopping_cart"}</span>
+                              <span className="material-symbols-outlined text-2xl">{inCart ? "shopping_bag" : inStock ? "add_shopping_cart" : "block"}</span>
                             </motion.button>
                           </div>
                         </div>

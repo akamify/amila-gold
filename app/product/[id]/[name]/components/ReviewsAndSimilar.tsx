@@ -127,6 +127,8 @@ export default function ReviewsAndSimilar({ product }: { product?: Product | nul
   };
 
   const handleAddToCart = (item: Product) => {
+    const inStock = Number(item.quantity || 0) > 0 || Object.values(item.stockByVariant || {}).some((qty) => Number(qty || 0) > 0);
+    if (!inStock) return;
     addItem({
       id: item.id,
       name: item.name,
@@ -231,6 +233,7 @@ export default function ReviewsAndSimilar({ product }: { product?: Product | nul
         <div className="flex gap-6 overflow-x-auto pb-8 -mx-4 px-4 snap-x snap-mandatory scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           {similarProducts.map((item) => {
             const isAdded = isVariantInCart(item.id, "Default", "");
+            const inStock = Number(item.quantity || 0) > 0 || Object.values(item.stockByVariant || {}).some((qty) => Number(qty || 0) > 0);
             
             return (
               <div key={item.id} className="group flex flex-col w-[75vw] max-w-[280px] sm:w-[250px] md:w-[240px] lg:w-[260px] snap-start flex-shrink-0">
@@ -288,12 +291,13 @@ export default function ReviewsAndSimilar({ product }: { product?: Product | nul
                       <button
                         type="button"
                         onClick={() => handleAddToCart(item)}
-                        className="group/btn w-full py-3 rounded-full text-[11px] font-bold uppercase tracking-[0.15em] transition-all duration-300 border-[1.5px] border-primary text-primary flex items-center justify-center gap-2 hover:bg-primary hover:text-on-primary hover:shadow-lg hover:-translate-y-0.5 active:scale-95"
+                        disabled={!inStock}
+                        className="group/btn w-full py-3 rounded-full text-[11px] font-bold uppercase tracking-[0.15em] transition-all duration-300 border-[1.5px] border-primary text-primary flex items-center justify-center gap-2 hover:bg-primary hover:text-on-primary hover:shadow-lg hover:-translate-y-0.5 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-primary"
                       >
                         <span className="material-symbols-outlined text-[18px] transition-transform duration-300 group-hover/btn:-rotate-12 group-hover/btn:scale-110">
-                          add_shopping_cart
+                          {inStock ? "add_shopping_cart" : "block"}
                         </span>
-                        Add to Cart
+                        {inStock ? "Add to Cart" : "Out of Stock"}
                       </button>
                     )}
                   </div>

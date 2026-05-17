@@ -18,6 +18,7 @@ import {
 import AddressCard from "@/app/components/address/AddressCard";
 import AddressForm from "@/app/components/address/AddressForm";
 import AddressModal from "@/app/components/address/AddressModal";
+import { fetchBackendProducts, matchVariantByCartSize } from "@/app/lib/backendProducts";
 
 declare global {
   interface Window {
@@ -127,6 +128,8 @@ export default function CheckoutPage() {
   const [isLoadingAddresses, setIsLoadingAddresses] = useState(true);
   const [addressError, setAddressError] = useState("");
   const [newAddress, setNewAddress] = useState<UserAddressInput>(createEmptyAddress());
+  const [hasStockConflict, setHasStockConflict] = useState(false);
+  const [stockConflictMessage, setStockConflictMessage] = useState("");
 
   // Use buyNowItem if present (Buy Now flow), otherwise use cart items
   const checkoutItems = buyNowItem ? [buyNowItem] : items;
@@ -149,6 +152,43 @@ export default function CheckoutPage() {
       }
     }
   }, []);
+
+  useEffect(() => {
+    const validateCheckoutStock = async () => {
+      if (!checkoutItems.length) {
+        setHasStockConflict(false);
+        setStockConflictMessage("");
+        return;
+      }
+      try {
+        const products = await fetchBackendProducts();
+        const map = new Map(products.map((product) => [product.id, product]));
+        for (const item of checkoutItems) {
+          const product = map.get(item.id);
+          if (!product) {
+            setHasStockConflict(true);
+            setStockConflictMessage("Some items are unavailable. Please review your cart.");
+            return;
+          }
+          const variant = matchVariantByCartSize(product, item.size);
+          const available = variant
+            ? Math.max(0, Number(variant.stock || 0))
+            : Math.max(0, Number(product.quantity || 0));
+          if (available < Number(item.qty || 0)) {
+            setHasStockConflict(true);
+            setStockConflictMessage("Some items are out of stock. Please update cart before checkout.");
+            return;
+          }
+        }
+        setHasStockConflict(false);
+        setStockConflictMessage("");
+      } catch {
+        setHasStockConflict(false);
+        setStockConflictMessage("");
+      }
+    };
+    validateCheckoutStock();
+  }, [checkoutItems]);
 
   const persistSelectedAddressId = (value: number | null) => {
     if (typeof window === "undefined") return;
@@ -266,6 +306,10 @@ export default function CheckoutPage() {
 
   const handlePayment = async () => {
     if (!checkoutItemCount || isProcessing) return;
+    if (hasStockConflict) {
+      setPaymentError(stockConflictMessage || "Some items are out of stock.");
+      return;
+    }
     if (!selectedAddressId) {
       setPaymentError("Please select a delivery address.");
       return;
@@ -547,7 +591,7 @@ export default function CheckoutPage() {
               <button
                 type="button"
                 onClick={handlePayment}
-                disabled={isProcessing || !selectedAddressId || !isAuthenticated}
+                disabled={isProcessing || !selectedAddressId || !isAuthenticated || hasStockConflict}
                 className="mt-6 w-full bg-primary text-on-primary py-4 rounded-full font-headline text-lg font-bold tracking-wide hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-xl"
               >
                 <span className="material-symbols-outlined">credit_card</span>
@@ -555,6 +599,7 @@ export default function CheckoutPage() {
               </button>
 
               <p className="text-center text-on-surface-variant text-xs font-body mt-3">{paymentMethod === "COD" ? "Cash on Delivery selected" : "Secure checkout via Razorpay"}</p>
+              {hasStockConflict ? <p className="text-center text-sm text-error mt-2">{stockConflictMessage || "Some items are out of stock."}</p> : null}
               {paymentError ? <p className="text-center text-sm text-error mt-2">{paymentError}</p> : null}
             </div>
           )}

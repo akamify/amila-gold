@@ -88,6 +88,7 @@ export default function ProductHeader({ product }: { product?: Product | null })
     }
     return 0;
   }, [product, selectedVariant, selectedSize]);
+  const isOutOfStock = availableStock <= 0;
 
   const [qty, setQty] = useState<number>(1);
   const [isStickyVisible, setIsStickyVisible] = useState(false);
@@ -170,6 +171,7 @@ export default function ProductHeader({ product }: { product?: Product | null })
 
   const handleAddToCart = () => {
     if (!product || productId <= 0) return;
+    if (isOutOfStock) return;
     if (inCart) {
       router.push("/cart");
       return;
@@ -205,6 +207,7 @@ export default function ProductHeader({ product }: { product?: Product | null })
 
   const handleBuyNow = () => {
     if (!product || productId <= 0) return;
+    if (isOutOfStock) return;
 
     // Save Buy Now item to localStorage (doesn't affect cart)
     const buyNowItem = {
@@ -497,6 +500,13 @@ export default function ProductHeader({ product }: { product?: Product | null })
                 ))}
               </div>
             </div>
+            {isOutOfStock ? (
+              <p className="text-sm font-semibold text-error">Out of stock</p>
+            ) : (
+              <p className="text-sm font-medium text-on-surface-variant">
+                {availableStock} in stock
+              </p>
+            )}
 
 
           </div>
@@ -512,7 +522,7 @@ export default function ProductHeader({ product }: { product?: Product | null })
                 <span className="px-4 font-headline font-bold text-xl">{qty}</span>
                 <button
                   onClick={() => setQty((q) => Math.min(availableStock > 0 ? availableStock : 999, q + 1))}
-                  disabled={availableStock > 0 && qty >= availableStock}
+                  disabled={isOutOfStock || (availableStock > 0 && qty >= availableStock)}
                   className="w-10 h-10 flex items-center justify-center hover:text-primary transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   <span className="material-symbols-outlined">add</span>
@@ -522,16 +532,16 @@ export default function ProductHeader({ product }: { product?: Product | null })
               <button
                 type="button"
                 onClick={handleAddToCart}
-                disabled={!product || productId <= 0}
+                disabled={!product || productId <= 0 || isOutOfStock}
                 className={`flex-1 flex items-center justify-center gap-3 py-5 rounded-xl font-black text-xs uppercase tracking-[0.2em] transition-all active:scale-95 shadow-xl ${inCart
                   ? 'bg-white border border-secondary text-secondary shadow-secondary/20'
-                  : 'bg-secondary text-on-secondary shadow-secondary/20 hover:brightness-110'
+                  : 'bg-secondary text-on-secondary shadow-secondary/20 hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed'
                   }`}
               >
                 <span className="material-symbols-outlined text-xl">
                   {inCart ? "done_all" : "shopping_cart"}
                 </span>
-                {inCart ? "Go to Cart" : "Add to Cart"}
+                {inCart ? "Go to Cart" : isOutOfStock ? "Out of Stock" : "Add to Cart"}
               </button>
             </div>
 
@@ -539,11 +549,11 @@ export default function ProductHeader({ product }: { product?: Product | null })
             <button
               type="button"
               onClick={handleBuyNow}
-              disabled={!product || productId <= 0}
-              className="w-full py-4 rounded-xl font-black text-xs uppercase tracking-[0.2em] transition-all active:scale-95 shadow-xl bg-primary text-on-primary shadow-primary/20 hover:brightness-110 flex items-center justify-center gap-3"
+              disabled={!product || productId <= 0 || isOutOfStock}
+              className="w-full py-4 rounded-xl font-black text-xs uppercase tracking-[0.2em] transition-all active:scale-95 shadow-xl bg-primary text-on-primary shadow-primary/20 hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
             >
               <span className="material-symbols-outlined text-xl">bolt</span>
-              Buy Now
+              {isOutOfStock ? "Out of Stock" : "Buy Now"}
             </button>
 
             <button
@@ -577,11 +587,11 @@ export default function ProductHeader({ product }: { product?: Product | null })
             <button
               type="button"
               onClick={handleBuyNow}
-              disabled={!product || productId <= 0}
-              className="flex-1 py-3 rounded-xl font-black text-xs uppercase tracking-[0.2em] transition-all active:scale-95 shadow-xl bg-secondary text-on-secondary shadow-secondary/20 hover:brightness-110 flex items-center justify-center gap-2"
+              disabled={!product || productId <= 0 || isOutOfStock}
+              className="flex-1 py-3 rounded-xl font-black text-xs uppercase tracking-[0.2em] transition-all active:scale-95 shadow-xl bg-secondary text-on-secondary shadow-secondary/20 hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               <span className="material-symbols-outlined text-lg">bolt</span>
-              Buy Now
+              {isOutOfStock ? "Out of Stock" : "Buy Now"}
             </button>
           </div>
         </motion.div>

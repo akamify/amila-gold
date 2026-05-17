@@ -84,6 +84,10 @@ const normalizeServerItems = (serverItems: unknown[]) => {
     serverItems.map((entry) => mapBackendItem((entry || {}) as Record<string, unknown>)),
   );
 };
+const readErrorMessage = (error: unknown, fallback: string) => {
+  if (error instanceof Error && error.message) return error.message;
+  return fallback;
+};
 
 const isSameVariant = (item: CartItem, id: number, size: string, color?: string) => {
   if (item.id !== id || item.size !== size) return false;
@@ -179,9 +183,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
           setItems(normalizeServerItems(serverItems));
         }
       })
-      .catch(() => {
-        // Keep local cart even if backend fails - don't show error
-        setSyncError('');
+      .catch((error) => {
+        // Roll back local add when backend rejects (e.g. out of stock).
+        setItems((prev) =>
+          prev.filter((entry) => !isSameVariant(entry, safeItem.id, safeItem.size, safeItem.color))
+        );
+        setSyncError(readErrorMessage(error, 'Could not add item to cart.'));
       })
       .finally(() => {
         setIsSyncing(false);
@@ -239,8 +246,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
           setItems(normalizeServerItems(serverItems));
         }
       })
-      .catch(() => {
-        setSyncError('Could not update quantity.');
+      .catch((error) => {
+        setSyncError(readErrorMessage(error, 'Could not update quantity.'));
       })
       .finally(() => {
         setIsSyncing(false);

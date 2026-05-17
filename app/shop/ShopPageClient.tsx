@@ -65,6 +65,8 @@ export default function ShopPageClient() {
   const AVAILABLE_WEIGHTS = useMemo(() => ["100g", "250g", "500g", "1kg", "2kg", "5kg"], []);
 
   const handleAddToCart = (product: Product) => {
+    const inStock = Number(product.quantity || 0) > 0 || Object.values(product.stockByVariant || {}).some((qty) => Number(qty || 0) > 0);
+    if (!inStock) return;
     addItem({
       id: product.id,
       name: product.name,
@@ -236,6 +238,7 @@ export default function ShopPageClient() {
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-20">
                 {getSortedProducts().slice((currentPage - 1) * PRODUCTS_PER_PAGE, currentPage * PRODUCTS_PER_PAGE).map((p) => {
+                  const inStock = Number(p.quantity || 0) > 0 || Object.values(p.stockByVariant || {}).some((qty) => Number(qty || 0) > 0);
                   const inCart = isVariantInCart(p.id, selectedWeights[0] || "1kg", "");
                   return (
                     <div key={p.id} className="group relative animate-in fade-in slide-in-from-bottom-8 duration-500 fill-mode-both">
@@ -270,10 +273,11 @@ export default function ShopPageClient() {
                           <button
                             type="button"
                             onClick={() => handleAddToCart(p)}
-                            className="w-full py-5 rounded-2xl bg-white border-2 border-primary text-primary font-bold text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-primary hover:text-white transition-all duration-300 active:scale-95 shadow-sm"
+                            disabled={!inStock}
+                            className="w-full py-5 rounded-2xl bg-white border-2 border-primary text-primary font-bold text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-primary hover:text-white transition-all duration-300 active:scale-95 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-primary"
                           >
                             <span className="material-symbols-outlined text-lg">add_shopping_cart</span>
-                            Add to Cart
+                            {inStock ? "Add to Cart" : "Out of Stock"}
                           </button>
                         )}
                       </div>
