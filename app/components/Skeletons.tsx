@@ -11,18 +11,23 @@ export function ProductGridSkeleton({ count = 4 }: { count?: number }) {
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-20">
       {Array.from({ length: count }).map((_, i) => (
         <article key={i} className="group relative animate-pulse">
-          <div className="relative mb-8 overflow-hidden rounded-[1rem] bg-surface-container-high aspect-square shadow-sm">
-            <div className="absolute inset-0 bg-gradient-to-br from-surface-container-high via-surface-container to-surface-container-high" />
-          </div>
-          <div className="flex flex-col gap-3 px-2">
-            <div className="h-8 bg-surface-container-high rounded-xl w-4/5"></div>
-            <div className="flex items-center gap-3">
-              <div className="h-8 bg-surface-container-high rounded-xl w-24"></div>
-              <div className="h-5 bg-surface-container-high rounded-xl w-16"></div>
+          <div className="flex flex-row sm:block gap-4 sm:gap-0 items-center">
+            <div className="relative overflow-hidden rounded-[1rem] bg-surface-container-high w-28 h-30 sm:w-auto sm:h-auto sm:aspect-square sm:mb-8 shadow-sm shrink-0">
+              <div className="absolute inset-0 bg-gradient-to-br from-surface-container-high via-surface-container to-surface-container-high" />
             </div>
-          </div>
-          <div className="mt-6 px-2">
-            <div className="h-14 bg-surface-container-high rounded-2xl w-full"></div>
+
+            <div className="flex-1">
+              <div className="flex flex-col gap-2 px-1 sm:px-2">
+                <div className="h-6 sm:h-8 bg-surface-container-high rounded-xl w-4/5"></div>
+                <div className="flex items-center gap-3">
+                  <div className="h-6 sm:h-8 bg-surface-container-high rounded-xl w-24"></div>
+                  <div className="h-4 sm:h-5 bg-surface-container-high rounded-xl w-16"></div>
+                </div>
+              </div>
+              <div className="mt-4 sm:mt-6 px-1 sm:px-2">
+                <div className="h-9 sm:h-14 bg-surface-container-high rounded-2xl w-full"></div>
+              </div>
+            </div>
           </div>
         </article>
       ))}
