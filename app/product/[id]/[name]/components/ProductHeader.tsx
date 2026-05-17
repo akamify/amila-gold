@@ -61,6 +61,16 @@ export default function ProductHeader({ product }: { product?: Product | null })
     return uniq;
   }, [product?.image, product?.images, selectedVariant]);
 
+  const infiniteImages = useMemo(() => {
+    if (galleryImages.length <= 1) return galleryImages;
+
+    return [
+      galleryImages[galleryImages.length - 1],
+      ...galleryImages,
+      galleryImages[0],
+    ];
+  }, [galleryImages]);
+
   // Calculate available stock for selected variant/size
   const availableStock = useMemo(() => {
     if (!product) return 0;
@@ -86,6 +96,8 @@ export default function ProductHeader({ product }: { product?: Product | null })
   // Set the first image from our robust gallery as active initially
   const [activeImage, setActiveImage] = useState<string>(galleryImages[0] || initialImage);
   const mobileCarouselRef = useRef<HTMLDivElement | null>(null);
+  const isAdjustingRef = useRef(false);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     // If the variant image changes, update the main view
@@ -102,13 +114,16 @@ export default function ProductHeader({ product }: { product?: Product | null })
 
   useEffect(() => {
     const el = mobileCarouselRef.current;
+
     if (!el) return;
-    const idx = activeImage ? galleryImages.indexOf(activeImage) : -1;
-    if (idx < 0) return;
-    const width = el.clientWidth || 0;
-    if (!width) return;
-    el.scrollTo({ left: idx * width, behavior: "smooth" });
-  }, [activeImage, galleryImages]);
+
+    if (infiniteImages.length <= 1) return;
+
+    const width = el.clientWidth;
+
+    el.scrollLeft = width;
+  }, [infiniteImages.length]);
+
 
   const handleShare = async () => {
     if (!product) return;
@@ -215,32 +230,60 @@ export default function ProductHeader({ product }: { product?: Product | null })
       {/* --- Main Section: Horizontal Scrollable Images (Desktop & Mobile) --- */}
       <div className="lg:col-span-7 order-1 w-full lg:sticky lg:top-28 self-start">
         {/* Mobile: horizontal scrollable carousel */}
+        {/* Mobile: horizontal scrollable carousel */}
         <div className="lg:hidden relative overflow-hidden rounded-[2rem] bg-surface-container-low shadow-2xl shadow-primary/5">
           <div
             ref={mobileCarouselRef}
+            className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar touch-pan-x"
+            style={{
+              WebkitOverflowScrolling: "touch",
+              scrollBehavior: "smooth",
+            }}
             onScroll={(e) => {
               const el = e.currentTarget;
-              const width = el.clientWidth || 0;
-              if (!width) return;
-              const idx = Math.round(el.scrollLeft / width);
-              const next = galleryImages[idx];
-              if (next && next !== activeImage) setActiveImage(next);
+
+              if ((el as typeof el & { scrollTimeout?: NodeJS.Timeout }).scrollTimeout) {
+                clearTimeout((el as typeof el & { scrollTimeout?: NodeJS.Timeout }).scrollTimeout);
+              }
+
+              (el as typeof el & { scrollTimeout?: NodeJS.Timeout }).scrollTimeout =
+                setTimeout(() => {
+                  const width = el.clientWidth;
+                  const index = Math.round(el.scrollLeft / width);
+
+                  const nextImage = galleryImages[index];
+
+                  if (nextImage && nextImage !== activeImage) {
+                    setActiveImage(nextImage);
+                  }
+
+                  // FORCE exact single-image snap
+                  el.scrollTo({
+                    left: index * width,
+                    behavior: "smooth",
+                  });
+                }, 80);
             }}
-            className="flex overflow-x-auto snap-x snap-mandatory scroll-smooth hide-scrollbar"
           >
-            {(galleryImages.length ? galleryImages : [initialImage]).filter(Boolean).map((src, idx) => (
-              <div key={`${src}-${idx}`} className="relative snap-center flex-none w-full aspect-square">
-                <Image
-                  alt={product?.name ?? "Product Image"}
-                  src={src}
-                  fill
-                  unoptimized
-                  priority={idx === 0}
-                  sizes="100vw"
-                  className="object-cover"
-                />
-              </div>
-            ))}
+            {(galleryImages.length ? galleryImages : [initialImage])
+              .filter(Boolean)
+              .map((src, idx) => (
+                <div
+                  key={`${src}-${idx}`}
+                  className="relative w-full flex-none aspect-square snap-center snap-always"
+                >
+                  <Image
+                    alt={product?.name ?? "Product Image"}
+                    src={src}
+                    fill
+                    unoptimized
+                    priority={idx === 0}
+                    sizes="100vw"
+                    draggable={false}
+                    className="object-cover pointer-events-none select-none"
+                  />
+                </div>
+              ))}
           </div>
 
           {/* Floating Badge */}
@@ -249,9 +292,17 @@ export default function ProductHeader({ product }: { product?: Product | null })
             transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
             className="absolute top-4 right-4 w-20 h-20 rounded-full bg-secondary/90 backdrop-blur-md text-on-secondary flex flex-col items-center justify-center text-center p-3 shadow-xl z-10 border border-white/20 pointer-events-none"
           >
-            <span className="font-label text-[8px] uppercase tracking-widest opacity-80">Pure</span>
-            <span className="font-headline font-black text-lg leading-none my-0.5">100%</span>
-            <span className="font-headline italic text-[10px]">Organic</span>
+            <span className="font-label text-[8px] uppercase tracking-widest opacity-80">
+              Pure
+            </span>
+
+            <span className="font-headline font-black text-lg leading-none my-0.5">
+              100%
+            </span>
+
+            <span className="font-headline italic text-[10px]">
+              Organic
+            </span>
           </motion.div>
 
           <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none z-[1]" />
