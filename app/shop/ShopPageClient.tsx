@@ -96,8 +96,8 @@ export default function ShopPageClient() {
     if (checkedCategories.length > 0) results = results.filter(p => checkedCategories.includes(String(p.category || "")));
     results = results.filter(p => p.price <= maxPrice);
     if (selectedWeights.length > 0) {
-      results = results.filter(p => 
-        selectedWeights.some(weight => 
+      results = results.filter(p =>
+        selectedWeights.some(weight =>
           p.name.toLowerCase().includes(weight.toLowerCase()) ||
           String(p.description || "").toLowerCase().includes(weight.toLowerCase())
         )
@@ -162,7 +162,7 @@ export default function ShopPageClient() {
           <div className="sticky top-32 space-y-12">
             <section className="bg-surface-container-low/50 p-8 rounded-[1rem] border border-outline-variant/30 backdrop-blur-md">
               <h3 className="font-headline text-2xl font-bold text-primary mb-8 tracking-tight">Filters</h3>
-              
+
               <div className="space-y-10">
                 {/* Category Filter */}
                 <div>
@@ -241,45 +241,86 @@ export default function ShopPageClient() {
                   const inStock = Number(p.quantity || 0) > 0 || Object.values(p.stockByVariant || {}).some((qty) => Number(qty || 0) > 0);
                   const inCart = isVariantInCart(p.id, selectedWeights[0] || "1kg", "");
                   return (
-                    <div key={p.id} className="group relative animate-in fade-in slide-in-from-bottom-8 duration-500 fill-mode-both">
-                      <Link href={`/product/${p.id}/${p.name.toLowerCase().replace(/\s+/g, '-')}`} className="block">
-                        <div className="relative mb-8 overflow-hidden rounded-[1rem] bg-surface-container-high aspect-square shadow-sm group-hover:shadow-2xl transition-all duration-700">
-                          <Image src={p.image} alt={p.name} fill unoptimized className="object-cover transition-transform duration-1000 group-hover:scale-110" />
-                          <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                        </div>
-                        
-                        <div className="flex flex-col gap-2 px-2">
-                          <div className="flex justify-between items-start">
-                            <h3 className="font-headline text-2xl text-primary font-bold group-hover:text-secondary transition-colors duration-300">{p.name}</h3>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <span className="text-2xl font-black text-primary">₹{p.price}</span>
-                            {p.originalPrice && <span className="text-sm text-on-surface-variant/50 line-through font-bold">₹{p.originalPrice}</span>}
-                          </div>
-                        </div>
-                      </Link>
+                    <div
+                      key={p.id}
+                      className="group relative animate-in fade-in slide-in-from-bottom-8 duration-500 fill-mode-both"
+                    >
+                      <div className="flex flex-row-reverse sm:block gap-4 sm:gap-0 items-center">
 
-                      {/* Add to Cart / Go to Cart Logic */}
-                      <div className="mt-6 px-2">
-                        {inCart ? (
-                          <Link 
-                            href="/cart"
-                            className="w-full py-5 rounded-2xl bg-secondary text-white font-bold text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-lg shadow-secondary/30 hover:scale-[1.02] active:scale-95 transition-all"
+                        {/* LEFT CONTENT */}
+                        <div className="flex-1 order-1 sm:order-none">
+                          <Link
+                            href={`/product/${p.id}/${p.name.toLowerCase().replace(/\s+/g, '-')}`}
+                            className="block"
                           >
-                            <span className="material-symbols-outlined text-lg">shopping_cart_checkout</span>
-                            Go to Cart
+                            <div className="flex flex-col gap-2 px-1 sm:px-2">
+                              <div className="flex justify-between items-start">
+                                <h3 className="font-headline text-base sm:text-2xl text-primary font-bold truncate max-w-[180px] sm:max-w-none group-hover:text-secondary transition-colors duration-300">
+                                  {p.name}
+                                </h3>
+                              </div>
+
+                              <div className="flex items-center gap-3">
+                                <span className="text-xl sm:text-2xl font-black text-primary">
+                                  ₹{p.price}
+                                </span>
+
+                                {p.originalPrice && (
+                                  <span className="text-xs sm:text-sm text-on-surface-variant/50 line-through font-bold">
+                                    ₹{p.originalPrice}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
                           </Link>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => handleAddToCart(p)}
-                            disabled={!inStock}
-                            className="w-full py-5 rounded-2xl bg-white border-2 border-primary text-primary font-bold text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-primary hover:text-white transition-all duration-300 active:scale-95 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-primary"
-                          >
-                            <span className="material-symbols-outlined text-lg">add_shopping_cart</span>
-                            {inStock ? "Add to Cart" : "Out of Stock"}
-                          </button>
-                        )}
+
+                          {/* CART BUTTON */}
+                          <div className="mt-4 px-1 sm:px-2">
+                            {inCart ? (
+                              <Link
+                                href="/cart"
+                                className="w-full py-3 sm:py-5 rounded-2xl bg-secondary text-white font-bold text-[10px] sm:text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-2 sm:gap-3 shadow-lg shadow-secondary/30 hover:scale-[1.02] active:scale-95 transition-all"
+                              >
+                                <span className="material-symbols-outlined text-base sm:text-lg">
+                                  shopping_cart_checkout
+                                </span>
+
+                                Go to Cart
+                              </Link>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handleAddToCart(p)}
+                                disabled={!inStock}
+                                className="w-full py-2 sm:py-5 rounded-2xl bg-white border-2 border-primary text-primary font-bold text-[9px] sm:text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-2 sm:gap-3 hover:bg-primary hover:text-white transition-all duration-300 active:scale-95 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-primary"
+                              >
+                                <span className="material-symbols-outlined text-sm sm:text-lg">
+                                  add_shopping_cart
+                                </span>
+
+                                {inStock ? "Add to Cart" : "Out of Stock"}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* RIGHT IMAGE */}
+                        <Link
+                          href={`/product/${p.id}/${p.name.toLowerCase().replace(/\s+/g, '-')}`}
+                          className="block order-2 sm:order-none"
+                        >
+                          <div className="relative overflow-hidden rounded-[1rem] bg-surface-container-high w-28 h-30 sm:w-auto sm:h-auto sm:aspect-square sm:mb-8 shadow-sm group-hover:shadow-2xl transition-all duration-700">
+                            <Image
+                              src={p.image}
+                              alt={p.name}
+                              fill
+                              unoptimized
+                              className="object-cover transition-transform duration-1000 group-hover:scale-110"
+                            />
+
+                            <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                          </div>
+                        </Link>
                       </div>
                     </div>
                   );
@@ -313,115 +354,114 @@ export default function ShopPageClient() {
       <div className={`fixed inset-0 z-[100] transition-opacity duration-500 lg:hidden ${showMobileFilter ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}>
         <div className="absolute inset-0 bg-primary/40 backdrop-blur-md" onClick={closeMobileFilter} />
         <div className={`absolute bottom-0 left-0 right-0 h-[85vh] bg-surface rounded-t-[2rem] p-5 transform transition-transform duration-500 ease-out ${showMobileFilter ? "translate-y-0" : "translate-y-full"}`}>
-            <div className="w-12 h-1.5 bg-outline-variant/50 rounded-[2rem] mx-auto mb-10" />
-            <div className="flex justify-between items-center mb-10">
-              <h3 className="text-3xl font-bold text-primary tracking-tighter">Refine Selection</h3>
-              <button onClick={closeMobileFilter} className="w-12 h-12 bg-surface-variant/20 rounded-full flex items-center justify-center">
-                <span className="material-symbols-outlined">close</span>
+          <div className="w-12 h-1.5 bg-outline-variant/50 rounded-[2rem] mx-auto mb-10" />
+          <div className="flex justify-between items-center mb-10">
+            <h3 className="text-3xl font-bold text-primary tracking-tighter">Refine Selection</h3>
+            <button onClick={closeMobileFilter} className="w-12 h-12 bg-surface-variant/20 rounded-full flex items-center justify-center">
+              <span className="material-symbols-outlined">close</span>
+            </button>
+          </div>
+          <div
+            className="overflow-y-auto overscroll-contain touch-pan-y h-[calc(100%-140px)] space-y-8 pb-28 pr-1"
+            data-lenis-prevent="true"
+            onWheel={(event) => event.stopPropagation()}
+            onTouchMove={(event) => event.stopPropagation()}
+          >
+            <section className="bg-surface-container-low/50 border border-outline-variant/20 rounded-[2rem] p-6">
+              <div className="flex items-center justify-between gap-4 mb-5">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.28em] text-on-surface-variant font-black mb-2">Sort By</p>
+                  <h4 className="text-xl font-bold text-primary">Choose your flow</h4>
+                </div>
+                <span className="material-symbols-outlined text-secondary">swap_vert</span>
+              </div>
+              <div className="grid grid-cols-1 gap-3">
+                {sortOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => {
+                      setSortOption(option.value);
+                    }}
+                    className={`w-full rounded-2xl px-4 py-3 text-left text-sm font-bold transition-all ${sortOption === option.value
+                      ? "bg-primary text-white shadow-lg shadow-primary/20"
+                      : "bg-white border border-outline-variant text-primary"
+                      }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            <section className="bg-surface-container-low/50 border border-outline-variant/20 rounded-[2rem] p-6">
+              <div className="flex items-center justify-between gap-4 mb-5">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.28em] text-on-surface-variant font-black mb-2">By Category</p>
+                  <h4 className="text-xl font-bold text-primary">Pick your favorites</h4>
+                </div>
+                <span className="text-xs font-bold uppercase tracking-[0.22em] text-secondary">
+                  {checkedCategories.length} selected
+                </span>
+              </div>
+              <div className="space-y-3">
+                {CATEGORIES.map((cat) => (
+                  <label key={cat} className="flex items-center gap-4 group cursor-pointer rounded-2xl border border-outline-variant/20 bg-white px-4 py-4">
+                    <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all duration-300 ${checkedCategories.includes(cat) ? 'bg-secondary border-secondary' : 'border-outline-variant group-hover:border-secondary'}`}>
+                      {checkedCategories.includes(cat) && <span className="material-symbols-outlined text-white text-lg">check</span>}
+                    </div>
+                    <input type="checkbox" className="hidden" checked={checkedCategories.includes(cat)} onChange={() => toggleCat(cat)} readOnly />
+                    <span className={`font-medium transition-colors ${checkedCategories.includes(cat) ? 'text-primary font-bold' : 'text-on-surface-variant group-hover:text-primary'}`}>{cat}</span>
+                  </label>
+                ))}
+              </div>
+            </section>
+
+            <section className="bg-surface-container-low/50 border border-outline-variant/20 rounded-[2rem] p-6">
+              <div className="flex items-center justify-between gap-4 mb-6">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.28em] text-on-surface-variant font-black mb-2">Price Range</p>
+                  <h4 className="text-xl font-bold text-primary">Set your ceiling</h4>
+                </div>
+                <span className="px-3 py-1 rounded-full bg-secondary/10 text-secondary text-xs font-black">
+                  Up to Rs {maxPrice}
+                </span>
+              </div>
+              <input type="range" className="w-full accent-secondary h-1.5 bg-outline-variant rounded-lg appearance-none cursor-pointer" min={priceRange.min} max={priceRange.max} value={maxPrice} onChange={(e) => setMaxPrice(Number(e.target.value))} />
+              <div className="flex justify-between mt-4 text-sm font-bold text-primary">
+                <span>Rs {priceRange.min}</span>
+                <span>Rs {priceRange.max}</span>
+              </div>
+            </section>
+
+            <section className="bg-surface-container-low/50 border border-outline-variant/20 rounded-[2rem] p-6">
+              <div className="flex items-center justify-between gap-4 mb-5">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.28em] text-on-surface-variant font-black mb-2">Weight</p>
+                  <h4 className="text-xl font-bold text-primary">Choose pack size</h4>
+                </div>
+                <span className="text-xs font-bold uppercase tracking-[0.22em] text-secondary">
+                  {selectedWeights.length} selected
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {AVAILABLE_WEIGHTS.map((w) => (
+                  <button key={w} onClick={() => toggleWeight(w)} className={`px-4 py-3 text-xs font-bold rounded-xl border transition-all ${selectedWeights.includes(w) ? "bg-primary text-white border-primary shadow-lg shadow-primary/20" : "bg-white border-outline-variant hover:border-secondary"}`}>
+                    {w}
+                  </button>
+                ))}
+              </div>
+            </section>
+          </div>
+          <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-surface via-surface to-transparent">
+            <div className="flex items-center gap-3">
+              <button onClick={clearAllFilters} className="flex-1 rounded-2xl border border-outline-variant px-4 py-4 text-xs font-bold uppercase tracking-[0.22em] text-primary">
+                Reset All
+              </button>
+              <button onClick={closeMobileFilter} className="flex-1 rounded-2xl bg-primary px-4 py-4 text-xs font-bold uppercase tracking-[0.22em] text-white shadow-xl shadow-primary/20">
+                View {filteredProducts.length} Results
               </button>
             </div>
-            <div
-              className="overflow-y-auto overscroll-contain touch-pan-y h-[calc(100%-140px)] space-y-8 pb-28 pr-1"
-              data-lenis-prevent="true"
-              onWheel={(event) => event.stopPropagation()}
-              onTouchMove={(event) => event.stopPropagation()}
-            >
-                <section className="bg-surface-container-low/50 border border-outline-variant/20 rounded-[2rem] p-6">
-                  <div className="flex items-center justify-between gap-4 mb-5">
-                    <div>
-                      <p className="text-[10px] uppercase tracking-[0.28em] text-on-surface-variant font-black mb-2">Sort By</p>
-                      <h4 className="text-xl font-bold text-primary">Choose your flow</h4>
-                    </div>
-                    <span className="material-symbols-outlined text-secondary">swap_vert</span>
-                  </div>
-                  <div className="grid grid-cols-1 gap-3">
-                    {sortOptions.map((option) => (
-                      <button
-                        key={option.value}
-                        onClick={() => {
-                          setSortOption(option.value);
-                        }}
-                        className={`w-full rounded-2xl px-4 py-3 text-left text-sm font-bold transition-all ${
-                          sortOption === option.value
-                            ? "bg-primary text-white shadow-lg shadow-primary/20"
-                            : "bg-white border border-outline-variant text-primary"
-                        }`}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                </section>
-
-                <section className="bg-surface-container-low/50 border border-outline-variant/20 rounded-[2rem] p-6">
-                  <div className="flex items-center justify-between gap-4 mb-5">
-                    <div>
-                      <p className="text-[10px] uppercase tracking-[0.28em] text-on-surface-variant font-black mb-2">By Category</p>
-                      <h4 className="text-xl font-bold text-primary">Pick your favorites</h4>
-                    </div>
-                    <span className="text-xs font-bold uppercase tracking-[0.22em] text-secondary">
-                      {checkedCategories.length} selected
-                    </span>
-                  </div>
-                  <div className="space-y-3">
-                    {CATEGORIES.map((cat) => (
-                      <label key={cat} className="flex items-center gap-4 group cursor-pointer rounded-2xl border border-outline-variant/20 bg-white px-4 py-4">
-                        <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all duration-300 ${checkedCategories.includes(cat) ? 'bg-secondary border-secondary' : 'border-outline-variant group-hover:border-secondary'}`}>
-                          {checkedCategories.includes(cat) && <span className="material-symbols-outlined text-white text-lg">check</span>}
-                        </div>
-                        <input type="checkbox" className="hidden" checked={checkedCategories.includes(cat)} onChange={() => toggleCat(cat)} readOnly />
-                        <span className={`font-medium transition-colors ${checkedCategories.includes(cat) ? 'text-primary font-bold' : 'text-on-surface-variant group-hover:text-primary'}`}>{cat}</span>
-                      </label>
-                    ))}
-                  </div>
-                </section>
-
-                <section className="bg-surface-container-low/50 border border-outline-variant/20 rounded-[2rem] p-6">
-                  <div className="flex items-center justify-between gap-4 mb-6">
-                    <div>
-                      <p className="text-[10px] uppercase tracking-[0.28em] text-on-surface-variant font-black mb-2">Price Range</p>
-                      <h4 className="text-xl font-bold text-primary">Set your ceiling</h4>
-                    </div>
-                    <span className="px-3 py-1 rounded-full bg-secondary/10 text-secondary text-xs font-black">
-                      Up to Rs {maxPrice}
-                    </span>
-                  </div>
-                  <input type="range" className="w-full accent-secondary h-1.5 bg-outline-variant rounded-lg appearance-none cursor-pointer" min={priceRange.min} max={priceRange.max} value={maxPrice} onChange={(e) => setMaxPrice(Number(e.target.value))} />
-                  <div className="flex justify-between mt-4 text-sm font-bold text-primary">
-                    <span>Rs {priceRange.min}</span>
-                    <span>Rs {priceRange.max}</span>
-                  </div>
-                </section>
-
-                <section className="bg-surface-container-low/50 border border-outline-variant/20 rounded-[2rem] p-6">
-                  <div className="flex items-center justify-between gap-4 mb-5">
-                    <div>
-                      <p className="text-[10px] uppercase tracking-[0.28em] text-on-surface-variant font-black mb-2">Weight</p>
-                      <h4 className="text-xl font-bold text-primary">Choose pack size</h4>
-                    </div>
-                    <span className="text-xs font-bold uppercase tracking-[0.22em] text-secondary">
-                      {selectedWeights.length} selected
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    {AVAILABLE_WEIGHTS.map((w) => (
-                      <button key={w} onClick={() => toggleWeight(w)} className={`px-4 py-3 text-xs font-bold rounded-xl border transition-all ${selectedWeights.includes(w) ? "bg-primary text-white border-primary shadow-lg shadow-primary/20" : "bg-white border-outline-variant hover:border-secondary"}`}>
-                        {w}
-                      </button>
-                    ))}
-                  </div>
-                </section>
-            </div>
-            <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-surface via-surface to-transparent">
-              <div className="flex items-center gap-3">
-                <button onClick={clearAllFilters} className="flex-1 rounded-2xl border border-outline-variant px-4 py-4 text-xs font-bold uppercase tracking-[0.22em] text-primary">
-                  Reset All
-                </button>
-                <button onClick={closeMobileFilter} className="flex-1 rounded-2xl bg-primary px-4 py-4 text-xs font-bold uppercase tracking-[0.22em] text-white shadow-xl shadow-primary/20">
-                  View {filteredProducts.length} Results
-                </button>
-              </div>
-            </div>
+          </div>
         </div>
       </div>
     </main>

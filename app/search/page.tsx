@@ -285,46 +285,131 @@ export default function SearchPage() {
                   const inStock = Number(p.quantity || 0) > 0 || Object.values(p.stockByVariant || {}).some((qty) => Number(qty || 0) > 0);
                   const inCart = isVariantInCart(p.id, selectedWeights[0] || "1kg", "");
                   return (
-                    <motion.div layout initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} key={p.id} className="group relative">
-                      <Link href={`/product/${p.id}/${p.name.toLowerCase().replace(/\s+/g, '-')}`}>
-                        <div className="relative aspect-square rounded-[1rem] overflow-hidden bg-surface-container-high mb-6 shadow-sm group-hover:shadow-2xl group-hover:shadow-primary/5 transition-all duration-700">
-                          <Image src={p.image} alt={p.name} fill unoptimized className="object-cover transition-transform duration-1000 group-hover:scale-110" />
-                          <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <motion.div
+                      layout
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      key={p.id}
+                      className="group relative"
+                    >
+                      <div className="flex flex-row sm:block gap-4 sm:gap-0 items-center">
 
-                          <div className="absolute bottom-6 right-6">
-                            <motion.button
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.95 }}
-                              onClick={(e) => {
-                                e.preventDefault();
+                        {/* IMAGE */}
+                        <Link
+                          href={`/product/${p.id}/${p.name.toLowerCase().replace(/\s+/g, '-')}`}
+                          className="block shrink-0"
+                        >
+                          <div className="relative overflow-hidden rounded-[1rem] bg-surface-container-high w-28 h-30 sm:w-auto sm:h-auto sm:aspect-square sm:mb-6 shadow-sm group-hover:shadow-2xl group-hover:shadow-primary/5 transition-all duration-700">
+                            <Image
+                              src={p.image}
+                              alt={p.name}
+                              fill
+                              unoptimized
+                              className="object-cover transition-transform duration-1000 group-hover:scale-110"
+                            />
+
+                            <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                            {/* DESKTOP FLOATING BUTTON */}
+                            <div className="hidden sm:block absolute bottom-6 right-6">
+                              <motion.button
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={(e) => {
+                                  e.preventDefault();
+
+                                  if (inCart) {
+                                    window.location.href = "/cart";
+                                    return;
+                                  }
+
+                                  if (inStock) handleAddToCart(p);
+                                }}
+                                disabled={!inCart && !inStock}
+                                className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-xl backdrop-blur-md transition-all duration-500 ${inCart
+                                    ? "bg-secondary text-on-secondary"
+                                    : "bg-white/90 text-primary hover:bg-primary hover:text-white"
+                                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                              >
+                                <span className="material-symbols-outlined text-2xl">
+                                  {inCart
+                                    ? "shopping_bag"
+                                    : inStock
+                                      ? "add_shopping_cart"
+                                      : "block"}
+                                </span>
+                              </motion.button>
+                            </div>
+                          </div>
+                        </Link>
+
+                        {/* CONTENT */}
+                        <div className="flex-1 px-1 sm:px-2">
+                          <Link
+                            href={`/product/${p.id}/${p.name.toLowerCase().replace(/\s+/g, '-')}`}
+                          >
+                            <div className="space-y-2">
+                              <h3 className="font-headline text-base sm:text-lg lg:text-xl font-bold text-primary group-hover:text-secondary transition-colors duration-300 truncate max-w-[180px] sm:max-w-none">
+                                {p.name}
+                              </h3>
+
+                              <div className="flex items-center gap-2">
+                                <span className="font-headline text-lg sm:text-xl text-secondary">
+                                  Rs {p.price}
+                                </span>
+
+                                {p.originalPrice && (
+                                  <span className="text-[10px] sm:text-xs text-on-surface-variant line-through opacity-40 italic">
+                                    Rs {p.originalPrice}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </Link>
+
+                          {/* MOBILE BUTTON */}
+                          <div className="sm:hidden mt-3">
+                            <button
+                              onClick={() => {
                                 if (inCart) {
                                   window.location.href = "/cart";
                                   return;
                                 }
+
                                 if (inStock) handleAddToCart(p);
                               }}
                               disabled={!inCart && !inStock}
-                              className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-xl backdrop-blur-md transition-all duration-500 ${inCart ? "bg-secondary text-on-secondary" : "bg-white/90 text-primary hover:bg-primary hover:text-white"} disabled:opacity-50 disabled:cursor-not-allowed`}
+                              className={`w-full py-2 rounded-xl text-[10px] font-bold uppercase tracking-[0.18em] flex items-center justify-center gap-2 transition-all ${inCart
+                                  ? "bg-secondary text-white"
+                                  : "bg-primary text-white"
+                                } disabled:opacity-50`}
                             >
-                              <span className="material-symbols-outlined text-2xl">{inCart ? "shopping_bag" : inStock ? "add_shopping_cart" : "block"}</span>
-                            </motion.button>
-                          </div>
-                        </div>
-                      </Link>
+                              <span className="material-symbols-outlined text-sm">
+                                {inCart
+                                  ? "shopping_bag"
+                                  : inStock
+                                    ? "add_shopping_cart"
+                                    : "block"}
+                              </span>
 
-                      <div className="px-2 space-y-2">
-                        <div className="flex justify-between items-start">
-                          <h3 className="font-headline text-lg lg:text-xl font-bold text-primary group-hover:text-secondary transition-colors duration-300 line-clamp-1">{p.name}</h3>
+                              {inCart ? "Go to Cart" : inStock ? "Add to Cart" : "Out of Stock"}
+                            </button>
+                          </div>
+
+                          {inCart && (
+                            <motion.div
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              className="hidden sm:flex items-center gap-1 text-[10px] text-secondary font-black uppercase tracking-widest mt-2"
+                            >
+                              <span className="material-symbols-outlined text-xs">
+                                check_circle
+                              </span>
+
+                              In Cart
+                            </motion.div>
+                          )}
                         </div>
-                        <div className="flex items-center gap-3">
-                          <span className="font-headline text-xl text-secondary">Rs {p.price}</span>
-                          {p.originalPrice && <span className="text-xs text-on-surface-variant line-through opacity-40 italic">Rs {p.originalPrice}</span>}
-                        </div>
-                        {inCart && (
-                          <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-1 text-[10px] text-secondary font-black uppercase tracking-widest">
-                            <span className="material-symbols-outlined text-xs">check_circle</span> In Cart
-                          </motion.div>
-                        )}
                       </div>
                     </motion.div>
                   );
