@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
+const resolveBackendUrl = () => {
+  const candidate =
+    process.env.BACKEND_PROXY_TARGET ||
+    process.env.BACKEND_URL ||
+    process.env.NEXT_PUBLIC_BACKEND_URL ||
+    'http://localhost:8080';
+  return String(candidate).replace(/\/$/, '');
+};
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -30,7 +37,8 @@ async function proxyRequest(
     backendPath = `/api/backend/${pathString}`;
   }
   
-  const url = `${BACKEND_URL}${backendPath}${searchParams ? `?${searchParams}` : ''}`;
+  const backendBase = resolveBackendUrl();
+  const url = `${backendBase}${backendPath}${searchParams ? `?${searchParams}` : ''}`;
 
   try {
     const headers = new Headers(request.headers);

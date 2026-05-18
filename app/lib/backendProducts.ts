@@ -297,17 +297,29 @@ export function normalizeBackendProduct(input: unknown): Product {
 }
 
 export async function fetchBackendProducts(query?: string): Promise<Product[]> {
-    const baseCandidates = getBackendBaseUrlCandidates();
+    const rawCandidates = getBackendBaseUrlCandidates();
+    const baseCandidates = (() => {
+        if (typeof window !== 'undefined') {
+            const proxy = '/api/backend';
+            const others = rawCandidates.filter((entry) => entry !== proxy);
+            return [proxy, ...others];
+        }
+        return rawCandidates;
+    })();
     for (const baseUrl of baseCandidates) {
         try {
             const endpoint = query && query.trim().length > 0
                 ? `${baseUrl}/user/search?search=${encodeURIComponent(query.trim())}&limit=100`
                 : `${baseUrl}/user/show-product?limit=100`;
 
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 3500);
             const response = await fetch(endpoint, {
                 method: 'GET',
                 cache: 'no-store',
+                signal: controller.signal,
             });
+            clearTimeout(timeout);
 
             if (!response.ok) continue;
 
@@ -331,13 +343,25 @@ export async function fetchBackendProductById(id: string | number): Promise<Prod
     const idValue = String(id || '').trim();
     if (!idValue) return null;
 
-    const baseCandidates = getBackendBaseUrlCandidates();
+    const rawCandidates = getBackendBaseUrlCandidates();
+    const baseCandidates = (() => {
+        if (typeof window !== 'undefined') {
+            const proxy = '/api/backend';
+            const others = rawCandidates.filter((entry) => entry !== proxy);
+            return [proxy, ...others];
+        }
+        return rawCandidates;
+    })();
     for (const baseUrl of baseCandidates) {
         try {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 3500);
             const response = await fetch(`${baseUrl}/user/get-product-byid/${encodeURIComponent(idValue)}`, {
                 method: 'GET',
                 cache: 'no-store',
+                signal: controller.signal,
             });
+            clearTimeout(timeout);
 
             if (!response.ok) continue;
 

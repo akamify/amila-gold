@@ -6,10 +6,13 @@ import Image from "next/image";
 export default function HeritageSection() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isMuted, setIsMuted] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined") {
+      setIsMobile(true);
+      return;
+    }
     const media = window.matchMedia("(max-width: 768px)");
     const apply = () => setIsMobile(media.matches);
     apply();
@@ -19,7 +22,7 @@ export default function HeritageSection() {
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || isMobile) return;
+    if (!video || isMobile !== false) return;
 
     // Desktop autoplay only to avoid mobile decode/startup cost.
     video.muted = true;
@@ -119,7 +122,7 @@ export default function HeritageSection() {
               
               {/* Video Container - will-change use kiya hai glitch fix ke liye */}
               <div className="relative aspect-[4/5] md:aspect-square lg:aspect-[4/5] w-full rounded-2xl overflow-hidden shadow-2xl bg-slate-100 transform-gpu will-change-transform">
-                {isMobile ? (
+                {isMobile !== false ? (
                   <Image
                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-2z1dIigqEBYNJuzA_d5P4XiqmlBm3djIsa_mIZxua1FX5wTpi_-_qbCaM85WuFX_NHUr56w868SFwcrRuinbc8xFDx7vB70lXBFpimL4GcJ3Hr2O-GvfuaoDbXzQLU4CrjDAtartUEP19NKHCbYgguWYHs9Y30jspsFgnwvgPah3TisIMry62W8JoUZhTILGObXhlsgDMUQ-sc43-dogRjNw8fiItJnfyUIDrHEo-qJSp9IJbWcRX8vUQNfC28mO9gM9fslOEvo"
                     alt="Amila heritage"
@@ -144,7 +147,7 @@ export default function HeritageSection() {
                 )}
 
                 {/* Mute/Unmute Control - Bottom Right */}
-                {!isMobile && (
+                {isMobile === false && (
                   <button
                     onClick={toggleMute}
                     className="absolute bottom-6 right-6 z-30 w-12 h-12 rounded-full bg-black/50 backdrop-blur-md border border-white/20 flex items-center justify-center text-white hover:bg-black/70 transition-all shadow-xl active:scale-90"
