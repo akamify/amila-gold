@@ -139,8 +139,9 @@ export default function SpotlightProductsSection() {
                         src={product.image}
                         alt={product.name}
                         fill
-                        unoptimized
                         className="object-cover transition-transform duration-700 group-hover:scale-105"
+                        sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
+                        loading="lazy"
                       />
                     )}
 

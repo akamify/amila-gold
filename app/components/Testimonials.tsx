@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import React, { useEffect, useRef, useState } from "react";
 import * as apiClient from "../lib/apiClient";
 import { TestimonialsGridSkeleton } from "./Skeletons";
 
@@ -19,12 +18,7 @@ const TESTIMONIALS_CACHE_TIME = 5 * 60 * 1000; // 5 minutes
 function TestimonialsSection() {
   const [testimonials, setTestimonials] = useState<TestimonialItem[]>(FALLBACK_TESTIMONIALS);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [step, setStep] = useState(0);
-  const [maxOffset, setMaxOffset] = useState(0);
-
   const trackRef = useRef<HTMLDivElement | null>(null);
-  const firstCardRef = useRef<HTMLDivElement | null>(null);
 
   // Load testimonials from localStorage (fast initial load)
   const getCachedTestimonials = (): TestimonialItem[] | null => {
@@ -98,80 +92,17 @@ function TestimonialsSection() {
       });
   }, []);
 
-  useEffect(() => {
-    setTimeout(() => {
-      setActiveIndex(0);
-    }, 100);
-  }, [testimonials.length]);
-
-  const measure = useCallback(() => {
+  const scrollTrack = (direction: "prev" | "next") => {
     const track = trackRef.current;
-    const firstCard = firstCardRef.current;
-
-    if (!track || !firstCard) return;
-
-    const trackStyles = window.getComputedStyle(track);
-    const gapValue = trackStyles.columnGap || trackStyles.gap || "0";
-    const gap = Number.parseFloat(gapValue) || 0;
-
-    const cardWidth = firstCard.getBoundingClientRect().width;
-    const nextStep = cardWidth + gap;
-
-    const parentWidth = track.parentElement?.getBoundingClientRect().width || 0;
-    const nextMaxOffset = Math.max(track.scrollWidth - parentWidth, 0);
-
-    setStep(nextStep);
-    setMaxOffset(nextMaxOffset);
-  }, []);
-
-  useLayoutEffect(() => {
-    measure();
-
-    const ro = new ResizeObserver(() => {
-      measure();
+    if (!track) return;
+    const card = track.querySelector<HTMLElement>("[data-testimonial-card]");
+    const cardWidth = card?.offsetWidth ?? 0;
+    const step = cardWidth + 24;
+    track.scrollBy({
+      left: direction === "next" ? step : -step,
+      behavior: "smooth",
     });
-
-    if (trackRef.current) ro.observe(trackRef.current);
-    if (firstCardRef.current) ro.observe(firstCardRef.current);
-    window.addEventListener("resize", measure);
-
-    return () => {
-      ro.disconnect();
-      window.removeEventListener("resize", measure);
-    };
-  }, [measure, testimonials.length]);
-
-  const maxIndex = Math.max(testimonials.length - 1, 0);
-
-  const clampIndex = useCallback(
-    (nextIndex: number) => Math.max(0, Math.min(nextIndex, maxIndex)),
-    [maxIndex]
-  );
-
-  const scrollToIndex = useCallback(
-    (nextIndex: number) => {
-      setActiveIndex(clampIndex(nextIndex));
-    },
-    [clampIndex]
-  );
-
-  const handleDragEnd = useCallback(
-    (_: unknown, info: { offset: { x: number }; velocity: { x: number } }) => {
-      const swipePower = Math.abs(info.offset.x) + Math.abs(info.velocity.x) * 0.2;
-
-      if (info.offset.x < -40 || info.velocity.x < -500 || swipePower > 120) {
-        setActiveIndex((i) => clampIndex(i + 1));
-        return;
-      }
-
-      if (info.offset.x > 40 || info.velocity.x > 500 || swipePower > 120) {
-        setActiveIndex((i) => clampIndex(i - 1));
-      }
-    },
-    [clampIndex]
-  );
-
-  const currentOffset = Math.min(activeIndex * step, maxOffset);
+  };
 
   return (
     <section className="py-10 lg:py-32 bg-surface overflow-hidden">
@@ -187,9 +118,8 @@ function TestimonialsSection() {
 
           <div className="hidden md:flex gap-3 justify-end">
             <button
-              onClick={() => scrollToIndex(activeIndex - 1)}
-              disabled={activeIndex === 0}
-              className="w-12 h-12 rounded-full border border-primary/20 flex items-center justify-center text-primary hover:bg-primary/5 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              onClick={() => scrollTrack("prev")}
+              className="w-12 h-12 rounded-full border border-primary/20 flex items-center justify-center text-primary hover:bg-primary/5 transition-all"
               aria-label="Previous Testimonial"
               type="button"
             >
@@ -208,9 +138,8 @@ function TestimonialsSection() {
             </button>
 
             <button
-              onClick={() => scrollToIndex(activeIndex + 1)}
-              disabled={activeIndex >= maxIndex}
-              className="w-12 h-12 rounded-full border border-primary/20 flex items-center justify-center text-primary hover:bg-primary/5 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              onClick={() => scrollTrack("next")}
+              className="w-12 h-12 rounded-full border border-primary/20 flex items-center justify-center text-primary hover:bg-primary/5 transition-all"
               aria-label="Next Testimonial"
               type="button"
             >
@@ -232,9 +161,8 @@ function TestimonialsSection() {
 
         <div className="flex md:hidden justify-end gap-3 mb-5">
           <button
-            onClick={() => scrollToIndex(activeIndex - 1)}
-            disabled={activeIndex === 0}
-            className="w-10 h-10 rounded-full border border-primary/20 flex items-center justify-center text-primary hover:bg-primary/5 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            onClick={() => scrollTrack("prev")}
+            className="w-10 h-10 rounded-full border border-primary/20 flex items-center justify-center text-primary hover:bg-primary/5 transition-all"
             aria-label="Previous Testimonial"
             type="button"
           >
@@ -253,9 +181,8 @@ function TestimonialsSection() {
           </button>
 
           <button
-            onClick={() => scrollToIndex(activeIndex + 1)}
-            disabled={activeIndex >= maxIndex}
-            className="w-10 h-10 rounded-full border border-primary/20 flex items-center justify-center text-primary hover:bg-primary/5 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            onClick={() => scrollTrack("next")}
+            className="w-10 h-10 rounded-full border border-primary/20 flex items-center justify-center text-primary hover:bg-primary/5 transition-all"
             aria-label="Next Testimonial"
             type="button"
           >
@@ -275,24 +202,10 @@ function TestimonialsSection() {
         </div>
 
         <div className="relative overflow-hidden">
-          <AnimatePresence mode="wait">
-            {isLoading ? (
-              <motion.div
-                key="loading"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                <TestimonialsGridSkeleton count={3} />
-              </motion.div>
-            ) : testimonials.length === 0 ? (
-              <motion.div
-                key="notfound"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="flex flex-col items-center justify-center py-16 md:py-24 text-center"
-              >
+          {isLoading ? (
+            <TestimonialsGridSkeleton count={3} />
+          ) : testimonials.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 md:py-24 text-center">
                 <div className="w-20 h-20 rounded-full bg-surface-container-low flex items-center justify-center mb-6">
                   <span className="material-symbols-outlined text-4xl text-on-surface-variant/40">chat_bubble_outline</span>
                 </div>
@@ -302,27 +215,17 @@ function TestimonialsSection() {
                 <p className="text-on-surface-variant/70 max-w-md mx-auto">
                   Be the first to share your experience with our community. Your feedback helps others discover the authentic taste of tradition.
                 </p>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="testimonials"
+            </div>
+          ) : (
+              <div
                 ref={trackRef}
-                drag="x"
-                dragConstraints={{ left: -maxOffset, right: 0 }}
-                dragElastic={0.08}
-                dragMomentum
-                onDragEnd={handleDragEnd}
-                animate={{ x: -currentOffset }}
-                transition={{ type: "spring", stiffness: 240, damping: 30 }}
-                className="flex gap-6 md:gap-8 cursor-grab active:cursor-grabbing touch-pan-y"
+                className="hide-scrollbar flex gap-6 md:gap-8 overflow-x-auto snap-x snap-mandatory scroll-smooth"
               >
                 {testimonials.map((t, index) => (
-                  <motion.div
+                  <div
                     key={t.id || `${t.name}-${index}`}
-                    ref={index === 0 ? firstCardRef : null}
-                    whileHover={{ y: -4 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="testimonial-card [flex:0_0_85%] md:[flex:0_0_45%] lg:[flex:0_0_30%] shrink-0 p-8 md:p-10 bg-surface-container-low rounded-[2rem] hover:shadow-sm transition-all duration-300 flex flex-col justify-between"
+                    data-testimonial-card
+                    className="testimonial-card snap-start [flex:0_0_85%] md:[flex:0_0_45%] lg:[flex:0_0_30%] shrink-0 p-8 md:p-10 bg-surface-container-low rounded-[2rem] hover:shadow-sm transition-all duration-300 flex flex-col justify-between"
                   >
                     <div>
                       <svg
@@ -365,11 +268,10 @@ function TestimonialsSection() {
                         </span>
                       </div>
                     </div>
-                  </motion.div>
+                  </div>
                 ))}
-              </motion.div>
+              </div>
             )}
-          </AnimatePresence>
         </div>
       </div>
     </section>

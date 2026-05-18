@@ -1,17 +1,28 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
+import Image from "next/image";
 
 export default function HeritageSection() {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const media = window.matchMedia("(max-width: 768px)");
+    const apply = () => setIsMobile(media.matches);
+    apply();
+    media.addEventListener("change", apply);
+    return () => media.removeEventListener("change", apply);
+  }, []);
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || isMobile) return;
 
-    // 1. Initial Play attempt (Unmuted)
-    video.muted = false;
+    // Desktop autoplay only to avoid mobile decode/startup cost.
+    video.muted = true;
     const playPromise = video.play();
 
     if (playPromise !== undefined) {
@@ -46,7 +57,7 @@ export default function HeritageSection() {
       video.removeEventListener("ended", handleVideoEnd);
       video.removeEventListener("timeupdate", handleIteration);
     };
-  }, []);
+  }, [isMobile]);
 
   const toggleMute = () => {
     if (videoRef.current) {
@@ -108,26 +119,41 @@ export default function HeritageSection() {
               
               {/* Video Container - will-change use kiya hai glitch fix ke liye */}
               <div className="relative aspect-[4/5] md:aspect-square lg:aspect-[4/5] w-full rounded-2xl overflow-hidden shadow-2xl bg-slate-100 transform-gpu will-change-transform">
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  loop
-                  playsInline
-                  className="w-full h-full object-cover"
-                >
-                  <source src="jaggery.mp4" type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
+                {isMobile ? (
+                  <Image
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-2z1dIigqEBYNJuzA_d5P4XiqmlBm3djIsa_mIZxua1FX5wTpi_-_qbCaM85WuFX_NHUr56w868SFwcrRuinbc8xFDx7vB70lXBFpimL4GcJ3Hr2O-GvfuaoDbXzQLU4CrjDAtartUEP19NKHCbYgguWYHs9Y30jspsFgnwvgPah3TisIMry62W8JoUZhTILGObXhlsgDMUQ-sc43-dogRjNw8fiItJnfyUIDrHEo-qJSp9IJbWcRX8vUQNfC28mO9gM9fslOEvo"
+                    alt="Amila heritage"
+                    fill
+                    loading="lazy"
+                    sizes="(max-width: 768px) 100vw, 58vw"
+                    className="object-cover"
+                  />
+                ) : (
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    muted
+                    loop
+                    preload="metadata"
+                    playsInline
+                    className="w-full h-full object-cover"
+                  >
+                    <source src="jaggery.mp4" type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
+                )}
 
                 {/* Mute/Unmute Control - Bottom Right */}
-                <button
-                  onClick={toggleMute}
-                  className="absolute bottom-6 right-6 z-30 w-12 h-12 rounded-full bg-black/50 backdrop-blur-md border border-white/20 flex items-center justify-center text-white hover:bg-black/70 transition-all shadow-xl active:scale-90"
-                >
-                  <span className="material-symbols-outlined !text-2xl pointer-events-none">
-                    {isMuted ? "volume_off" : "volume_up"}
-                  </span>
-                </button>
+                {!isMobile && (
+                  <button
+                    onClick={toggleMute}
+                    className="absolute bottom-6 right-6 z-30 w-12 h-12 rounded-full bg-black/50 backdrop-blur-md border border-white/20 flex items-center justify-center text-white hover:bg-black/70 transition-all shadow-xl active:scale-90"
+                  >
+                    <span className="material-symbols-outlined !text-2xl pointer-events-none">
+                      {isMuted ? "volume_off" : "volume_up"}
+                    </span>
+                  </button>
+                )}
 
                 {/* Gradient Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60 pointer-events-none" />
