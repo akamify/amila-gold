@@ -7,34 +7,10 @@ import { usePathname } from "next/navigation";
 export default function ClientWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith("/admin");
-  const disableSmoothScroll = pathname?.startsWith("/product/");
+  const disableSmoothScroll = true;
 
   useEffect(() => {
-    let locomotiveScroll: any;
-    
-    if (isAdmin || disableSmoothScroll) {
-      if (locomotiveScroll) locomotiveScroll.destroy();
-      return;
-    }
-
-    (async () => {
-      try {
-        const LocomotiveScroll = (await import("locomotive-scroll")).default;
-        locomotiveScroll = new LocomotiveScroll({
-          lenisOptions: {
-            lerp: 0.1,
-            duration: 1.2,
-            smoothWheel: true,
-          }
-        });
-      } catch (error) {
-        console.error("Locomotive Scroll initialization failed:", error);
-      }
-    })();
-
-    return () => {
-      if (locomotiveScroll) locomotiveScroll.destroy();
-    };
+    if (isAdmin || disableSmoothScroll) return;
   }, [isAdmin, disableSmoothScroll]);
 
   if (isAdmin) {

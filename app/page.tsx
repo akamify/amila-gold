@@ -19,9 +19,13 @@ async function getInitialBanners() {
   const base = String(fallbackBase).replace(/\/$/, "");
 
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 1200);
     const response = await fetch(`${base}/api/backend/admin/banners/public`, {
       next: { revalidate: 60 },
+      signal: controller.signal,
     });
+    clearTimeout(timeout);
     if (!response.ok) return [];
     const data = await response.json();
     const rows = Array.isArray(data?.banners) ? (data.banners as BannerRow[]) : [];
