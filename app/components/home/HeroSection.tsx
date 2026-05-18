@@ -7,29 +7,42 @@ import { ChevronLeft, ChevronRight, ShoppingBag } from "lucide-react";
 import { fetchPublicBanners } from "@/app/lib/apiClient";
 import { peekCached } from "@/app/lib/clientCache";
 
-export default function HeroSection() {
-  const [banners, setBanners] = useState<Array<{ id: string; title: string; subtitle: string; href: string; img: string }>>([]);
+type HeroBanner = {
+  id: string;
+  title: string;
+  subtitle: string;
+  href: string;
+  img: string;
+};
+
+type HeroSectionProps = {
+  initialBanners?: HeroBanner[];
+};
+
+const processRows = (rows: any[]): HeroBanner[] =>
+  rows
+    .filter((row) => row.imageUrl && row.targetUrl && row.title)
+    .map((row) => ({
+      id: String(row.id || row._id || row.imageUrl),
+      title: row.title,
+      subtitle: row.subtitle || "",
+      href: row.targetUrl,
+      img: row.imageUrl,
+    }));
+
+export default function HeroSection({ initialBanners = [] }: HeroSectionProps) {
+  const [banners, setBanners] = useState<HeroBanner[]>(initialBanners);
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
     const cached = peekCached<any[]>("banners:public").data;
-    const processData = (rows: any[]) => 
-      rows
-        .filter((row) => row.imageUrl && row.targetUrl && row.title)
-        .map((row) => ({
-          id: row.id,
-          title: row.title,
-          subtitle: row.subtitle || "",
-          href: row.targetUrl,
-          img: row.imageUrl,
-        }));
 
     if (Array.isArray(cached) && cached.length) {
-      setBanners(processData(cached));
+      setBanners(processRows(cached));
     }
     
     fetchPublicBanners()
-      .then((rows) => setBanners(processData(rows)))
+      .then((rows) => setBanners(processRows(rows)))
       .catch(() => setBanners([]));
   }, []);
 
@@ -105,6 +118,9 @@ export default function HeroSection() {
             alt={slide.title}
             fill
             priority={index === 0}
+            fetchPriority={index === 0 ? "high" : "auto"}
+            loading={index === 0 ? "eager" : "lazy"}
+            sizes="100vw"
             className={`object-cover transition-transform duration-[10000ms] ease-linear ${
               activeIndex === index ? "scale-110" : "scale-100"
             }`}
