@@ -279,7 +279,6 @@ export default function ProductHeader({ product }: { product?: Product | null })
                     alt={product?.name ?? "Product Image"}
                     src={src}
                     fill
-                    unoptimized
                     priority={idx === 0}
                     sizes="100vw"
                     draggable={false}
@@ -327,7 +326,6 @@ export default function ProductHeader({ product }: { product?: Product | null })
                   alt={product?.name ?? "Product Image"}
                   src={activeImage}
                   fill
-                  unoptimized
                   priority
                   sizes="(min-width: 1024px) 50vw, 100vw"
                   className="object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-105"
@@ -374,7 +372,6 @@ export default function ProductHeader({ product }: { product?: Product | null })
                         alt={`${product?.name ?? "Product"} - Image ${index + 1}`}
                         src={src}
                         fill
-                        unoptimized
                         className={`relative flex-none w-24 h-24 object-cover overflow-hidden rounded-xl ring-2 transition-all duration-300 ${isActive ? "ring-primary" : "ring-outline-variant/40"}`}
                       />
                       {/* Subtle overlay on active */}

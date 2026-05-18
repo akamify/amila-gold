@@ -70,9 +70,9 @@ function FeaturedProductsSkeleton() {
   );
 }
 
-export default function FeaturedProductsSection() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function FeaturedProductsSection({ initialProducts = [] }: { initialProducts?: Product[] }) {
+  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [loading, setLoading] = useState(initialProducts.length === 0);
   const [error, setError] = useState("");
   const { settings } = useSiteSettings();
   const currencySymbol = settings.currencySymbol || "₹";
@@ -87,6 +87,7 @@ export default function FeaturedProductsSection() {
   const isGridMode = products.length <= 3;
 
   useEffect(() => {
+    if (initialProducts.length > 0) return;
     window.setTimeout(() => {
       const cached = peekCached<Product[]>("products:all").data;
       if (Array.isArray(cached) && cached.length) {
@@ -104,7 +105,7 @@ export default function FeaturedProductsSection() {
         setError("Failed to load products");
         setLoading(false);
       });
-  }, []);
+  }, [initialProducts.length]);
 
   useEffect(() => {
     const el = mobileTrackRef.current;

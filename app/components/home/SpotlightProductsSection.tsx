@@ -21,16 +21,17 @@ function discountPct(original: number | undefined, selling: number) {
   return Math.min(95, Math.round(((original - selling) / original) * 100));
 }
 
-export default function SpotlightProductsSection() {
+export default function SpotlightProductsSection({ initialProducts = [] }: { initialProducts?: Product[] }) {
   const router = useRouter();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [loading, setLoading] = useState(initialProducts.length === 0);
   const [error, setError] = useState("");
   const { addItem, isVariantInCart } = useCart();
   const { settings } = useSiteSettings();
   const currencySymbol = settings.currencySymbol || "₹";
 
   useEffect(() => {
+    if (initialProducts.length > 0) return;
     const cached = peekCached<Product[]>("products:all").data;
     if (Array.isArray(cached) && cached.length) {
       setProducts(cached);
@@ -46,7 +47,7 @@ export default function SpotlightProductsSection() {
         setError("Failed to load products");
         setLoading(false);
       });
-  }, []);
+  }, [initialProducts.length]);
 
   const spotlight = useMemo(() => products.slice(0, 5), [products]);
 
