@@ -7,6 +7,7 @@ import { useCart } from "@/app/context/CartContext";
 import ProductGridSkeleton from "@/app/components/ProductGridSkeleton";
 import type { Product } from "@/app/data/products";
 import { fetchBackendProducts } from "@/app/lib/backendProducts";
+import { flyImageToCart } from "@/app/lib/flyToCart";
 
 const sortOptions = [
   { label: "Featured", value: "featured" },
@@ -108,9 +109,22 @@ export default function SearchPage() {
     }
   };
 
-  const handleAddToCart = (product: Product) => {
+  const handleAddToCart = (product: Product, event?: React.MouseEvent) => {
     const inStock = Number(product.quantity || 0) > 0 || Object.values(product.stockByVariant || {}).some((qty) => Number(qty || 0) > 0);
     if (!inStock) return;
+
+    try {
+      const card = (event?.currentTarget as HTMLElement | null)?.closest?.("[data-product-card]") as HTMLElement | null;
+      const img = card?.querySelector?.("img") as HTMLImageElement | null;
+      const fromRect = img?.getBoundingClientRect?.() ?? (event?.currentTarget as HTMLElement | undefined)?.getBoundingClientRect?.();
+      const imageUrl = String(product.image || "").trim();
+      if (fromRect && imageUrl) {
+        flyImageToCart({ imageUrl, fromRect, durationMs: 950 });
+      }
+    } catch {
+      // ignore
+    }
+
     addItem({
       id: product.id,
       name: product.name,
@@ -290,6 +304,7 @@ export default function SearchPage() {
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
                       key={p.id}
+                      data-product-card
                       className="group relative"
                     >
                       <div className="flex flex-row sm:block gap-4 sm:gap-0 items-center">
@@ -323,7 +338,7 @@ export default function SearchPage() {
                                     return;
                                   }
 
-                                  if (inStock) handleAddToCart(p);
+                                  if (inStock) handleAddToCart(p, e);
                                 }}
                                 disabled={!inCart && !inStock}
                                 className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-xl backdrop-blur-md transition-all duration-500 ${inCart
@@ -370,13 +385,13 @@ export default function SearchPage() {
                           {/* MOBILE BUTTON */}
                           <div className="sm:hidden mt-3">
                             <button
-                              onClick={() => {
+                              onClick={(e) => {
                                 if (inCart) {
                                   window.location.href = "/cart";
                                   return;
                                 }
 
-                                if (inStock) handleAddToCart(p);
+                                if (inStock) handleAddToCart(p, e);
                               }}
                               disabled={!inCart && !inStock}
                               className={`w-full py-2 rounded-xl text-[10px] font-bold uppercase tracking-[0.18em] flex items-center justify-center gap-2 transition-all ${inCart

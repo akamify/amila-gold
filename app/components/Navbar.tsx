@@ -55,7 +55,7 @@ export default function Navbar() {
 
           <div className="flex items-center gap-4 sm:gap-6 text-stone-900">
             <Link href="/search" className="hover:text-amber-600 transition-colors"><span className="material-symbols-outlined text-[24px] md:text-[26px]">search</span></Link>
-            <Link href="/cart" className="relative hover:text-amber-600 transition-colors">
+            <Link href="/cart" className="relative hover:text-amber-600 transition-colors" data-cart-target>
               <span className="material-symbols-outlined text-[24px] md:text-[26px]">shopping_bag</span>
               {stableCartCount > 0 && (
                 <span className="absolute -top-1.5 -right-2 bg-amber-500 text-stone-900 text-[10px] min-w-[18px] h-[18px] rounded-full flex items-center justify-center font-bold">{stableCartCount}</span>

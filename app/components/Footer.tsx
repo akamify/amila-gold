@@ -114,7 +114,12 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="bg-[#153421] text-[#F7F5F0] rounded-t-[2.5rem] md:rounded-t-[4rem] mt-20 overflow-hidden font-sans">
+    <footer className="relative bg-[#153421] text-[#F7F5F0] rounded-t-[2.5rem] md:rounded-t-[4rem] mt-20 overflow-hidden font-sans" data-site-footer>
+      <div
+        data-footer-sentinel
+        className="absolute left-0 top-0 h-px w-full pointer-events-none opacity-0"
+        aria-hidden="true"
+      />
       <div className="container mx-auto px-6 py-16 lg:px-12 lg:py-24 max-w-7xl">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8">
           <div className="lg:col-span-4 flex flex-col items-start">

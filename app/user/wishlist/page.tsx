@@ -6,6 +6,7 @@ import { useRequireAuth } from "@/app/context/AuthContext";
 import { useWishlist } from "@/app/context/WishlistContext";
 import { createProductHref } from "@/app/data/products";
 import { ProductGridSkeleton } from "@/app/components/Skeletons";
+import { flyImageToCart } from "@/app/lib/flyToCart";
 
 export default function WishlistPage() {
   const { addItem, isVariantInCart } = useCart();
@@ -27,7 +28,19 @@ export default function WishlistPage() {
 
   if (!isAuthenticated) return null;
 
-  const handleAddToCart = (item: { id: number; name: string; price: number; image: string; collection: string }) => {
+  const handleAddToCart = (item: { id: number; name: string; price: number; image: string; collection: string }, event?: React.MouseEvent) => {
+    try {
+      const card = (event?.currentTarget as HTMLElement | null)?.closest?.("[data-product-card]") as HTMLElement | null;
+      const img = card?.querySelector?.("img") as HTMLImageElement | null;
+      const fromRect = img?.getBoundingClientRect?.() ?? (event?.currentTarget as HTMLElement | undefined)?.getBoundingClientRect?.();
+      const imageUrl = String(item.image || "").trim();
+      if (fromRect && imageUrl) {
+        flyImageToCart({ imageUrl, fromRect, durationMs: 950 });
+      }
+    } catch {
+      // ignore
+    }
+
     addItem({
       id: item.id,
       name: item.name,
@@ -51,7 +64,7 @@ export default function WishlistPage() {
       {/* Product Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-12">
         {items.map((item) => (
-          <div key={item.id} className="group">
+          <div key={item.id} data-product-card className="group">
             <div className="relative overflow-hidden rounded-xl aspect-[4/5] bg-surface-container-high mb-4">
               <img
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
@@ -95,7 +108,7 @@ export default function WishlistPage() {
 
             <button
               type="button"
-              onClick={() => handleAddToCart(item)}
+              onClick={(e) => handleAddToCart(item, e)}
               disabled={isVariantInCart(item.id, "Default", "")}
               className={`w-full py-3.5 rounded-full font-label text-xs tracking-widest font-bold uppercase flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg ${isVariantInCart(item.id, "Default", "") ? "bg-secondary text-white shadow-secondary/20 disabled:opacity-75" : "bg-primary text-on-primary hover:bg-primary-container shadow-primary/20"
                 }`}

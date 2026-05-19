@@ -6,6 +6,7 @@ import { useCart } from "@/app/context/CartContext";
 import ProductGridSkeleton from "@/app/components/ProductGridSkeleton";
 import type { Product } from "@/app/data/products";
 import { fetchBackendProducts } from "@/app/lib/backendProducts";
+import { flyImageToCart } from "@/app/lib/flyToCart";
 
 const sortOptions = [
   { label: "Featured", value: "featured" },
@@ -64,9 +65,22 @@ export default function ShopPageClient() {
 
   const AVAILABLE_WEIGHTS = useMemo(() => ["100g", "250g", "500g", "1kg", "2kg", "5kg"], []);
 
-  const handleAddToCart = (product: Product) => {
+  const handleAddToCart = (product: Product, event?: React.MouseEvent) => {
     const inStock = Number(product.quantity || 0) > 0 || Object.values(product.stockByVariant || {}).some((qty) => Number(qty || 0) > 0);
     if (!inStock) return;
+
+    try {
+      const card = (event?.currentTarget as HTMLElement | null)?.closest?.("[data-product-card]") as HTMLElement | null;
+      const img = card?.querySelector?.("img") as HTMLImageElement | null;
+      const fromRect = img?.getBoundingClientRect?.() ?? (event?.currentTarget as HTMLElement | undefined)?.getBoundingClientRect?.();
+      const imageUrl = String(product.image || "").trim();
+      if (fromRect && imageUrl) {
+        flyImageToCart({ imageUrl, fromRect, durationMs: 950 });
+      }
+    } catch {
+      // ignore
+    }
+
     addItem({
       id: product.id,
       name: product.name,
@@ -241,10 +255,11 @@ export default function ShopPageClient() {
                   const inStock = Number(p.quantity || 0) > 0 || Object.values(p.stockByVariant || {}).some((qty) => Number(qty || 0) > 0);
                   const inCart = isVariantInCart(p.id, selectedWeights[0] || "1kg", "");
                   return (
-                    <div
-                      key={p.id}
-                      className="group relative animate-in fade-in slide-in-from-bottom-8 duration-500 fill-mode-both"
-                    >
+                  <div
+                    key={p.id}
+                    data-product-card
+                    className="group relative animate-in fade-in slide-in-from-bottom-8 duration-500 fill-mode-both"
+                  >
                       <div className="flex flex-row-reverse sm:block gap-4 sm:gap-0 items-center">
 
                         {/* RIGHT IMAGE */}
@@ -307,7 +322,7 @@ export default function ShopPageClient() {
                             ) : (
                               <button
                                 type="button"
-                                onClick={() => handleAddToCart(p)}
+                                onClick={(e) => handleAddToCart(p, e)}
                                 disabled={!inStock}
                                 className="w-full py-2 sm:py-5 rounded-2xl bg-white border-2 border-primary text-primary font-bold text-[9px] sm:text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-2 sm:gap-3 hover:bg-primary hover:text-white transition-all duration-300 active:scale-95 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-primary"
                               >

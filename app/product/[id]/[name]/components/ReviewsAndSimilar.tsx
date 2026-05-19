@@ -10,6 +10,7 @@ import { fetchProductReviews, submitProductReview } from "@/app/lib/apiClient";
 import { createProductHref } from "@/app/data/products";
 import type { ReviewFormState } from "./types";
 import type { Product } from "@/app/data/products";
+import { flyImageToCart } from "@/app/lib/flyToCart";
 
 type DynamicReview = {
   id: string;
@@ -126,9 +127,22 @@ export default function ReviewsAndSimilar({ product }: { product?: Product | nul
     }
   };
 
-  const handleAddToCart = (item: Product) => {
+  const handleAddToCart = (item: Product, event?: React.MouseEvent) => {
     const inStock = Number(item.quantity || 0) > 0 || Object.values(item.stockByVariant || {}).some((qty) => Number(qty || 0) > 0);
     if (!inStock) return;
+
+    try {
+      const card = (event?.currentTarget as HTMLElement | null)?.closest?.("[data-product-card]") as HTMLElement | null;
+      const img = card?.querySelector?.("img") as HTMLImageElement | null;
+      const fromRect = img?.getBoundingClientRect?.() ?? (event?.currentTarget as HTMLElement | undefined)?.getBoundingClientRect?.();
+      const imageUrl = String(item.image || "").trim();
+      if (fromRect && imageUrl) {
+        flyImageToCart({ imageUrl, fromRect, durationMs: 950 });
+      }
+    } catch {
+      // ignore
+    }
+
     addItem({
       id: item.id,
       name: item.name,
@@ -236,7 +250,7 @@ export default function ReviewsAndSimilar({ product }: { product?: Product | nul
             const inStock = Number(item.quantity || 0) > 0 || Object.values(item.stockByVariant || {}).some((qty) => Number(qty || 0) > 0);
             
             return (
-              <div key={item.id} className="group flex flex-col w-[75vw] max-w-[280px] sm:w-[250px] md:w-[240px] lg:w-[260px] snap-start flex-shrink-0">
+              <div key={item.id} data-product-card className="group flex flex-col w-[75vw] max-w-[280px] sm:w-[250px] md:w-[240px] lg:w-[260px] snap-start flex-shrink-0">
                 {/* Image Card Container */}
                 <Link href={createProductHref(item)} className="block relative">
                   <div className="w-full aspect-[4/5] rounded-3xl overflow-hidden bg-surface-container-low mb-5 shadow-sm group-hover:shadow-xl transition-all duration-500 relative">
@@ -290,7 +304,7 @@ export default function ReviewsAndSimilar({ product }: { product?: Product | nul
                     ) : (
                       <button
                         type="button"
-                        onClick={() => handleAddToCart(item)}
+                        onClick={(e) => handleAddToCart(item, e)}
                         disabled={!inStock}
                         className="group/btn w-full py-3 rounded-full text-[11px] font-bold uppercase tracking-[0.15em] transition-all duration-300 border-[1.5px] border-primary text-primary flex items-center justify-center gap-2 hover:bg-primary hover:text-on-primary hover:shadow-lg hover:-translate-y-0.5 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-primary"
                       >

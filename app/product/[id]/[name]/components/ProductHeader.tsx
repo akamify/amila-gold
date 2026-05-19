@@ -8,8 +8,38 @@ import { useCart } from "@/app/context/CartContext";
 import { useWishlist } from "@/app/context/WishlistContext";
 import { useSiteSettings } from "@/app/context/SiteSettingsContext";
 import type { Product } from '@/app/data/products';
+import { flyImageToCart } from "@/app/lib/flyToCart";
 
-export default function ProductHeader({ product }: { product?: Product | null }) {
+type ProductHeaderProps = {
+  product?: Product | null;
+  onStickyInfoChange?: (info: FloatingPurchaseInfo) => void;
+  addToCartButtonRef?: React.Ref<HTMLButtonElement>;
+  buyNowButtonRef?: React.Ref<HTMLButtonElement>;
+};
+
+export type FloatingPurchaseInfo = {
+  name: string;
+  image: string;
+  price: number;
+  originalPrice?: number | null;
+  currencySymbol: string;
+  qty: number;
+  isOutOfStock: boolean;
+  inCart: boolean;
+};
+
+function assignRef<T>(ref: React.Ref<T> | undefined, value: T | null) {
+  if (!ref) return;
+  if (typeof ref === "function") ref(value);
+  else (ref as React.MutableRefObject<T | null>).current = value;
+}
+
+export default function ProductHeader({
+  product,
+  onStickyInfoChange,
+  addToCartButtonRef,
+  buyNowButtonRef,
+}: ProductHeaderProps) {
   const router = useRouter();
   const { toggle, isInWishlist } = useWishlist();
   const { settings } = useSiteSettings();
@@ -91,12 +121,12 @@ export default function ProductHeader({ product }: { product?: Product | null })
   const isOutOfStock = availableStock <= 0;
 
   const [qty, setQty] = useState<number>(1);
-  const [isStickyVisible, setIsStickyVisible] = useState(false);
   const [shareStatus, setShareStatus] = useState('');
 
   // Set the first image from our robust gallery as active initially
   const [activeImage, setActiveImage] = useState<string>(galleryImages[0] || initialImage);
   const mobileCarouselRef = useRef<HTMLDivElement | null>(null);
+  const mainImageContainerRef = useRef<HTMLDivElement | null>(null);
   const isAdjustingRef = useRef(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -125,6 +155,30 @@ export default function ProductHeader({ product }: { product?: Product | null })
     el.scrollLeft = width;
   }, [infiniteImages.length]);
 
+  useEffect(() => {
+    if (!onStickyInfoChange) return;
+    onStickyInfoChange({
+      name: product?.name ?? "Product",
+      image: (activeImage || initialImage || "").trim(),
+      price: Number(displayPrice || 0),
+      originalPrice: typeof displayOriginal === "number" ? displayOriginal : null,
+      currencySymbol,
+      qty,
+      isOutOfStock,
+      inCart,
+    });
+  }, [
+    onStickyInfoChange,
+    product?.name,
+    activeImage,
+    initialImage,
+    displayPrice,
+    displayOriginal,
+    currencySymbol,
+    qty,
+    isOutOfStock,
+    inCart,
+  ]);
 
   const handleShare = async () => {
     if (!product) return;
@@ -157,24 +211,30 @@ export default function ProductHeader({ product }: { product?: Product | null })
     window.setTimeout(() => setShareStatus(''), 2500);
   };
 
-  // Handle scroll for sticky mobile button
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
-      // Show sticky button after scrolling past the product details section
-      setIsStickyVisible(scrollY > 400);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const handleAddToCart = () => {
+  const handleAddToCart = (event?: React.MouseEvent) => {
     if (!product || productId <= 0) return;
     if (isOutOfStock) return;
     if (inCart) {
       router.push("/cart");
       return;
+    }
+
+    try {
+      const fromRect =
+        mainImageContainerRef.current?.getBoundingClientRect() ||
+        mobileCarouselRef.current?.getBoundingClientRect() ||
+        (event?.currentTarget as HTMLElement | null)?.getBoundingClientRect() ||
+        null;
+
+      const imageUrl = (activeImage || initialImage || "").trim();
+      if (fromRect && imageUrl) {
+        flyImageToCart({
+          imageUrl,
+          fromRect,
+        });
+      }
+    } catch {
+      // ignore animation failures
     }
 
     addItem({
@@ -311,7 +371,7 @@ export default function ProductHeader({ product }: { product?: Product | null })
         </div>
 
         {/* Desktop: cross-fade hero image */}
-        <div className="hidden lg:block relative group overflow-hidden rounded-[2rem] bg-surface-container-low shadow-2xl shadow-primary/5 aspect-[4/3]">
+        <div ref={mainImageContainerRef} className="hidden lg:block relative group overflow-hidden rounded-[2rem] bg-surface-container-low shadow-2xl shadow-primary/5 aspect-[4/3]">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeImage}
@@ -522,6 +582,7 @@ export default function ProductHeader({ product }: { product?: Product | null })
                 type="button"
                 onClick={handleAddToCart}
                 disabled={!product || productId <= 0 || isOutOfStock}
+                ref={(el) => assignRef(addToCartButtonRef, el)}
                 className={`flex-1 flex items-center justify-center gap-3 py-5 rounded-xl font-black text-xs uppercase tracking-[0.2em] transition-all active:scale-95 shadow-xl ${inCart
                   ? 'bg-white border border-secondary text-secondary shadow-secondary/20'
                   : 'bg-secondary text-on-secondary shadow-secondary/20 hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed'
@@ -539,6 +600,7 @@ export default function ProductHeader({ product }: { product?: Product | null })
               type="button"
               onClick={handleBuyNow}
               disabled={!product || productId <= 0 || isOutOfStock}
+              ref={(el) => assignRef(buyNowButtonRef, el)}
               className="w-full py-4 rounded-xl font-black text-xs uppercase tracking-[0.2em] transition-all active:scale-95 shadow-xl bg-primary text-on-primary shadow-primary/20 hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
             >
               <span className="material-symbols-outlined text-xl">bolt</span>
@@ -557,34 +619,9 @@ export default function ProductHeader({ product }: { product?: Product | null })
               {inWishlist ? 'Remove from Wishlist' : 'Save for later'}
             </button>
           </div>
+
         </div>
       </div>
-
-      {/* Sticky Mobile Buy Now Button (unchanged) */}
-      {isStickyVisible && (
-        <motion.div
-          initial={{ y: 100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 100, opacity: 0 }}
-          className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-surface/95 backdrop-blur-md border-t border-outline-variant/20 lg:hidden"
-        >
-          <div className="flex items-center gap-4">
-            <div className="flex flex-col">
-              <span className="text-[10px] text-on-surface-variant uppercase tracking-wider">Price</span>
-              <span className="font-headline font-bold text-lg text-primary">{currencySymbol}{Number(displayPrice || 0).toFixed(2)}</span>
-            </div>
-            <button
-              type="button"
-              onClick={handleBuyNow}
-              disabled={!product || productId <= 0 || isOutOfStock}
-              className="flex-1 py-3 rounded-xl font-black text-xs uppercase tracking-[0.2em] transition-all active:scale-95 shadow-xl bg-secondary text-on-secondary shadow-secondary/20 hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              <span className="material-symbols-outlined text-lg">bolt</span>
-              {isOutOfStock ? "Out of Stock" : "Buy Now"}
-            </button>
-          </div>
-        </motion.div>
-      )}
     </div>
   );
 }

@@ -9,6 +9,7 @@ import { useSiteSettings } from "@/app/context/SiteSettingsContext";
 import { createProductHref, type Product } from "@/app/data/products";
 import { fetchFeaturedProducts } from "@/app/lib/productsClient";
 import { peekCached } from "@/app/lib/clientCache";
+import { flyImageToCart } from "@/app/lib/flyToCart";
 
 // --- Helpers ---
 function formatMoney(currencySymbol: string, value: number) {
@@ -126,6 +127,7 @@ export default function SpotlightProductsSection({ initialProducts = [] }: { ini
               return (
                 <div
                   key={product.id}
+                  data-product-card
                   className={`group relative flex flex-col bg-white border border-slate-100 rounded-[1.5rem] lg:rounded-[2rem] p-2 lg:p-3 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.06)] hover:-translate-y-1 ${
                     index === 4 ? "hidden lg:flex" : ""
                   }`}
@@ -180,6 +182,16 @@ export default function SpotlightProductsSection({ initialProducts = [] }: { ini
                           if (inCart) {
                             router.push("/cart");
                           } else if (inStock) {
+                            try {
+                              const card = (e.currentTarget as HTMLElement | null)?.closest?.("[data-product-card]") as HTMLElement | null;
+                              const img = card?.querySelector?.("img") as HTMLImageElement | null;
+                              const fromRect = img?.getBoundingClientRect?.() ?? (e.currentTarget as HTMLElement).getBoundingClientRect();
+                              if (product.image && fromRect) {
+                                flyImageToCart({ imageUrl: product.image, fromRect, durationMs: 950 });
+                              }
+                            } catch {
+                              // ignore
+                            }
                             addItem({
                               id: product.id,
                               name: product.name,

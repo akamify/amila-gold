@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import ProductHeader from './ProductHeader';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import ProductHeader, { type FloatingPurchaseInfo } from './ProductHeader';
 import WellnessPath from './WellnessPath';
 import NutritionFacts from './NutritionFacts';
 import ReviewsAndSimilar from './ReviewsAndSimilar';
@@ -11,10 +11,17 @@ import { formatProductNameForPath, type Product } from '@/app/data/products';
 import ProductNotFound from './ProductNotFound';
 
 import { ProductPageSkeleton } from '@/app/components/Skeletons';
+import DesktopFloatingPurchaseBar from './DesktopFloatingPurchaseBar';
+import { useDesktopFloatingBarVisibility } from './useDesktopFloatingBarVisibility';
 
 export default function ProductPageClient({ id, name }: { id: string; name?: string }) {
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [stickyInfo, setStickyInfo] = useState<FloatingPurchaseInfo | null>(null);
+  const addToCartRef = useRef<HTMLButtonElement | null>(null);
+  const buyNowRef = useRef<HTMLButtonElement | null>(null);
+  const floatingSentinelRef = useRef<HTMLDivElement | null>(null);
+  const floatingVisible = useDesktopFloatingBarVisibility(floatingSentinelRef);
 
   const requestedId = useMemo(() => String(id || '').trim(), [id]);
   const requestedSlug = useMemo(() => formatProductNameForPath(name || ''), [name]);
@@ -57,10 +64,33 @@ export default function ProductPageClient({ id, name }: { id: string; name?: str
   if (isLoading) return <ProductPageSkeleton />;
   if (!product) return <ProductNotFound />;
 
-
   return (
     <div className="pt-24 pb-12 px-2 sm:px-2 lg:px-12 max-w-screen-2xl mx-auto selection:bg-secondary-container selection:text-on-secondary-container">
-      <ProductHeader product={product} />
+      <ProductHeader
+        product={product}
+        onStickyInfoChange={setStickyInfo}
+        addToCartButtonRef={addToCartRef}
+        buyNowButtonRef={buyNowRef}
+      />
+
+      {/* Floating bar becomes visible after ProductHeader scrolls out */}
+      <div ref={floatingSentinelRef} className="h-px w-full" />
+
+      {stickyInfo && (
+        <DesktopFloatingPurchaseBar
+          visible={floatingVisible}
+          currencySymbol={stickyInfo.currencySymbol}
+          name={stickyInfo.name}
+          imageUrl={stickyInfo.image}
+          price={stickyInfo.price}
+          originalPrice={stickyInfo.originalPrice ?? null}
+          qty={stickyInfo.qty}
+          inCart={stickyInfo.inCart}
+          isOutOfStock={stickyInfo.isOutOfStock}
+          onAddToCart={() => addToCartRef.current?.click()}
+          onBuyNow={() => buyNowRef.current?.click()}
+        />
+      )}
       <div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-0">
         <NutritionFacts product={product} />
         <WellnessPath />
