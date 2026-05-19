@@ -52,6 +52,7 @@ export default function DesktopFloatingPurchaseBar({
                     height={48}
                     className="w-full h-full object-cover"
                     unoptimized
+                    data-floating-bar-image
                   />
                 ) : (
                   <div className="w-full h-full" />

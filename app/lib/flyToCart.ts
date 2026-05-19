@@ -7,6 +7,8 @@ export type FlyToCartOptions = {
 
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+const easeInCubic = (t: number) => t * t * t;
+const easeInQuad = (t: number) => t * t;
 
 const prefersReducedMotion = () => {
   if (typeof window === 'undefined') return true;
@@ -57,11 +59,14 @@ export function flyImageToCart(options: FlyToCartOptions) {
   };
 
   const dx = end.x - start.x;
-  const lift = Math.min(180, Math.max(80, Math.abs(dx) * 0.18));
+  const travel = Math.hypot(dx, end.y - start.y);
+  const lift = Math.min(220, Math.max(90, travel * 0.22));
+  const leftKick = Math.min(180, Math.max(70, Math.abs(dx) * 0.25));
 
   const p0 = start;
-  const p1 = { x: start.x + dx * 0.25, y: start.y - lift };
-  const p2 = { x: start.x + dx * 0.75, y: end.y - lift * 0.35 };
+  // first go left (or further left if already going left), then swing right into cart
+  const p1 = { x: start.x - leftKick, y: start.y - lift };
+  const p2 = { x: end.x + Math.min(120, Math.max(40, Math.abs(dx) * 0.12)), y: end.y - lift * 0.35 };
   const p3 = end;
 
   const node = document.createElement('img');
@@ -72,9 +77,15 @@ export function flyImageToCart(options: FlyToCartOptions) {
   node.style.position = 'fixed';
   node.style.left = '0px';
   node.style.top = '0px';
-  node.style.width = '44px';
-  node.style.height = '44px';
-  node.style.borderRadius = '999px';
+  const startSize = Math.max(64, Math.min(148, Math.min(from.width, from.height) * 0.28));
+  const endSize = 14;
+  const startH = startSize;
+  const startW = Math.max(16, Math.round(startSize * 0.75)); // 3:4-ish shape (not circle)
+  const endH = endSize;
+  const endW = Math.max(10, Math.round(endSize * 0.75));
+  node.style.width = `${startW}px`;
+  node.style.height = `${startH}px`;
+  node.style.borderRadius = `${Math.max(10, Math.round(startSize * 0.22))}px`;
   node.style.objectFit = 'cover';
   node.style.pointerEvents = 'none';
   node.style.zIndex = '9999';
@@ -84,25 +95,32 @@ export function flyImageToCart(options: FlyToCartOptions) {
 
   document.body.appendChild(node);
 
-  const durationMs = Math.max(500, Math.min(1400, options.durationMs ?? 900));
+  const autoDuration = 720 + (startSize - 64) * 10; // bigger start => slower total
+  const durationMs = Math.max(550, Math.min(1700, options.durationMs ?? autoDuration));
   const startTs = performance.now();
 
   let rafId = 0;
   const tick = (now: number) => {
     const raw = (now - startTs) / durationMs;
     const t = clamp01(raw);
-    const eased = easeOutCubic(t);
+    // slow -> fast travel
+    const eased = easeInQuad(t);
+    // slow -> fast shrink (large -> small)
+    const shrinkT = easeInCubic(t);
 
     const pos = cubicBezier(eased, p0, p1, p2, p3);
-    const size = 44 - eased * 30; // shrink to minimal
+    const h = startH + (endH - startH) * shrinkT;
+    const w = startW + (endW - startW) * shrinkT;
+    const radius = Math.max(8, Math.round(h * 0.22));
 
-    const opacity = t < 0.05 ? t / 0.05 : t > 0.85 ? (1 - t) / 0.15 : 1;
-    const rotate = dx >= 0 ? eased * 12 : -eased * 12;
+    const opacity = t < 0.06 ? t / 0.06 : t > 0.86 ? (1 - t) / 0.14 : 1;
+    const rotate = dx >= 0 ? easeOutCubic(t) * 16 : -easeOutCubic(t) * 16;
 
     node.style.opacity = String(opacity);
-    node.style.transform = `translate(${pos.x - size / 2}px, ${pos.y - size / 2}px) rotate(${rotate}deg)`;
-    node.style.width = `${size}px`;
-    node.style.height = `${size}px`;
+    node.style.transform = `translate(${pos.x - w / 2}px, ${pos.y - h / 2}px) rotate(${rotate}deg)`;
+    node.style.width = `${w}px`;
+    node.style.height = `${h}px`;
+    node.style.borderRadius = `${radius}px`;
 
     if (t < 1) {
       rafId = window.requestAnimationFrame(tick);

@@ -13,6 +13,7 @@ import ProductNotFound from './ProductNotFound';
 import { ProductPageSkeleton } from '@/app/components/Skeletons';
 import DesktopFloatingPurchaseBar from './DesktopFloatingPurchaseBar';
 import { useDesktopFloatingBarVisibility } from './useDesktopFloatingBarVisibility';
+import { flyImageToCart } from '@/app/lib/flyToCart';
 
 export default function ProductPageClient({ id, name }: { id: string; name?: string }) {
   const [product, setProduct] = useState<Product | null>(null);
@@ -87,7 +88,19 @@ export default function ProductPageClient({ id, name }: { id: string; name?: str
           qty={stickyInfo.qty}
           inCart={stickyInfo.inCart}
           isOutOfStock={stickyInfo.isOutOfStock}
-          onAddToCart={() => addToCartRef.current?.click()}
+          onAddToCart={() => {
+            try {
+              const img = document.querySelector('[data-floating-bar-image]') as HTMLElement | null;
+              const fromRect = img?.getBoundingClientRect?.();
+              const imageUrl = String(stickyInfo.image || '').trim();
+              if (fromRect && imageUrl) {
+                flyImageToCart({ imageUrl, fromRect });
+              }
+            } catch {
+              // ignore
+            }
+            addToCartRef.current?.click();
+          }}
           onBuyNow={() => buyNowRef.current?.click()}
         />
       )}
