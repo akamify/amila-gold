@@ -69,8 +69,8 @@ export default function AdminBannersPage() {
   };
 
   const validateForm = () => {
-    if (!form.title.trim() || !form.subtitle.trim() || !form.targetUrl.trim()) {
-      return 'Title, subtitle and target URL are required.';
+    if (!form.targetUrl.trim()) {
+      return 'Target URL is required.';
     }
     if (!form.imageFile && !form.imageUrl.trim() && !editingItem?.imageUrl) {
       return 'Banner image is required.';
@@ -183,7 +183,6 @@ export default function AdminBannersPage() {
               onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
               placeholder="Summer Collection 2026"
               className="w-full bg-black/50 border border-white/5 focus:border-red-700/50 focus:ring-1 focus:ring-red-700/20 px-4 py-3 rounded-xl transition-all outline-none text-sm"
-              required
             />
           </div>
 
@@ -194,7 +193,6 @@ export default function AdminBannersPage() {
               onChange={(e) => setForm((p) => ({ ...p, subtitle: e.target.value }))}
               placeholder="Up to 50% off on all items"
               className="w-full bg-black/50 border border-white/5 focus:border-red-700/50 focus:ring-1 focus:ring-red-700/20 px-4 py-3 rounded-xl transition-all outline-none text-sm"
-              required
             />
           </div>
 
@@ -205,7 +203,6 @@ export default function AdminBannersPage() {
               onChange={(e) => setForm((p) => ({ ...p, targetUrl: e.target.value }))}
               placeholder="/collections/new-arrivals"
               className="w-full bg-black/50 border border-white/5 focus:border-red-700/50 focus:ring-1 focus:ring-red-700/20 px-4 py-3 rounded-xl transition-all outline-none text-sm font-mono"
-              required
             />
           </div>
 

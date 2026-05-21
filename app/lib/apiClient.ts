@@ -608,7 +608,11 @@ async function request(path: string, options: RequestInit = {}, auth = false) {
 
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
-        const message = (asRecord(data).message as string) || `Request failed: ${response.status}`;
+        const normalized = asRecord(data);
+        const message =
+            (normalized.message as string) ||
+            (normalized.msg as string) ||
+            `Request failed: ${response.status}`;
         if (
             auth &&
             (response.status === 401 || response.status === 403) &&

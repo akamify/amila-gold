@@ -21,26 +21,26 @@ type HeroSectionProps = {
 
 const processRows = (rows: any[]): HeroBanner[] =>
   rows
-    .filter((row) => row.imageUrl && row.targetUrl && row.title)
+    .filter((row) => row.imageUrl && row.targetUrl)
     .map((row) => ({
       id: String(row.id || row._id || row.imageUrl),
-      title: row.title,
+      title: row.title || "",
       subtitle: row.subtitle || "",
       href: row.targetUrl,
       img: row.imageUrl,
     }));
 
 export default function HeroSection({ initialBanners = [] }: HeroSectionProps) {
-  const [banners, setBanners] = useState<HeroBanner[]>(initialBanners);
+  const [banners, setBanners] = useState<HeroBanner[]>(() => {
+    const cached = peekCached<any[]>("banners:public").data;
+    if (Array.isArray(cached) && cached.length) {
+      return processRows(cached);
+    }
+    return initialBanners;
+  });
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
-    const cached = peekCached<any[]>("banners:public").data;
-
-    if (Array.isArray(cached) && cached.length) {
-      setBanners(processRows(cached));
-    }
-    
     fetchPublicBanners()
       .then((rows) => setBanners(processRows(rows)))
       .catch(() => setBanners([]));
@@ -115,7 +115,7 @@ export default function HeroSection({ initialBanners = [] }: HeroSectionProps) {
           {/* Background Image with Ken Burns Effect */}
           <Image
             src={slide.img}
-            alt={slide.title}
+            alt={slide.title || slide.subtitle || "Banner"}
             fill
             priority={index === 0}
             fetchPriority={index === 0 ? "high" : "auto"}
@@ -133,21 +133,25 @@ export default function HeroSection({ initialBanners = [] }: HeroSectionProps) {
           {/* Content Container */}
           <div className="absolute inset-0 flex items-center justify-start pb-10 md:pb-0">
             <div className="container mx-auto px-6 sm:px-8 md:px-12">
-              <div className="max-w-2xl space-y-3 sm:space-y-4 md:space-y-6">
+              <div className="max-w-2xl min-h-[140px] sm:min-h-[200px] md:min-h-[240px] flex flex-col gap-3 sm:gap-4 md:gap-6">
                 
-                <span className={`inline-block font-bold tracking-[0.25em] text-[10px] sm:text-xs md:text-sm text-amber-400 uppercase transform transition-all duration-700 delay-300 ${
-                  activeIndex === index ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
-                }`}>
-                  {slide.subtitle}
-                </span>
-                
-                <h1 className={`text-2xl sm:text-6xl md:text-7xl lg:text-6xl font-black text-white leading-[1.05] sm:leading-[1.1] transition-all duration-1000 delay-500 drop-shadow-xl ${
-                  activeIndex === index ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-                }`}>
-                  {slide.title}
-                </h1>
+                {slide.subtitle ? (
+                  <span className={`inline-block font-bold tracking-[0.25em] text-[10px] sm:text-xs md:text-sm text-amber-400 uppercase transform transition-all duration-700 delay-300 ${
+                    activeIndex === index ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
+                  }`}>
+                    {slide.subtitle}
+                  </span>
+                ) : null}
 
-                <div className={`pt-4 sm:pt-6 transition-all duration-700 delay-700 ${
+                {slide.title ? (
+                  <h1 className={`text-2xl sm:text-6xl md:text-7xl lg:text-6xl font-black text-white leading-[1.05] sm:leading-[1.1] transition-all duration-1000 delay-500 drop-shadow-xl ${
+                    activeIndex === index ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+                  }`}>
+                    {slide.title}
+                  </h1>
+                ) : null}
+
+                <div className={`mt-auto pt-4 sm:pt-6 transition-all duration-700 delay-700 ${
                   activeIndex === index ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
                 }`}>
                   <Link

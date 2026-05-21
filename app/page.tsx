@@ -32,7 +32,7 @@ async function getInitialBanners() {
     const data = await response.json();
     const rows = Array.isArray(data?.banners) ? (data.banners as BannerRow[]) : [];
     return rows
-      .filter((row) => row.imageUrl && row.targetUrl && row.title)
+      .filter((row) => row.imageUrl && row.targetUrl)
       .map((row) => ({
         id: String(row.id || row._id || row.imageUrl),
         title: String(row.title || ""),
