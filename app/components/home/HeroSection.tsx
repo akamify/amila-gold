@@ -108,9 +108,8 @@ export default function HeroSection({ initialBanners = [] }: HeroSectionProps) {
       {banners.map((slide, index) => (
         <div
           key={slide.id}
-          className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-            activeIndex === index ? "opacity-100 z-10" : "opacity-0 z-0"
-          }`}
+          className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${activeIndex === index ? "opacity-100 z-10" : "opacity-0 z-0"
+            }`}
         >
           {/* Background Image with Ken Burns Effect */}
           <Image
@@ -121,11 +120,10 @@ export default function HeroSection({ initialBanners = [] }: HeroSectionProps) {
             fetchPriority={index === 0 ? "high" : "auto"}
             loading={index === 0 ? "eager" : "lazy"}
             sizes="100vw"
-            className={`object-cover transition-transform duration-[10000ms] ease-linear ${
-              activeIndex === index ? "scale-110" : "scale-100"
-            }`}
+            className={`object-cover transition-transform duration-[10000ms] ease-linear ${activeIndex === index ? "scale-110" : "scale-100"
+              }`}
           />
-          
+
           {/* Gradients: Left to right for text readability, and bottom-up for carousel dots */}
           <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
@@ -134,26 +132,23 @@ export default function HeroSection({ initialBanners = [] }: HeroSectionProps) {
           <div className="absolute inset-0 flex items-center justify-start pb-10 md:pb-0">
             <div className="container mx-auto px-6 sm:px-8 md:px-12">
               <div className="max-w-2xl min-h-[140px] sm:min-h-[200px] md:min-h-[240px] flex flex-col gap-3 sm:gap-4 md:gap-6">
-                
+
                 {slide.subtitle ? (
-                  <span className={`inline-block font-bold tracking-[0.25em] text-[10px] sm:text-xs md:text-sm text-amber-400 uppercase transform transition-all duration-700 delay-300 ${
-                    activeIndex === index ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
-                  }`}>
+                  <span className={`inline-block font-bold tracking-[0.25em] text-[10px] sm:text-xs md:text-sm text-amber-400 uppercase transform transition-all duration-700 delay-300 ${activeIndex === index ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
+                    }`}>
                     {slide.subtitle}
                   </span>
                 ) : null}
 
                 {slide.title ? (
-                  <h1 className={`text-2xl sm:text-6xl md:text-7xl lg:text-6xl font-black text-white leading-[1.05] sm:leading-[1.1] transition-all duration-1000 delay-500 drop-shadow-xl ${
-                    activeIndex === index ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-                  }`}>
+                  <h1 className={`text-2xl sm:text-6xl md:text-7xl lg:text-6xl font-black text-white leading-[1.05] sm:leading-[1.1] transition-all duration-1000 delay-500 drop-shadow-xl ${activeIndex === index ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+                    }`}>
                     {slide.title}
                   </h1>
                 ) : null}
 
-                <div className={`mt-auto pt-4 sm:pt-6 transition-all duration-700 delay-700 ${
-                  activeIndex === index ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
-                }`}>
+                <div className={`mt-auto pt-4 sm:pt-6 transition-all duration-700 delay-700 ${activeIndex === index ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
+                  }`}>
                   <Link
                     href={slide.href}
                     className="group relative inline-flex items-center gap-3 overflow-hidden rounded-full bg-amber-500 px-4 py-2 md:px-8 md:py-4 font-bold text-stone-900 shadow-[0_4px_20px_rgba(245,158,11,0.3)] transition-all hover:bg-amber-400 hover:shadow-[0_4px_25px_rgba(245,158,11,0.5)] active:scale-95"
@@ -184,11 +179,10 @@ export default function HeroSection({ initialBanners = [] }: HeroSectionProps) {
             <button
               key={index}
               onClick={() => setActiveIndex(index)}
-              className={`relative h-1.5 transition-all duration-500 rounded-full ${
-                activeIndex === index 
-                  ? "w-6 sm:w-8 bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)]" 
+              className={`relative h-1.5 transition-all duration-500 rounded-full ${activeIndex === index
+                  ? "w-6 sm:w-8 bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)]"
                   : "w-1.5 sm:w-2 bg-white/40 hover:bg-white/70"
-              }`}
+                }`}
               aria-label={`Slide ${index + 1}`}
             />
           ))}

@@ -172,8 +172,8 @@ export default function AdminBannersPage() {
       {/* --- Form Section --- */}
       <section className="relative group">
         <div className="absolute -inset-1 bg-gradient-to-r from-red-700/20 to-blue-500/20 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
-        <form 
-          onSubmit={onSubmit} 
+        <form
+          onSubmit={onSubmit}
           className="relative grid grid-cols-1 md:grid-cols-2 gap-6 p-8 bg-[#0d0d0f] border border-white/10 rounded-2xl shadow-2xl"
         >
           <div className="space-y-1">
@@ -256,9 +256,9 @@ export default function AdminBannersPage() {
 
             <div className="flex items-center gap-3">
               {editingId && (
-                <button 
-                  type="button" 
-                  onClick={resetForm} 
+                <button
+                  type="button"
+                  onClick={resetForm}
                   className="px-6 py-2.5 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 hover:text-white transition-colors"
                 >
                   Discard
@@ -311,13 +311,12 @@ export default function AdminBannersPage() {
         ) : (
           <div className="grid grid-cols-1 gap-4">
             {items.map((item) => (
-              <div 
-                key={item.id} 
-                className={`group flex flex-col md:flex-row items-center gap-6 p-4 rounded-2xl border transition-all duration-300 ${
-                  editingId === item.id 
-                    ? 'bg-red-700/5 border-red-700/40 ring-1 ring-red-700/20' 
+              <div
+                key={item.id}
+                className={`group flex flex-col md:flex-row items-center gap-6 p-4 rounded-2xl border transition-all duration-300 ${editingId === item.id
+                    ? 'bg-red-700/5 border-red-700/40 ring-1 ring-red-700/20'
                     : 'bg-[#0d0d0f]/50 border-white/5 hover:border-white/20'
-                }`}
+                  }`}
               >
                 <div className="relative w-full md:w-60 h-32 rounded-xl overflow-hidden bg-black ring-1 ring-white/10 group-hover:ring-white/30 transition-all">
                   {item.imageUrl ? (
