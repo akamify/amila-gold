@@ -59,6 +59,8 @@ export default function OrderDetailsPage() {
   const rawAmount = Number(order?.amount || 0);
   const total = rawAmount > 0 ? (rawSubtotal > 0 && rawAmount > rawSubtotal * 5 ? rawAmount / 100 : rawAmount) : rawSubtotal;
   const subtotal = rawSubtotal > 0 ? rawSubtotal : total;
+  const isCodPayment = String(order?.payment_method || "").trim().toLowerCase() === "cod";
+  const codCharge = isCodPayment ? Math.max(0, total - subtotal) : 0;
   const totalQty = items.reduce((sum, item) => sum + Math.max(1, Number(item.quantity || 0)), 0);
   const fallbackUnitPrice = totalQty > 0 && subtotal > 0 ? subtotal / totalQty : 0;
   const displayItems = items.map((item) => {
@@ -283,6 +285,12 @@ export default function OrderDetailsPage() {
                   <span className="opacity-80">Heritage Shipping</span>
                   <span className="font-medium">{currencySymbol}0.00</span>
                 </div>
+                {isCodPayment && codCharge > 0 ? (
+                  <div className="flex justify-between text-sm">
+                    <span className="opacity-80">COD Charge</span>
+                    <span className="font-medium">{currencySymbol}{codCharge.toFixed(2)}</span>
+                  </div>
+                ) : null}
                 <div className="pt-6 mt-2 border-t border-on-primary/20 flex justify-between items-baseline">
                   <span className="text-[10px] uppercase tracking-widest font-bold">Total</span>
                   <span className="text-3xl font-headline italic font-bold">{currencySymbol}{total.toFixed(2)}</span>

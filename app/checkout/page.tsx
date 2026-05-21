@@ -29,6 +29,11 @@ declare global {
 const SHIPPING = 0;
 const SELECTED_ADDRESS_STORAGE_KEY = "checkout:selected-address-id";
 const LOGIN_RETURN_TO = "/checkout";
+const COD_CHARGE = (() => {
+  const parsed = Number(String(process.env.NEXT_PUBLIC_COD_CHARGE || "").trim());
+  if (!Number.isFinite(parsed) || parsed <= 0) return 0;
+  return parsed;
+})();
 
 const createEmptyAddress = (): UserAddressInput => ({
   FullName: "",
@@ -136,7 +141,8 @@ export default function CheckoutPage() {
   const checkoutItemCount = buyNowItem ? buyNowItem.qty : itemCount;
 
   const subtotal = checkoutItems.reduce((sum, item) => sum + item.price * item.qty, 0);
-  const total = subtotal + SHIPPING;
+  const codCharge = paymentMethod === "COD" ? COD_CHARGE : 0;
+  const total = subtotal + SHIPPING + codCharge;
   const isPageLoading = isHydrating || isAuthLoading || isSettingsLoading;
 
   // Load buyNowItem from localStorage on mount
@@ -582,6 +588,12 @@ export default function CheckoutPage() {
                   <span>Shipping</span>
                   <span>{currencySymbol}{SHIPPING.toFixed(2)}</span>
                 </div>
+                {paymentMethod === "COD" && codCharge > 0 ? (
+                  <div className="flex justify-between text-on-surface-variant">
+                    <span>COD Charge</span>
+                    <span>{currencySymbol}{codCharge.toFixed(2)}</span>
+                  </div>
+                ) : null}
                 <div className="pt-4 border-t border-outline-variant/20 flex justify-between items-baseline">
                   <span className="font-headline text-xl font-bold text-primary">Total</span>
                   <span className="font-headline text-2xl font-black text-secondary">{currencySymbol}{total.toFixed(2)}</span>
