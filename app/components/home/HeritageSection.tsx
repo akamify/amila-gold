@@ -127,13 +127,6 @@ export default function HeritageSection() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-70 pointer-events-none" />
               </div>
 
-              {/* Floating Quote - Aur chhota aur compact kiya taaki square frame pe set baithe */}
-              <div className="absolute -bottom-3 -left-3 z-20 w-3/4 sm:w-56 bg-white/95 backdrop-blur-sm p-3 rounded-lg shadow-lg border border-white/20">
-                <p className="text-slate-800 font-serif text-xs md:text-sm italic leading-snug">
-                  “Rooted in the earth, refined for the spirit.”
-                </p>
-              </div>
-
               {/* Decorative Frame */}
               <div className="absolute -top-3 -right-3 w-16 h-16 border-t border-r border-amber-200 rounded-tr-xl hidden md:block pointer-events-none" />
             </div>
