@@ -36,6 +36,15 @@ type SocialUrlField = 'instagramUrl' | 'youtubeUrl' | 'facebookUrl';
 
 type InstagramGalleryItem = SiteSettings['instagramGallery'][number];
 
+function InputWrapper({ label, children }: { label: string; children: React.ReactNode }) {
+    return (
+        <div className="flex flex-col gap-1.5 w-full">
+            <span className="ml-1 text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{label}</span>
+            {children}
+        </div>
+    );
+}
+
 const SOCIAL_FIELD_META: Record<SocialUrlField, { label: string; hosts: string[] }> = {
     instagramUrl: { label: 'Instagram', hosts: ['instagram.com', 'instagr.am'] },
     youtubeUrl: { label: 'YouTube', hosts: ['youtube.com', 'youtu.be'] },
@@ -276,14 +285,6 @@ export default function AdminSettings() {
         'w-full rounded-xl px-4 py-3.5 transition-all focus:outline-none focus:ring-2 focus:ring-red-700/50 bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 dark:bg-white/[0.05] dark:border-white/10 dark:text-white dark:placeholder:text-slate-600';
     const passwordInputClass =
         'w-full rounded-xl px-4 py-3 text-sm transition-all focus:outline-none focus:border-amber-500/50 bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 dark:bg-white/[0.03] dark:border-white/10 dark:text-white';
-
-    // Reusable Input Component for sleek look
-    const InputWrapper = ({ label, children }: { label: string, children: React.ReactNode }) => (
-        <div className="flex flex-col gap-1.5 w-full">
-            <span className="ml-1 text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{label}</span>
-            {children}
-        </div>
-    );
 
     return (
         <div className="mx-auto flex max-w-7xl flex-col gap-10 px-4 py-10 text-slate-900 dark:text-slate-200">
