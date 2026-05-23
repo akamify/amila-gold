@@ -43,42 +43,44 @@ export default function DesktopFloatingPurchaseBar({
         >
           <div className="w-[min(860px,calc(100vw-1.5rem))] bg-white/92 backdrop-blur-xl border border-stone-200 shadow-[0_24px_80px_rgba(0,0,0,0.18)] rounded-[1.75rem] sm:rounded-[2rem] px-4 sm:px-5 py-3.5 sm:py-4">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-              <div className="w-12 h-12 rounded-2xl overflow-hidden bg-stone-100 shrink-0">
-                {imageUrl ? (
-                  <Image
-                    src={imageUrl}
-                    alt={name || "Product"}
-                    width={48}
-                    height={48}
-                    className="w-full h-full object-cover"
-                    unoptimized
-                    data-floating-bar-image
-                  />
-                ) : (
-                  <div className="w-full h-full" />
-                )}
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-3">
-                  <p className="font-headline font-black text-[15px] text-stone-900 truncate max-w-[360px]">
-                    {name}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3 mt-1">
-                  <p className="font-headline font-black text-[15px] text-stone-900">
-                    {currencySymbol}
-                    {Number(price || 0).toFixed(2)}
-                  </p>
-                  {typeof originalPrice === "number" && originalPrice > price && (
-                    <p className="text-[12px] font-bold text-stone-400 line-through">
-                      {currencySymbol}
-                      {Number(originalPrice || 0).toFixed(2)}
-                    </p>
+              <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                <div className="w-12 h-12 rounded-2xl overflow-hidden bg-stone-100 shrink-0">
+                  {imageUrl ? (
+                    <Image
+                      src={imageUrl}
+                      alt={name || "Product"}
+                      width={48}
+                      height={48}
+                      className="w-full h-full object-cover"
+                      unoptimized
+                      data-floating-bar-image
+                    />
+                  ) : (
+                    <div className="w-full h-full" />
                   )}
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-500">
-                    Qty {qty}
-                  </span>
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-3">
+                    <p className="font-headline font-black text-[15px] text-stone-900 truncate max-w-[360px]">
+                      {name}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3 mt-1">
+                    <p className="font-headline font-black text-[15px] text-stone-900">
+                      {currencySymbol}
+                      {Number(price || 0).toFixed(2)}
+                    </p>
+                    {typeof originalPrice === "number" && originalPrice > price && (
+                      <p className="text-[12px] font-bold text-stone-400 line-through">
+                        {currencySymbol}
+                        {Number(originalPrice || 0).toFixed(2)}
+                      </p>
+                    )}
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-500">
+                      Qty {qty}
+                    </span>
+                  </div>
                 </div>
               </div>
 
