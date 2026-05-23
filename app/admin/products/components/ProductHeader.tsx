@@ -91,7 +91,7 @@ export default function ProductHeader({
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <SummaryCard 
           label="Database Total" 
           value={String(totalProducts)} 
@@ -109,13 +109,6 @@ export default function ProductHeader({
           colorClass="text-amber-500" 
           icon={<FileText size={20} />} 
         />
-        {/* Bonus card for visual balance */}
-        <div className="hidden lg:flex flex-col justify-center rounded-2xl border border-dashed border-slate-300 dark:border-white/10 p-6 text-center">
-          <LayoutGrid size={24} className="mx-auto mb-2 text-slate-300 dark:text-white/10" />
-          <p className="text-[8px] font-black uppercase tracking-[0.3em] text-slate-600">
-            Advanced Filters Available Below
-          </p>
-        </div>
       </div>
 
       {/* Subtle Divider */}

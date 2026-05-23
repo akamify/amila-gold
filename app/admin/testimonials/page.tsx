@@ -155,7 +155,7 @@ export default function AdminTestimonialsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
         {/* --- FORM SECTION --- */}
-        <div className="lg:col-span-5">
+        <div className="flex-start sticky top-5 col-span-5">
           <form 
             onSubmit={onSubmit} 
             className="sticky top-8 border border-slate-200 dark:border-white/5 bg-white dark:bg-[#0d0d0f] p-8 rounded-3xl shadow-2xl space-y-6 overflow-hidden"

@@ -68,6 +68,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const menuItems = [
     { name: 'Dashboard', icon: <LayoutDashboard size={18} />, href: '/admin' },
+    { name: 'Analytics', icon: <BarChart3 size={18} />, href: '/admin/analytics' },
     { name: 'Products', icon: <Package size={18} />, href: '/admin/products' },
     { name: 'Orders', icon: <ShoppingCart size={18} />, href: '/admin/orders' },
     { name: 'Customers', icon: <Users size={18} />, href: '/admin/customers' },
@@ -75,7 +76,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: 'Banners', icon: <MonitorPlay size={18} />, href: '/admin/banners' },
     { name: 'Testimonials', icon: <Quote size={18} />, href: '/admin/testimonials' },
     { name: 'Comms', icon: <Mail size={18} />, href: '/admin/communications' },
-    { name: 'Analytics', icon: <BarChart3 size={18} />, href: '/admin/analytics' },
     { name: 'Settings', icon: <Settings size={18} />, href: '/admin/settings' },
   ];
 

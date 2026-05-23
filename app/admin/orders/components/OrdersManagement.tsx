@@ -316,9 +316,7 @@ export default function OrdersManagement() {
           </div>
         </div>
 
-        {/* Right: Search & Filters */}
-        <div className="lg:col-span-8 flex flex-col gap-3 rounded-2xl border border-slate-100 bg-white p-2 sm:flex-row">
-          <div className="relative flex-1">
+          <div className="relative flex items-center col-span-6 rounded-xl border border-slate-100 bg-white p-2">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
             <input
               value={query}
@@ -327,6 +325,8 @@ export default function OrdersManagement() {
               className="w-full rounded-xl bg-slate-50 py-4 pl-12 pr-4 text-[10px] font-black tracking-widest text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-slate-100"
             />
           </div>
+        {/* Right: Search & Filters */}
+        <div className="lg:col-span-8 flex flex-col gap-3 rounded-2xl border border-slate-100 bg-white p-2 sm:flex-row">
           <div className="flex gap-2">
             <div className="relative">
               <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={14} />

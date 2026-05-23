@@ -202,7 +202,6 @@ export default function AdminDashboard() {
                         </div>
                      ))}
                   </div>
-                  <button className="w-full mt-8 py-3 rounded-xl border border-slate-300 dark:border-white/10 text-[9px] font-black uppercase tracking-[0.3em] hover:bg-slate-100 dark:hover:bg-white/5 transition-all">View All Logs</button>
                </div>
             </div>
          </div>
