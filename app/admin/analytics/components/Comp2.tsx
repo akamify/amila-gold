@@ -1,9 +1,9 @@
 export default function Comp2() {
   return (
     <>
-      <header className="flex justify-between items-center w-full px-8 h-16 sticky top-0 z-50 bg-[#fcf8f8] dark:bg-[#1c1b1b] border-b-0 tonal-shift">
+      <header className="flex justify-between items-center w-full px-8 h-16 sticky top-0 z-50 bg-[#fcf8f8] border-b-0 tonal-shift">
         <div className="flex items-center gap-8 flex-1">
-          <div className="text-2xl font-black text-[#1c1b1b] dark:text-[#fcf8f8] tracking-[0.05em] font-['Space_Grotesk']">
+          <div className="text-2xl font-black text-[#1c1b1b] tracking-[0.05em] font-['Space_Grotesk']">
             StreetRiot <span className="text-[#b90c1b]">ADMIN</span>
           </div>
           <div className="relative w-96">
@@ -18,14 +18,14 @@ export default function Comp2() {
           </div>
         </div>
         <div className="flex items-center gap-6">
-          <button className="relative hover:bg-[#ebe7e7] dark:hover:bg-[#333131] p-2 transition-colors duration-200">
-            <span className="material-symbols-outlined text-[#1c1b1b] dark:text-[#fcf8f8]">
+          <button className="relative hover:bg-[#ebe7e7] p-2 transition-colors duration-200">
+            <span className="material-symbols-outlined text-[#1c1b1b]">
               notifications
             </span>
             <span className="absolute top-1 right-1 w-2 h-2 bg-[#b90c1b]"></span>
           </button>
-          <button className="hover:bg-[#ebe7e7] dark:hover:bg-[#333131] p-2 transition-colors duration-200">
-            <span className="material-symbols-outlined text-[#1c1b1b] dark:text-[#fcf8f8]">
+          <button className="hover:bg-[#ebe7e7] p-2 transition-colors duration-200">
+            <span className="material-symbols-outlined text-[#1c1b1b]">
               mail
             </span>
           </button>

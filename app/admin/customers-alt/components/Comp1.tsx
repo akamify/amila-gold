@@ -1,7 +1,7 @@
 export default function Comp1() {
   return (
     <>
-      <aside className="fixed left-0 top-0 h-full flex flex-col pt-8 z-40 bg-[#1c1b1b] dark:bg-[#000000] w-64 rounded-0">
+      <aside className="fixed left-0 top-0 h-full flex flex-col pt-8 z-40 bg-[#1c1b1b] w-64 rounded-0">
         <div className="px-6 mb-8">
           <h1 className="text-xl font-bold text-white tracking-widest font-['Space_Grotesk']">
             STREETRIOT

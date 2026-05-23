@@ -57,7 +57,7 @@ const buildChartPoints = (orders: AdminOrder[], range: TrendRange): ChartPoint[]
    orders.forEach(order => {
       const date = toDate(order.createdAt);
       if (!date) return;
-      let key = range === 'weekly' ? formatKeyDay(date) : range === 'monthly' ? formatKeyMonth(date) : String(date.getFullYear());
+      const key = range === 'weekly' ? formatKeyDay(date) : range === 'monthly' ? formatKeyMonth(date) : String(date.getFullYear());
       if (seed.has(key)) seed.set(key, (seed.get(key) || 0) + normalizeOrderAmount(order));
    });
 
@@ -69,7 +69,7 @@ export default function AdminDashboard() {
    const [products, setProducts] = useState<AdminProductLite[]>([]);
    const [conversionRate, setConversionRate] = useState(0);
    const [isLoading, setIsLoading] = useState(true);
-   const [error, setError] = useState('');
+   const [, setError] = useState('');
    const [range, setRange] = useState<TrendRange>('weekly');
    const { settings } = useSiteSettings();
    const currency = settings.currencySymbol || '$';
@@ -118,7 +118,7 @@ export default function AdminDashboard() {
                <span className="w-8 h-px bg-red-600" />
                <span className="text-[10px] font-black tracking-[0.4em] text-red-600 uppercase">System Overview</span>
             </div>
-            <h2 className="text-5xl md:text-7xl font-black tracking-tighter uppercase italic dark:text-white">Command Center</h2>
+            <h2 className="text-5xl md:text-7xl font-black tracking-tighter uppercase italic text-slate-900 dark:text-white">Command Center</h2>
          </header>
 
          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
@@ -150,7 +150,7 @@ export default function AdminDashboard() {
                   </div>
                   <div className="flex gap-1 bg-slate-100 dark:bg-white/5 p-1 rounded-xl">
                      {(['weekly', 'monthly', 'yearly'] as TrendRange[]).map((opt) => (
-                        <button key={opt} onClick={() => setRange(opt)} className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${range === opt ? 'bg-red-600 text-white shadow-lg' : 'text-slate-500 hover:text-white hover:bg-white/5'}`}>{opt}</button>
+                        <button key={opt} onClick={() => setRange(opt)} className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${range === opt ? 'bg-red-600 text-white shadow-lg' : 'text-slate-500 hover:text-red hover:bg-white/5'}`}>{opt}</button>
                      ))}
                   </div>
                </div>
@@ -182,7 +182,7 @@ export default function AdminDashboard() {
 
             {/* Activity Feed */}
             <div className="lg:col-span-4 space-y-8">
-               <div className="bg-[#0f1115] text-white rounded-3xl p-8 border border-white/5 shadow-xl">
+               <div className="bg-white text-slate-900 dark:bg-[#0f1115] dark:text-white rounded-3xl p-8 border border-slate-200 dark:border-white/5 shadow-xl">
                   <div className="flex items-center gap-3 mb-8">
                      <Calendar size={18} className="text-red-600" />
                      <h3 className="text-lg font-black tracking-tighter uppercase italic">Real-Time Feed</h3>
@@ -190,19 +190,19 @@ export default function AdminDashboard() {
                   <div className="space-y-6">
                      {orders.slice(0, 5).map((order, i) => (
                         <div key={i} className="flex gap-4 group">
-                           <div className="w-1 h-10 bg-white/10 rounded-full group-hover:bg-red-600 transition-colors" />
+                           <div className="w-1 h-10 bg-slate-200 dark:bg-white/10 rounded-full group-hover:bg-red-600 transition-colors" />
                            <div>
-                              <p className="text-[10px] font-black tracking-wider uppercase text-slate-300">
+                              <p className="text-[10px] font-black tracking-wider uppercase text-slate-600 dark:text-slate-300">
                                  {order.order_code || `ORD-${order.order_id}`}
                               </p>
                               <p className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">
-                                 STATUS: <span className="text-white">{order.status || 'PENDING'}</span>
+                                 STATUS: <span className="text-slate-900 dark:text-white">{order.status || 'PENDING'}</span>
                               </p>
                            </div>
                         </div>
                      ))}
                   </div>
-                  <button className="w-full mt-8 py-3 rounded-xl border border-white/10 text-[9px] font-black uppercase tracking-[0.3em] hover:bg-white/5 transition-all">View All Logs</button>
+                  <button className="w-full mt-8 py-3 rounded-xl border border-slate-300 dark:border-white/10 text-[9px] font-black uppercase tracking-[0.3em] hover:bg-slate-100 dark:hover:bg-white/5 transition-all">View All Logs</button>
                </div>
             </div>
          </div>

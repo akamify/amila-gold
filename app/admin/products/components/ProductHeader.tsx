@@ -16,7 +16,7 @@ function SummaryCard({
   label,
   value,
   icon,
-  colorClass = 'text-white',
+  colorClass = 'text-slate-900 dark:text-white',
 }: {
   label: string;
   value: string;
@@ -24,13 +24,13 @@ function SummaryCard({
   colorClass?: string;
 }) {
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-white/5 bg-[#0f1115] p-6 transition-all hover:border-red-600/30">
+    <div className="group relative overflow-hidden rounded-2xl border border-slate-200 dark:border-white/5 bg-white dark:bg-[#0f1115] p-6 transition-all hover:border-red-600/30">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">{label}</p>
           <p className={`mt-2 text-4xl font-black tracking-tighter ${colorClass}`}>{value}</p>
         </div>
-        <div className="rounded-xl bg-white/5 p-3 text-slate-400 group-hover:bg-red-600/10 group-hover:text-red-500 transition-colors">
+        <div className="rounded-xl bg-slate-100 dark:bg-white/5 p-3 text-slate-500 dark:text-slate-400 group-hover:bg-red-600/10 group-hover:text-red-500 transition-colors">
           {icon}
         </div>
       </div>
@@ -75,7 +75,7 @@ export default function ProductHeader({
               value={search}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder="SEARCH CATALOGUE..."
-              className="w-full rounded-xl border border-white/5 bg-[#0f1115] py-4 pl-12 pr-4 text-[10px] font-black tracking-widest text-white outline-none transition-all placeholder:text-slate-600 focus:border-red-600/50 focus:ring-1 focus:ring-red-600/20"
+              className="w-full rounded-xl border border-slate-300 dark:border-white/5 bg-white dark:bg-[#0f1115] py-4 pl-12 pr-4 text-[10px] font-black tracking-widest text-slate-900 dark:text-white outline-none transition-all placeholder:text-slate-500 dark:placeholder:text-slate-600 focus:border-red-600/50 focus:ring-1 focus:ring-red-600/20"
             />
           </div>
 
@@ -110,8 +110,8 @@ export default function ProductHeader({
           icon={<FileText size={20} />} 
         />
         {/* Bonus card for visual balance */}
-        <div className="hidden lg:flex flex-col justify-center rounded-2xl border border-dashed border-white/10 p-6 text-center">
-          <LayoutGrid size={24} className="mx-auto mb-2 text-white/10" />
+        <div className="hidden lg:flex flex-col justify-center rounded-2xl border border-dashed border-slate-300 dark:border-white/10 p-6 text-center">
+          <LayoutGrid size={24} className="mx-auto mb-2 text-slate-300 dark:text-white/10" />
           <p className="text-[8px] font-black uppercase tracking-[0.3em] text-slate-600">
             Advanced Filters Available Below
           </p>
@@ -119,7 +119,7 @@ export default function ProductHeader({
       </div>
 
       {/* Subtle Divider */}
-      <div className="h-px w-full bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+      <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-200 dark:via-white/5 to-transparent" />
     </header>
   );
 }

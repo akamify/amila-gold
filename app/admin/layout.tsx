@@ -25,6 +25,36 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   // Close mobile sidebar on route change
   useEffect(() => setIsMobileOpen(false), [pathname]);
 
+  // Force admin panel to stay light-only, regardless of global site theme.
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const root = document.documentElement;
+    const body = document.body;
+    const hadRootDark = root.classList.contains('dark');
+    const hadBodyDark = body.classList.contains('dark');
+    const previousRootScheme = root.style.colorScheme;
+    const previousBodyScheme = body.style.colorScheme;
+    root.classList.remove('dark');
+    body.classList.remove('dark');
+    root.classList.add('admin-force-light');
+    body.classList.add('admin-force-light');
+    root.style.colorScheme = 'light';
+    body.style.colorScheme = 'light';
+
+    return () => {
+      root.style.colorScheme = previousRootScheme;
+      body.style.colorScheme = previousBodyScheme;
+      root.classList.remove('admin-force-light');
+      body.classList.remove('admin-force-light');
+      if (hadRootDark) {
+        root.classList.add('dark');
+      }
+      if (hadBodyDark) {
+        body.classList.add('dark');
+      }
+    };
+  }, []);
+
   if (isLoginPage) return <>{children}</>;
   if (!ready) return <div className="min-h-screen bg-[#0a0a0b]" />;
 
@@ -50,15 +80,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ];
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-full bg-[#0f1115] text-white">
-      <div className="p-8 border-b border-white/5">
+    <div className="flex h-full flex-col bg-white text-slate-900">
+      <div className="border-b border-slate-200 p-8">
         {/* {settings.logoUrl && (
           <Image src={settings.logoUrl} alt="Logo" width={140} height={40} unoptimized className="mb-4 h-8 w-auto object-contain brightness-0 invert" />
         )} */}
-        <h1 className="text-xl font-black tracking-tighter italic uppercase text-white">
+        <h1 className="text-xl font-black tracking-tighter italic uppercase text-slate-900">
           {settings.siteName || 'AMILA'}<span className="text-red-600">.</span>CORE
         </h1>
-        <p className="text-[9px] tracking-[0.4em] uppercase text-slate-500 font-bold mt-1">Admin Uplink</p>
+        <p className="mt-1 text-[9px] font-bold uppercase tracking-[0.4em] text-slate-500">Admin Uplink</p>
       </div>
 
       <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto custom-scrollbar">
@@ -69,7 +99,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               key={item.href}
               href={item.href}
               className={`flex items-center gap-4 px-4 py-3 rounded-lg text-[10px] font-black tracking-widest uppercase transition-all duration-200 group
-                ${isActive ? 'bg-red-600 text-white shadow-lg shadow-red-600/20' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
+                ${isActive ? 'bg-red-600 text-white shadow-lg shadow-red-600/20' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}
             >
               <span className={`${isActive ? 'text-white' : 'text-slate-500 group-hover:text-red-500'}`}>{item.icon}</span>
               {item.name}
@@ -78,16 +108,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         })}
       </nav>
 
-      <div className="p-4 border-t border-white/5 bg-black/20">
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5">
+      <div className="border-t border-slate-200 bg-slate-50 p-4">
+        <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3">
           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center font-bold text-xs">
             {username.substring(0, 2).toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-black truncate tracking-wider">{username}</p>
-            <p className="text-[9px] text-slate-500 font-bold uppercase tracking-tighter">Root Administrator</p>
+            <p className="truncate text-[10px] font-black tracking-wider text-slate-900">{username}</p>
+            <p className="text-[9px] font-bold uppercase tracking-tighter text-slate-500">Root Administrator</p>
           </div>
-          <button onClick={handleLogout} className="p-2 text-slate-400 hover:text-red-500 transition-colors">
+          <button onClick={handleLogout} className="p-2 text-slate-500 transition-colors hover:text-red-500">
             <LogOut size={18} />
           </button>
         </div>
@@ -96,7 +126,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   );
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0a0a0b] text-slate-900 dark:text-slate-100 flex overflow-hidden">
+    <div className="admin-shell min-h-screen bg-[#f8fafc] text-slate-900 flex overflow-hidden">
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex w-72 flex-col fixed h-full z-50">
         <SidebarContent />
@@ -117,15 +147,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Main Container */}
       <div className="flex-1 flex flex-col lg:ml-72 min-h-screen w-full relative">
         {/* Mobile Header */}
-        <header className="lg:hidden flex items-center justify-between px-6 py-4 bg-[#0f1115] text-white border-b border-white/5 sticky top-0 z-[40]">
+        <header className="sticky top-0 z-[40] flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4 text-slate-900 lg:hidden">
           <h2 className="text-lg font-black tracking-tighter italic uppercase">{settings.siteName}</h2>
-          <button onClick={() => setIsMobileOpen(true)} className="p-2 bg-white/5 rounded-lg text-red-500"><Menu size={24} /></button>
+          <button onClick={() => setIsMobileOpen(true)} className="rounded-lg bg-slate-100 p-2 text-red-500"><Menu size={24} /></button>
         </header>
 
         <main className="flex-1 p-6 md:p-12 max-w-[1600px] mx-auto w-full">
           {children}
           
-          <footer className="mt-20 pt-8 border-t border-slate-200 dark:border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4 opacity-40 text-[9px] font-bold tracking-[0.2em] uppercase">
+          <footer className="mt-20 pt-8 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4 opacity-40 text-[9px] font-bold tracking-[0.2em] uppercase">
             <span>© 2026 {settings.siteName} Management Protocol</span>
             <div className="flex gap-6">
               <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> System Online</span>

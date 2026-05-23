@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
   /* ── Amila Gold: Primary (deep green) ── */
@@ -196,5 +197,46 @@
   }
   .lenis.lenis-scroll-animating {
     pointer-events: none;
+  }
+
+  /* Admin panel readability normalization in light mode */
+  .admin-force-light .admin-shell {
+    color: #0f172a;
+  }
+
+  .admin-force-light .admin-shell input,
+  .admin-force-light .admin-shell textarea,
+  .admin-force-light .admin-shell select {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border-color: #cbd5e1 !important;
+  }
+
+  .admin-force-light .admin-shell input::placeholder,
+  .admin-force-light .admin-shell textarea::placeholder {
+    color: #64748b !important;
+    opacity: 1;
+  }
+
+  .admin-force-light .admin-shell .bg-\[\#0d0d0f\],
+  .admin-force-light .admin-shell .bg-\[\#0f1115\],
+  .admin-force-light .admin-shell .bg-\[\#111112\],
+  .admin-force-light .admin-shell .bg-black\/20,
+  .admin-force-light .admin-shell .bg-black\/40,
+  .admin-force-light .admin-shell .bg-black\/50 {
+    background-color: #ffffff !important;
+  }
+
+  .admin-force-light .admin-shell .border-white\/5,
+  .admin-force-light .admin-shell .border-white\/10,
+  .admin-force-light .admin-shell .border-white\/20 {
+    border-color: #e2e8f0 !important;
+  }
+
+  .admin-force-light .admin-shell .text-slate-100,
+  .admin-force-light .admin-shell .text-white\/40,
+  .admin-force-light .admin-shell .text-white\/30,
+  .admin-force-light .admin-shell .text-white\/20 {
+    color: #475569 !important;
   }
 }

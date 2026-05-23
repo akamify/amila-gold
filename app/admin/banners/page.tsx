@@ -152,11 +152,11 @@ export default function AdminBannersPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-10 py-8 px-4 text-slate-100 animate-in fade-in duration-500">
+    <div className="max-w-6xl mx-auto space-y-10 py-8 px-4 text-slate-900 dark:text-slate-100 animate-in fade-in duration-500">
       {/* --- Header Section --- */}
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="font-brand text-5xl font-bold tracking-tight bg-gradient-to-r from-white to-slate-500 bg-clip-text text-transparent">
+          <h1 className="font-brand text-5xl font-bold tracking-tight bg-gradient-to-r from-slate-900 to-slate-500 dark:from-white dark:to-slate-500 bg-clip-text text-transparent">
             Banners
           </h1>
           <p className="mt-2 text-slate-400 text-sm font-medium tracking-wide">
@@ -164,9 +164,6 @@ export default function AdminBannersPage() {
           </p>
         </div>
         <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-800 to-transparent hidden md:block mb-4 mx-8" />
-        <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-red-700 font-bold bg-red-700/10 px-3 py-1 rounded-full border border-red-700/20">
-          Live Editor
-        </div>
       </header>
 
       {/* --- Form Section --- */}
@@ -174,7 +171,7 @@ export default function AdminBannersPage() {
         <div className="absolute -inset-1 bg-gradient-to-r from-red-700/20 to-blue-500/20 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
         <form
           onSubmit={onSubmit}
-          className="relative grid grid-cols-1 md:grid-cols-2 gap-6 p-8 bg-[#0d0d0f] border border-white/10 rounded-2xl shadow-2xl"
+          className="relative grid grid-cols-1 md:grid-cols-2 gap-6 p-8 bg-white dark:bg-[#0d0d0f] border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl"
         >
           <div className="space-y-1">
             <label className="text-[10px] uppercase tracking-widest text-slate-500 font-bold ml-1">Banner Title</label>
@@ -182,7 +179,7 @@ export default function AdminBannersPage() {
               value={form.title}
               onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
               placeholder="Summer Collection 2026"
-              className="w-full bg-black/50 border border-white/5 focus:border-red-700/50 focus:ring-1 focus:ring-red-700/20 px-4 py-3 rounded-xl transition-all outline-none text-sm"
+              className="w-full bg-white dark:bg-black/50 border border-slate-300 dark:border-white/5 focus:border-red-700/50 focus:ring-1 focus:ring-red-700/20 px-4 py-3 rounded-xl transition-all outline-none text-sm"
             />
           </div>
 
@@ -192,7 +189,7 @@ export default function AdminBannersPage() {
               value={form.subtitle}
               onChange={(e) => setForm((p) => ({ ...p, subtitle: e.target.value }))}
               placeholder="Up to 50% off on all items"
-              className="w-full bg-black/50 border border-white/5 focus:border-red-700/50 focus:ring-1 focus:ring-red-700/20 px-4 py-3 rounded-xl transition-all outline-none text-sm"
+              className="w-full bg-white dark:bg-black/50 border border-slate-300 dark:border-white/5 focus:border-red-700/50 focus:ring-1 focus:ring-red-700/20 px-4 py-3 rounded-xl transition-all outline-none text-sm"
             />
           </div>
 
@@ -202,7 +199,7 @@ export default function AdminBannersPage() {
               value={form.targetUrl}
               onChange={(e) => setForm((p) => ({ ...p, targetUrl: e.target.value }))}
               placeholder="/collections/new-arrivals"
-              className="w-full bg-black/50 border border-white/5 focus:border-red-700/50 focus:ring-1 focus:ring-red-700/20 px-4 py-3 rounded-xl transition-all outline-none text-sm font-mono"
+              className="w-full bg-white dark:bg-black/50 border border-slate-300 dark:border-white/5 focus:border-red-700/50 focus:ring-1 focus:ring-red-700/20 px-4 py-3 rounded-xl transition-all outline-none text-sm font-mono"
             />
           </div>
 
@@ -212,7 +209,7 @@ export default function AdminBannersPage() {
               type="number"
               value={form.order}
               onChange={(e) => setForm((p) => ({ ...p, order: e.target.value }))}
-              className="w-full bg-black/50 border border-white/5 focus:border-red-700/50 focus:ring-1 focus:ring-red-700/20 px-4 py-3 rounded-xl transition-all outline-none text-sm"
+              className="w-full bg-white dark:bg-black/50 border border-slate-300 dark:border-white/5 focus:border-red-700/50 focus:ring-1 focus:ring-red-700/20 px-4 py-3 rounded-xl transition-all outline-none text-sm"
             />
           </div>
 
@@ -222,7 +219,7 @@ export default function AdminBannersPage() {
               value={form.imageUrl}
               onChange={(e) => setForm((p) => ({ ...p, imageUrl: e.target.value }))}
               placeholder="https://images.com/banner.jpg"
-              className="w-full bg-black/50 border border-white/5 focus:border-red-700/50 focus:ring-1 focus:ring-red-700/20 px-4 py-3 rounded-xl transition-all outline-none text-sm"
+              className="w-full bg-white dark:bg-black/50 border border-slate-300 dark:border-white/5 focus:border-red-700/50 focus:ring-1 focus:ring-red-700/20 px-4 py-3 rounded-xl transition-all outline-none text-sm"
             />
           </div>
 
@@ -233,7 +230,7 @@ export default function AdminBannersPage() {
                 type="file"
                 accept="image/*"
                 onChange={(e) => setForm((p) => ({ ...p, imageFile: e.target.files?.[0] || null }))}
-                className="w-full text-xs text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:uppercase file:tracking-widest file:bg-white/5 file:text-white hover:file:bg-white/10 transition-all cursor-pointer bg-black/50 border border-white/5 py-1.5 px-2 rounded-xl"
+                className="w-full text-xs text-slate-600 dark:text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:uppercase file:tracking-widest file:bg-slate-100 dark:file:bg-white/5 file:text-slate-900 dark:file:text-white hover:file:bg-slate-200 dark:hover:file:bg-white/10 transition-all cursor-pointer bg-white dark:bg-black/50 border border-slate-300 dark:border-white/5 py-1.5 px-2 rounded-xl"
               />
             </div>
           </div>
@@ -245,13 +242,13 @@ export default function AdminBannersPage() {
                   type="checkbox"
                   checked={form.isActive}
                   onChange={(e) => setForm((p) => ({ ...p, isActive: e.target.checked }))}
-                  className="peer appearance-none w-5 h-5 border border-white/20 rounded-md checked:bg-red-700 checked:border-red-700 transition-all"
+                  className="peer appearance-none w-5 h-5 border border-slate-400 dark:border-white/20 rounded-md checked:bg-red-700 checked:border-red-700 transition-all"
                 />
                 <svg className="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <span className="text-sm font-medium text-slate-400 group-hover/check:text-white transition-colors">Visible on Homepage</span>
+              <span className="text-sm font-medium text-slate-600 dark:text-slate-400 group-hover/check:text-slate-900 dark:group-hover/check:text-white transition-colors">Visible on Homepage</span>
             </label>
 
             <div className="flex items-center gap-3">
@@ -259,7 +256,7 @@ export default function AdminBannersPage() {
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="px-6 py-2.5 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 hover:text-white transition-colors"
+                  className="px-6 py-2.5 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
                 >
                   Discard
                 </button>
@@ -299,13 +296,13 @@ export default function AdminBannersPage() {
       <div className="space-y-6">
         <div className="flex items-center gap-4">
           <h2 className="text-sm font-bold uppercase tracking-[0.3em] text-slate-500">Live Inventory</h2>
-          <div className="h-px flex-1 bg-white/5" />
+          <div className="h-px flex-1 bg-slate-200 dark:bg-white/5" />
         </div>
 
         {loading ? (
           <div className="grid grid-cols-1 gap-4">
             {[1, 2].map((n) => (
-              <div key={n} className="h-32 bg-white/5 rounded-2xl animate-pulse" />
+              <div key={n} className="h-32 bg-slate-200 dark:bg-white/5 rounded-2xl animate-pulse" />
             ))}
           </div>
         ) : (
@@ -315,7 +312,7 @@ export default function AdminBannersPage() {
                 key={item.id}
                 className={`group flex flex-col md:flex-row items-center gap-6 p-4 rounded-2xl border transition-all duration-300 ${editingId === item.id
                     ? 'bg-red-700/5 border-red-700/40 ring-1 ring-red-700/20'
-                    : 'bg-[#0d0d0f]/50 border-white/5 hover:border-white/20'
+                    : 'bg-slate-50 dark:bg-[#0d0d0f]/50 border-slate-200 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/20'
                   }`}
               >
                 <div className="relative w-full md:w-60 h-32 rounded-xl overflow-hidden bg-black ring-1 ring-white/10 group-hover:ring-white/30 transition-all">
@@ -333,17 +330,17 @@ export default function AdminBannersPage() {
 
                 <div className="flex-1 space-y-1 text-center md:text-left min-w-0">
                   <div className="flex items-center justify-center md:justify-start gap-3">
-                    <h3 className="font-headline text-lg font-bold tracking-tight text-white">{item.title}</h3>
-                    <span className="text-[10px] bg-white/5 px-2 py-0.5 rounded border border-white/10 text-slate-400 font-mono">Pos: {item.order}</span>
+                    <h3 className="font-headline text-lg font-bold tracking-tight text-slate-900 dark:text-white">{item.title}</h3>
+                    <span className="text-[10px] bg-slate-100 dark:bg-white/5 px-2 py-0.5 rounded border border-slate-300 dark:border-white/10 text-slate-600 dark:text-slate-400 font-mono">Pos: {item.order}</span>
                   </div>
-                  <p className="text-sm text-slate-400 font-medium">{item.subtitle}</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">{item.subtitle}</p>
                   <p className="text-[11px] text-red-700/60 font-mono truncate hover:text-red-700 transition-colors cursor-default">{item.targetUrl}</p>
                 </div>
 
                 <div className="flex items-center gap-2 w-full md:w-auto">
                   <button
                     onClick={() => beginEdit(item)}
-                    className="flex-1 md:flex-none px-5 py-2.5 rounded-xl border border-white/10 hover:bg-white/5 hover:border-white/20 text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95"
+                    className="flex-1 md:flex-none px-5 py-2.5 rounded-xl border border-slate-300 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 hover:border-slate-400 dark:hover:border-white/20 text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95"
                   >
                     Edit
                   </button>
@@ -359,7 +356,7 @@ export default function AdminBannersPage() {
             ))}
 
             {items.length === 0 && (
-              <div className="py-20 text-center rounded-2xl border-2 border-dashed border-white/5">
+              <div className="py-20 text-center rounded-2xl border-2 border-dashed border-slate-300 dark:border-white/5">
                 <p className="text-slate-500 text-sm font-medium tracking-widest uppercase">The gallery is currently empty</p>
               </div>
             )}
