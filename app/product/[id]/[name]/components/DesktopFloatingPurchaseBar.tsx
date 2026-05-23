@@ -41,7 +41,7 @@ export default function DesktopFloatingPurchaseBar({
           transition={{ duration: 0.28, ease: [0.2, 0.8, 0.2, 1] }}
           className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-[60]"
         >
-          <div className="w-[min(860px,calc(100vw-1.5rem))] bg-white/92 backdrop-blur-xl border border-stone-200 shadow-[0_24px_80px_rgba(0,0,0,0.18)] rounded-[1.75rem] sm:rounded-[2rem] px-4 sm:px-5 py-3.5 sm:py-4">
+          <div className="w-[min(860px,calc(100vw-1.5rem))] bg-white/92 backdrop-blur-xl border border-stone-200 shadow-[0_24px_80px_rgba(0,0,0,0.18)] rounded-[1.75rem] sm:rounded-[2rem] px-3.5 sm:px-5 py-3.5 sm:py-4">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
               <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                 <div className="w-12 h-12 rounded-2xl overflow-hidden bg-stone-100 shrink-0">
