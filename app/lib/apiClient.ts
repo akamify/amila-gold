@@ -614,8 +614,12 @@ async function request(path: string, options: RequestInit = {}, auth = false) {
             (normalized.msg as string) ||
             `Request failed: ${response.status}`;
         const isAdminRequest = path.startsWith('/admin');
+        const isPublicAdminEndpoint = /\/public(?:$|[/?])/.test(path);
+        const isOnAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
         if (
             isAdminRequest &&
+            !isPublicAdminEndpoint &&
+            isOnAdminRoute &&
             (response.status === 401 || response.status === 403) &&
             /token|expired|auth|unauthorized|forbidden|session/i.test(String(message || ''))
         ) {

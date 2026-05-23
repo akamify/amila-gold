@@ -6,7 +6,7 @@ import { adminLogin, adminResetPassword } from '@/app/lib/apiClient';
 import { setAdminSession } from '@/app/lib/adminSession';
 
 export default function AdminLoginPage() {
-    const [username, setUsername] = useState('admin');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
