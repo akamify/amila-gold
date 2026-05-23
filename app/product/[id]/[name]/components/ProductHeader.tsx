@@ -473,7 +473,7 @@ export default function ProductHeader({
         <div className="grid grid-cols-3 gap-4 mt-5">
           {[
             { icon: 'eco', text: 'Pure' },
-            { icon: 'workspace_premium', text: 'Grade A' },
+            { icon: 'block', text: 'Non Returnable' },
             { icon: 'local_shipping', text: 'Fast Del.' }
           ].map((item, index) => (
             <div key={index} className="flex flex-col items-center p-4 bg-surface-container-lowest rounded-2xl border border-outline-variant/5 text-center transition-all hover:bg-white shadow-sm">

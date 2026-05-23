@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { cancelUserOrder, fetchOrders, requestUserOrderReturn } from "@/app/lib/apiClient";
+import { cancelUserOrder, fetchOrders } from "@/app/lib/apiClient";
 import { useSiteSettings } from "@/app/context/SiteSettingsContext";
 import { createProductHref } from "@/app/data/products";
 
@@ -71,13 +71,6 @@ export default function OrderDetailsPage() {
   });
   const normalizedStatus = String(order?.status || "confirmed").toLowerCase().replace(/\s+/g, "_");
   const canCancel = ["pending", "confirmed"].includes(normalizedStatus);
-  const deliveredAt = useMemo(() => {
-    const deliveredEntry = (order?.status_history || []).find((entry) => String(entry?.status || "").toLowerCase() === "delivered");
-    return deliveredEntry?.updatedAt ? new Date(deliveredEntry.updatedAt) : null;
-  }, [order?.status_history]);
-  const canReturn = normalizedStatus === "delivered" && deliveredAt
-    ? Date.now() <= deliveredAt.getTime() + 5 * 24 * 60 * 60 * 1000
-    : false;
   const formatDisplayDate = (date: Date) =>
     `${date.getDate()} ${date.toLocaleString("en-US", { month: "short" })} ${date.getFullYear()}`;
   const etaCard = useMemo(() => {
@@ -127,7 +120,6 @@ export default function OrderDetailsPage() {
   const isCancelled = normalizedStatus === "cancelled";
   const paymentMethod = String(order?.payment_method || "Razorpay");
   const needsUpiForCancel = canCancel && paymentMethod.toLowerCase() === "razorpay";
-  const needsUpiForReturn = canReturn;
   const baseStatuses = ["confirmed", "processed", "in_transit", "delivered"];
   const tailStatuses = ["rto", "return", "refund"];
   const progressStatuses = isCancelled
@@ -352,19 +344,16 @@ export default function OrderDetailsPage() {
                 Contact Support
               </button>
 
-              {/* Cancel / Return */}
-              {(canCancel || canReturn) && (
+              {/* Cancel */}
+              {canCancel && (
                 <button
                   onClick={() => {
                     setShowHelpModal(false);
                     setShowActionModal(true);
                   }}
-                  className={`w-full rounded-xl px-4 py-3 text-sm font-bold text-white transition-colors ${canCancel
-                    ? "bg-error hover:bg-error/90"
-                    : "bg-primary hover:bg-primary/90"
-                    }`}
+                  className="w-full rounded-xl bg-error px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-error/90"
                 >
-                  {canCancel ? "Cancel Order" : "Request Return"}
+                  Cancel Order
                 </button>
               )}
 
@@ -381,7 +370,7 @@ export default function OrderDetailsPage() {
             <div className="flex items-center justify-between mb-5">
 
               <h2 className="text-xl font-headline text-primary font-bold">
-                {canCancel ? "Cancel Order" : "Request Return"}
+                Cancel Order
               </h2>
 
               <button
@@ -397,12 +386,12 @@ export default function OrderDetailsPage() {
             <textarea
               value={orderActionReason}
               onChange={(e) => setOrderActionReason(e.target.value)}
-              placeholder={canCancel ? "Cancellation reason" : "Return reason"}
+              placeholder="Cancellation reason"
               className="w-full rounded-xl border border-outline-variant/30 px-4 py-3 text-sm outline-none focus:border-primary"
               rows={4}
             />
 
-            {(needsUpiForCancel || needsUpiForReturn) ? (
+            {needsUpiForCancel ? (
               <input
                 value={orderActionUpi}
                 onChange={(e) => setOrderActionUpi(e.target.value)}
@@ -419,8 +408,6 @@ export default function OrderDetailsPage() {
 
             <button
               onClick={async () => {
-                const isCancelAction = canCancel;
-
                 const reason = orderActionReason.trim();
                 const upi = orderActionUpi.trim();
 
@@ -429,7 +416,7 @@ export default function OrderDetailsPage() {
                   return;
                 }
 
-                if ((needsUpiForCancel || needsUpiForReturn) && !upi) {
+                if (needsUpiForCancel && !upi) {
                   setActionMessage("Please enter refund UPI ID.");
                   return;
                 }
@@ -438,23 +425,13 @@ export default function OrderDetailsPage() {
                   setBusyAction(true);
                   setActionMessage("");
 
-                  if (isCancelAction) {
-                    await cancelUserOrder(
-                      String(order?.order_code || order?.order_id || orderId),
-                      reason,
-                      upi
-                    );
+                  await cancelUserOrder(
+                    String(order?.order_code || order?.order_id || orderId),
+                    reason,
+                    upi
+                  );
 
-                    setActionMessage("Order cancelled successfully.");
-                  } else {
-                    await requestUserOrderReturn(
-                      String(order?.order_code || order?.order_id || orderId),
-                      reason,
-                      upi
-                    );
-
-                    setActionMessage("Return request submitted.");
-                  }
+                  setActionMessage("Order cancelled successfully.");
 
                   const rows = await fetchOrders();
 
@@ -472,26 +449,15 @@ export default function OrderDetailsPage() {
                   }, 1200);
 
                 } catch {
-                  setActionMessage(
-                    canCancel
-                      ? "Unable to cancel order."
-                      : "Unable to request return."
-                  );
+                  setActionMessage("Unable to cancel order.");
                 } finally {
                   setBusyAction(false);
                 }
               }}
               disabled={busyAction}
-              className={`mt-5 w-full rounded-xl px-4 py-3 text-sm font-bold text-white transition-colors disabled:opacity-60 ${canCancel
-                  ? "bg-error hover:bg-error/90"
-                  : "bg-primary hover:bg-primary/90"
-                }`}
+              className="mt-5 w-full rounded-xl bg-error px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-error/90 disabled:opacity-60"
             >
-              {busyAction
-                ? "Please wait..."
-                : canCancel
-                  ? "Cancel Order"
-                  : "Request Return"}
+              {busyAction ? "Please wait..." : "Cancel Order"}
             </button>
           </div>
         </div>

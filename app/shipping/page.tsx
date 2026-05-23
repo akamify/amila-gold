@@ -48,6 +48,13 @@ export default function ShippingPage() {
             Please inspect your package upon delivery. Report missing or damaged items within 48 hours at <a className="text-primary font-bold" href={`mailto:${supportEmail}`}>{supportEmail}</a> or <a className="text-primary font-bold" href={`tel:${supportPhone.replace(/\s+/g, '')}`}>{supportPhone}</a>.
           </p>
         </section>
+
+        <section className="space-y-4">
+          <h2 className="font-brand text-3xl uppercase tracking-wide">Cancellations and Returns</h2>
+          <p className="font-headline text-sm leading-7 text-[#1c1b1b]/75">
+            Orders can be cancelled as per our cancellation terms. Delivered products are non-returnable.
+          </p>
+        </section>
       </div>
     </div>
   );

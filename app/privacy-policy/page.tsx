@@ -51,6 +51,13 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section className="space-y-4">
+          <h2 className="font-brand text-3xl uppercase tracking-wide">Order Cancellation and Returns</h2>
+          <p className="font-headline text-sm leading-7 text-[#1c1b1b]/75">
+            Orders may be cancelled according to our cancellation policy. Products are non-returnable once delivered.
+          </p>
+        </section>
+
+        <section className="space-y-4">
           <h2 className="font-brand text-3xl uppercase tracking-wide">Contact</h2>
           <p className="font-headline text-sm leading-7 text-[#1c1b1b]/75">
             For privacy-related questions, please contact us through the contact page or registered company support email.

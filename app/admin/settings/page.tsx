@@ -271,24 +271,29 @@ export default function AdminSettings() {
     };
 
     const activeLogoPreview = logoPreviewUrl || settings.logoUrl || '';
+    const panelClass = 'bg-white border border-slate-200 rounded-3xl p-8 dark:bg-white/[0.03] dark:border-white/10';
+    const inputClass =
+        'w-full rounded-xl px-4 py-3.5 transition-all focus:outline-none focus:ring-2 focus:ring-red-700/50 bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 dark:bg-white/[0.05] dark:border-white/10 dark:text-white dark:placeholder:text-slate-600';
+    const passwordInputClass =
+        'w-full rounded-xl px-4 py-3 text-sm transition-all focus:outline-none focus:border-amber-500/50 bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 dark:bg-white/[0.03] dark:border-white/10 dark:text-white';
 
     // Reusable Input Component for sleek look
     const InputWrapper = ({ label, children }: { label: string, children: React.ReactNode }) => (
         <div className="flex flex-col gap-1.5 w-full">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">{label}</span>
+            <span className="ml-1 text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{label}</span>
             {children}
         </div>
     );
 
     return (
-        <div className="max-w-7xl mx-auto px-4 py-10 flex flex-col gap-10 text-slate-200">
+        <div className="mx-auto flex max-w-7xl flex-col gap-10 px-4 py-10 text-slate-900 dark:text-slate-200">
             {/* Header Section */}
-            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/10 pb-8">
+            <header className="flex flex-col justify-between gap-6 border-b border-slate-200 pb-8 md:flex-row md:items-end dark:border-white/10">
                 <div className="flex flex-col gap-1">
                     <span className="flex items-center gap-2 text-red-700 font-bold text-xs tracking-[0.3em] uppercase">
                         <div className="w-8 h-[2px] bg-red-700"></div> Configuration
                     </span>
-                    <h2 className="text-5xl md:text-6xl font-black tracking-tight text-white">Site Settings</h2>
+                    <h2 className="text-5xl font-black tracking-tight text-slate-900 dark:text-white md:text-6xl">Site Settings</h2>
                 </div>
                 <div className="flex gap-4">
                      <button 
@@ -304,7 +309,7 @@ export default function AdminSettings() {
 
             {/* Notification Area */}
             {(error || message) && (
-                <div className={`flex items-center gap-3 px-6 py-4 rounded-xl border animate-in fade-in slide-in-from-top-4 duration-300 ${error ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'}`}>
+                <div className={`animate-in slide-in-from-top-4 flex items-center gap-3 rounded-xl border px-6 py-4 fade-in duration-300 ${error ? 'border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400' : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'}`}>
                     {error ? <AlertCircle size={20} /> : <CheckCircle2 size={20} />}
                     <p className="text-sm font-medium">{error || message}</p>
                     <button className="ml-auto opacity-50 hover:opacity-100" onClick={() => { setError(''); setMessage(''); }}>
@@ -318,65 +323,65 @@ export default function AdminSettings() {
                 <div className="lg:col-span-8 flex flex-col gap-8">
                     
                     {/* Branding Section */}
-                    <section className="bg-white/[0.03] border border-white/10 rounded-3xl p-8 backdrop-blur-sm">
+                    <section className={`${panelClass} backdrop-blur-sm`}>
                         <div className="flex items-center gap-3 mb-8">
                             <div className="p-2 bg-red/20 rounded-lg text-red-700"><Globe size={24} /></div>
-                            <h3 className="text-2xl font-bold text-white tracking-tight">Identity & Branding</h3>
+                            <h3 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Identity & Branding</h3>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                             <InputWrapper label="Store Name">
-                                <input autoComplete="off" value={form.siteName} onChange={(e) => updateField('siteName', e.target.value)} className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-red-700/50 transition-all text-white placeholder:text-slate-600" placeholder="e.g. Pure Fire" />
+                                <input autoComplete="off" value={form.siteName} onChange={(e) => updateField('siteName', e.target.value)} className={inputClass} placeholder="e.g. Pure Fire" />
                             </InputWrapper>
                             <InputWrapper label="Currency Symbol">
-                                <input autoComplete="off" value={form.currencySymbol} onChange={(e) => updateField('currencySymbol', e.target.value)} className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-red-700/50 transition-all text-white" />
+                                <input autoComplete="off" value={form.currencySymbol} onChange={(e) => updateField('currencySymbol', e.target.value)} className={inputClass} />
                             </InputWrapper>
                             <InputWrapper label="Navbar Title">
-                                <input autoComplete="off" value={form.navbarTitle} onChange={(e) => updateField('navbarTitle', e.target.value)} className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-red-700/50 transition-all text-white" />
+                                <input autoComplete="off" value={form.navbarTitle} onChange={(e) => updateField('navbarTitle', e.target.value)} className={inputClass} />
                             </InputWrapper>
                             <InputWrapper label="Footer Title">
-                                <input autoComplete="off" value={form.footerTitle} onChange={(e) => updateField('footerTitle', e.target.value)} className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-red-700/50 transition-all text-white" />
+                                <input autoComplete="off" value={form.footerTitle} onChange={(e) => updateField('footerTitle', e.target.value)} className={inputClass} />
                             </InputWrapper>
                         </div>
 
                         <div className="space-y-6">
                             <InputWrapper label="Footer Description">
-                                <textarea value={form.footerDescription} onChange={(e) => updateField('footerDescription', e.target.value)} rows={3} className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-red-700/50 transition-all text-white" />
+                                <textarea value={form.footerDescription} onChange={(e) => updateField('footerDescription', e.target.value)} rows={3} className={inputClass} />
                             </InputWrapper>
                             <InputWrapper label="Company Address">
-                                <textarea value={form.companyAddress} onChange={(e) => updateField('companyAddress', e.target.value)} rows={2} className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-red-700/50 transition-all text-white" />
+                                <textarea value={form.companyAddress} onChange={(e) => updateField('companyAddress', e.target.value)} rows={2} className={inputClass} />
                             </InputWrapper>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <InputWrapper label="Company Email">
-                                    <input value={form.companyEmail} onChange={(e) => updateField('companyEmail', e.target.value)} className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-red-700/50 transition-all text-white" />
+                                    <input value={form.companyEmail} onChange={(e) => updateField('companyEmail', e.target.value)} className={inputClass} />
                                 </InputWrapper>
                                 <InputWrapper label="Company Phone">
-                                    <input value={form.companyPhone} onChange={(e) => updateField('companyPhone', e.target.value)} className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-red-700/50 transition-all text-white" />
+                                    <input value={form.companyPhone} onChange={(e) => updateField('companyPhone', e.target.value)} className={inputClass} />
                                 </InputWrapper>
                             </div>
                         </div>
 
                         {/* Logo Upload Box */}
-                        <div className="mt-10 p-6 bg-black/40 border border-dashed border-white/20 rounded-2xl">
+                        <div className="mt-10 rounded-2xl border border-dashed border-slate-300 bg-slate-100 p-6 dark:border-white/20 dark:bg-black/40">
                              <div className="flex flex-col md:flex-row gap-8 items-center">
                                 <div className="relative group">
-                                    <div className="w-32 h-32 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105">
+                                    <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-2xl border border-slate-300 bg-white transition-transform group-hover:scale-105 dark:border-white/10 dark:bg-white/[0.03]">
                                         {activeLogoPreview ? (
                                             <Image src={activeLogoPreview} alt="logo preview" width={100} height={100} unoptimized className="object-contain p-2" />
                                         ) : (
-                                            <UploadCloud className="text-white/20" size={32} />
+                                            <UploadCloud className="text-slate-400 dark:text-white/20" size={32} />
                                         )}
                                     </div>
-                                    {activeLogoPreview && <div className="absolute -top-2 -right-2 bg-emerald-500 rounded-full p-1 border-2 border-black"><CheckCircle2 size={12} /></div>}
+                                    {activeLogoPreview && <div className="absolute -right-2 -top-2 rounded-full border-2 border-white bg-emerald-500 p-1 dark:border-black"><CheckCircle2 size={12} /></div>}
                                 </div>
                                 <div className="flex-1 flex flex-col gap-4">
                                     <div className="text-center md:text-left">
-                                        <h4 className="text-white font-bold">Brand Mark</h4>
-                                        <p className="text-xs text-slate-400 mt-1">Recommended size 512x512px. Transparent PNG preferred.</p>
+                                        <h4 className="font-bold text-slate-900 dark:text-white">Brand Mark</h4>
+                                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Recommended size 512x512px. Transparent PNG preferred.</p>
                                     </div>
                                     <div className="flex flex-wrap gap-3">
                                         <input key={logoInputKey} type="file" accept="image/*" id="logo-upload" className="hidden" onChange={(e) => setLogoFile(e.target.files?.[0] || null)} />
-                                        <label htmlFor="logo-upload" className="cursor-pointer bg-white/10 hover:bg-white/20 text-white px-6 py-2.5 rounded-full text-xs font-bold transition-all border border-white/10">
+                                        <label htmlFor="logo-upload" className="cursor-pointer rounded-full border border-slate-300 bg-white px-6 py-2.5 text-xs font-bold text-slate-800 transition-all hover:bg-slate-100 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/20">
                                             Choose Image
                                         </label>
                                         <button onClick={onUploadLogo} disabled={uploadingLogo || !logoFile} className="bg-red-700 text-white px-6 py-2.5 rounded-full text-xs font-bold transition-all hover:shadow-lg hover:shadow-red-700/20 disabled:opacity-30">
@@ -389,20 +394,20 @@ export default function AdminSettings() {
                     </section>
 
                     {/* Social Media Section */}
-                    <section className="bg-white/[0.03] border border-white/10 rounded-3xl p-8 backdrop-blur-sm">
+                    <section className={`${panelClass} backdrop-blur-sm`}>
                         <div className="flex items-center gap-3 mb-8">
                             <div className="p-2 bg-blue-500/20 rounded-lg text-blue-400"><Share2 size={24} /></div>
-                            <h3 className="text-2xl font-bold text-white tracking-tight">Social Connectivity</h3>
+                            <h3 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Social Connectivity</h3>
                         </div>
                         <div className="grid grid-cols-1 gap-6">
                             <InputWrapper label="Instagram Profile URL">
-                                <input value={form.instagramUrl} onChange={(e) => updateField('instagramUrl', e.target.value)} className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-red-700/50 transition-all text-white" placeholder="https://instagram.com/yourhandle" />
+                                <input value={form.instagramUrl} onChange={(e) => updateField('instagramUrl', e.target.value)} className={inputClass} placeholder="https://instagram.com/yourhandle" />
                             </InputWrapper>
                             <InputWrapper label="YouTube Channel URL">
-                                <input value={form.youtubeUrl} onChange={(e) => updateField('youtubeUrl', e.target.value)} className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-red-700/50 transition-all text-white" placeholder="https://youtube.com/@yourchannel" />
+                                <input value={form.youtubeUrl} onChange={(e) => updateField('youtubeUrl', e.target.value)} className={inputClass} placeholder="https://youtube.com/@yourchannel" />
                             </InputWrapper>
                             <InputWrapper label="Facebook Page URL">
-                                <input value={form.facebookUrl} onChange={(e) => updateField('facebookUrl', e.target.value)} className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-red-700/50 transition-all text-white" placeholder="https://facebook.com/yourpage" />
+                                <input value={form.facebookUrl} onChange={(e) => updateField('facebookUrl', e.target.value)} className={inputClass} placeholder="https://facebook.com/yourpage" />
                             </InputWrapper>
                         </div>
                     </section>
@@ -412,21 +417,21 @@ export default function AdminSettings() {
                 <div className="lg:col-span-4 flex flex-col gap-8">
                     
                     {/* Security Card */}
-                    <section className="bg-[#111112] border border-white/10 rounded-3xl p-8 overflow-hidden relative">
+                    <section className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 dark:border-white/10 dark:bg-[#111112]">
                          <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none rotate-12">
                             <ShieldCheck size={120} />
                          </div>
                         <div className="flex items-center gap-3 mb-6 relative z-10">
                             <div className="p-2 bg-amber-500/20 rounded-lg text-amber-400"><ShieldCheck size={20} /></div>
-                            <h3 className="text-xl font-bold text-white tracking-tight">Security & Access</h3>
+                            <h3 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Security & Access</h3>
                         </div>
                         <div className="flex flex-col gap-4 relative z-10">
-                            <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} placeholder="Current Password" className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-500/50" />
-                            <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="New Password" className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-500/50" />
-                            <button onClick={onResetPassword} disabled={resettingPassword || !currentPassword || !newPassword} className="w-full bg-white/5 hover:bg-white/10 text-white py-3 rounded-xl text-xs font-bold border border-white/10 transition-all disabled:opacity-20">
+                            <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} placeholder="Current Password" className={passwordInputClass} />
+                            <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="New Password" className={passwordInputClass} />
+                            <button onClick={onResetPassword} disabled={resettingPassword || !currentPassword || !newPassword} className="w-full rounded-xl border border-slate-300 bg-slate-100 py-3 text-xs font-bold text-slate-800 transition-all hover:bg-slate-200 disabled:opacity-20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10">
                                 {resettingPassword ? 'Processing...' : 'Change Password'}
                             </button>
-                            <div className="h-[1px] bg-white/10 my-2"></div>
+                            <div className="my-2 h-[1px] bg-slate-200 dark:bg-white/10"></div>
                             <button onClick={onLogout} className="w-full bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white py-3 rounded-xl text-xs font-bold border border-red-500/20 transition-all flex items-center justify-center gap-2">
                                 <LogOut size={14} /> Sign Out Session
                             </button>

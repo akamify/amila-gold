@@ -82,7 +82,7 @@ export default function OrderDetailsModal({ order, currency, onClose, onUpdated 
 
     in_transit: ['delivered', 'rto'],
 
-    delivered: ['return'],
+    delivered: ['delivered'],
 
     return: ['refund'],
 

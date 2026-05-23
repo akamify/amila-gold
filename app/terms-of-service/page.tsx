@@ -39,7 +39,7 @@ export default function TermsOfServicePage() {
         <section className="space-y-4">
           <h2 className="font-brand text-3xl uppercase tracking-wide">Returns and Refunds</h2>
           <p className="font-headline text-sm leading-7 text-[#1c1b1b]/75">
-            Returns and refunds are governed by the current return policy, including eligibility windows and product condition requirements.
+            Orders may be cancelled as allowed under the active cancellation policy. Products are non-returnable after delivery.
           </p>
         </section>
 

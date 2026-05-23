@@ -76,7 +76,7 @@ export async function updateAdminProduct(productId: number, form: FormData) {
 import type { Product } from '@/app/data/products';
 import { normalizeBackendProduct } from '@/app/lib/backendProducts';
 import { clearUserSession, getBackendBaseUrlCandidates, getCartId, getUserEmail, getUserToken, setCartId } from '@/app/lib/session';
-import { getAdminToken } from '@/app/lib/adminSession';
+import { clearAdminSession, getAdminToken } from '@/app/lib/adminSession';
 
 type AnyRecord = Record<string, unknown>;
 
@@ -613,6 +613,17 @@ async function request(path: string, options: RequestInit = {}, auth = false) {
             (normalized.message as string) ||
             (normalized.msg as string) ||
             `Request failed: ${response.status}`;
+        const isAdminRequest = path.startsWith('/admin');
+        if (
+            isAdminRequest &&
+            (response.status === 401 || response.status === 403) &&
+            /token|expired|auth|unauthorized|forbidden|session/i.test(String(message || ''))
+        ) {
+            clearAdminSession();
+            if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/admin/login')) {
+                window.location.replace('/admin/login');
+            }
+        }
         if (
             auth &&
             (response.status === 401 || response.status === 403) &&
