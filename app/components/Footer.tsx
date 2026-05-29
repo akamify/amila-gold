@@ -206,12 +206,7 @@ export default function Footer() {
 
           <div className="flex flex-wrap justify-center gap-6 md:gap-10 text-[10px] md:text-xs tracking-[0.2em] uppercase text-[#F7F5F0]/30 font-semibold">
             <span className="flex items-center gap-2">
-              <span className="w-1 h-1 rounded-full bg-[#EBBB59]/40" />
-              Handmade in the valley of India
-            </span>
-            <span className="flex items-center gap-2">
-              <span className="w-1 h-1 rounded-full bg-[#EBBB59]/40" />
-              Ethically Sourced
+              A Product of <b>Amila Agro Product</b>
             </span>
           </div>
           <p className="text-[10px] md:text-xs tracking-[0.15em] uppercase text-[#F7F5F0]/40 text-center lg:text-left">
