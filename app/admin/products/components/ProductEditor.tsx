@@ -1034,38 +1034,39 @@ export default function ProductEditor({
                           </p>
                         </div>
                       )}
-                      <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                          <div>
-                            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">
-                              Payment Option
-                            </p>
-                            <h4 className="mt-2 text-lg font-semibold tracking-tight text-slate-900">
-                              Cash on Delivery
-                            </h4>
-                            <p className="mt-1 text-sm text-slate-500">
-                              Razorpay remains available by default. Enable COD only for this product.
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            role="switch"
-                            aria-checked={codAvailable}
-                            onClick={() => setCodAvailable((prev) => !prev)}
-                            className={`relative h-8 w-16 shrink-0 rounded-full border transition ${codAvailable
-                              ? 'border-emerald-500 bg-emerald-500'
-                              : 'border-slate-300 bg-slate-200'
-                              }`}
-                          >
-                            <span
-                              className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition ${codAvailable ? 'left-8' : 'left-1'
-                                }`}
-                            />
-                          </button>
-                        </div>
-                      </div>
                     </div>
                   ))}
+                </div>
+
+                     <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">
+                        Payment Option
+                      </p>
+                      <h4 className="mt-2 text-lg font-semibold tracking-tight text-slate-900">
+                        Cash on Delivery
+                      </h4>
+                      <p className="mt-1 text-sm text-slate-500">
+                        Razorpay remains available by default. Enable COD only for this product.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={codAvailable}
+                      onClick={() => setCodAvailable((prev) => !prev)}
+                      className={`relative h-8 w-16 shrink-0 rounded-full border transition ${codAvailable
+                        ? 'border-emerald-500 bg-emerald-500'
+                        : 'border-slate-300 bg-slate-200'
+                        }`}
+                    >
+                      <span
+                        className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition ${codAvailable ? 'left-8' : 'left-1'
+                          }`}
+                      />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
