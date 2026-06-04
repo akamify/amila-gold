@@ -19,6 +19,8 @@ export type ProductItem = {
   description?: string;
   quantity?: number;
   status?: string;
+  cod_available?: boolean;
+  codAvailable?: boolean;
   catagory_id?: { _id?: string; name?: string } | string;
   product_image?: string[];
   video_url?: string;

@@ -135,6 +135,7 @@ export default function CheckoutPage() {
   const [newAddress, setNewAddress] = useState<UserAddressInput>(createEmptyAddress());
   const [hasStockConflict, setHasStockConflict] = useState(false);
   const [stockConflictMessage, setStockConflictMessage] = useState("");
+  const [codUnavailableNames, setCodUnavailableNames] = useState<string[]>([]);
 
   // Use buyNowItem if present (Buy Now flow), otherwise use cart items
   const checkoutItems = buyNowItem ? [buyNowItem] : items;
@@ -144,6 +145,10 @@ export default function CheckoutPage() {
   const codCharge = paymentMethod === "COD" ? COD_CHARGE : 0;
   const total = subtotal + SHIPPING + codCharge;
   const isPageLoading = isHydrating || isAuthLoading || isSettingsLoading;
+  const isCodAvailableForCheckout = checkoutItems.length > 0 && codUnavailableNames.length === 0;
+  const codUnavailableMessage = codUnavailableNames.length
+    ? `COD is not available for ${codUnavailableNames.slice(0, 2).join(", ")}${codUnavailableNames.length > 2 ? " and more" : ""}.`
+    : "";
 
   // Load buyNowItem from localStorage on mount
   useEffect(() => {
@@ -164,17 +169,23 @@ export default function CheckoutPage() {
       if (!checkoutItems.length) {
         setHasStockConflict(false);
         setStockConflictMessage("");
+        setCodUnavailableNames([]);
         return;
       }
       try {
         const products = await fetchBackendProducts();
         const map = new Map(products.map((product) => [product.id, product]));
+        const codBlocked: string[] = [];
         for (const item of checkoutItems) {
           const product = map.get(item.id);
           if (!product) {
             setHasStockConflict(true);
             setStockConflictMessage("Some items are unavailable. Please review your cart.");
+            setCodUnavailableNames([]);
             return;
+          }
+          if (product.codAvailable !== true) {
+            codBlocked.push(product.name || item.name || `Product ${item.id}`);
           }
           const variant = matchVariantByCartSize(product, item.size);
           const available = variant
@@ -183,18 +194,27 @@ export default function CheckoutPage() {
           if (available < Number(item.qty || 0)) {
             setHasStockConflict(true);
             setStockConflictMessage("Some items are out of stock. Please update cart before checkout.");
+            setCodUnavailableNames(codBlocked);
             return;
           }
         }
         setHasStockConflict(false);
         setStockConflictMessage("");
+        setCodUnavailableNames(codBlocked);
       } catch {
         setHasStockConflict(false);
         setStockConflictMessage("");
+        setCodUnavailableNames([]);
       }
     };
     validateCheckoutStock();
   }, [checkoutItems]);
+
+  useEffect(() => {
+    if (paymentMethod === "COD" && !isCodAvailableForCheckout) {
+      setPaymentMethod("Razorpay");
+    }
+  }, [isCodAvailableForCheckout, paymentMethod]);
 
   const persistSelectedAddressId = (value: number | null) => {
     if (typeof window === "undefined") return;
@@ -314,6 +334,10 @@ export default function CheckoutPage() {
     if (!checkoutItemCount || isProcessing) return;
     if (hasStockConflict) {
       setPaymentError(stockConflictMessage || "Some items are out of stock.");
+      return;
+    }
+    if (paymentMethod === "COD" && !isCodAvailableForCheckout) {
+      setPaymentError(codUnavailableMessage || "COD is not available for one or more products.");
       return;
     }
     if (!selectedAddressId) {
@@ -563,7 +587,7 @@ export default function CheckoutPage() {
               <div className="mt-6 pt-4 border-t border-outline-variant/20 space-y-3">
                 <div className="pb-2">
                   <p className="mb-2 text-[11px] uppercase tracking-widest text-on-surface-variant font-bold">Payment Method</p>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className={`grid gap-2 ${isCodAvailableForCheckout ? "grid-cols-2" : "grid-cols-1"}`}>
                     <button
                       type="button"
                       onClick={() => setPaymentMethod("Razorpay")}
@@ -571,13 +595,18 @@ export default function CheckoutPage() {
                     >
                       Razorpay
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod("COD")}
-                      className={`rounded-xl border px-3 py-2 text-xs font-bold ${paymentMethod === "COD" ? "border-primary text-primary bg-primary/5" : "border-outline-variant/30 text-on-surface-variant"}`}
-                    >
-                      COD
-                    </button>
+                    {isCodAvailableForCheckout ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPaymentError("");
+                          setPaymentMethod("COD");
+                        }}
+                        className={`rounded-xl border px-3 py-2 text-xs font-bold ${paymentMethod === "COD" ? "border-primary text-primary bg-primary/5" : "border-outline-variant/30 text-on-surface-variant"}`}
+                      >
+                        COD
+                      </button>
+                    ) : null}
                   </div>
                 </div>
                 <div className="flex justify-between text-on-surface-variant">

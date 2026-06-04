@@ -280,6 +280,7 @@ export function normalizeBackendProduct(input: unknown): Product {
         stockByVariant,
         variantPrices, // Per-variant pricing
         variants: variantData, // Full variant data
+        codAvailable: raw.cod_available === true || raw.codAvailable === true,
         collection: String(category || 'SHOP').toUpperCase(),
         category,
         tag: quantity <= 0 ? 'Out of Stock' : undefined,

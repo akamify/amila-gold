@@ -22,6 +22,7 @@ export interface Product {
   stockByVariant?: Record<string, number>;
   variantPrices?: Record<string, number>;  // Per-variant pricing
   variants?: WeightVariant[];               // Full variant data
+  codAvailable?: boolean;
   collection?: string;
   category?: string;
   tag?: string;
