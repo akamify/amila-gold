@@ -95,6 +95,9 @@ export default function ProductTable({
                           src={thumb}
                           alt={product.name}
                           loading="lazy"
+                          onError={(event) => {
+                            event.currentTarget.style.display = 'none';
+                          }}
                           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                       ) : (

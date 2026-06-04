@@ -81,6 +81,8 @@ export default function AdminProductsPage() {
         selling_price: p.selling_price,
         quantity: p.quantity,
         status: p.status,
+        cod_available: p.cod_available,
+        codAvailable: p.codAvailable,
       }));
 
       setProducts(mappedProducts);
