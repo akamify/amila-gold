@@ -410,8 +410,8 @@ export interface AdminProductLite {
     selling_price?: number;
     quantity?: number;
     status?: string;
-    cod_available?: boolean;
-    codAvailable?: boolean;
+    cod_available?: boolean | string;
+    codAvailable?: boolean | string;
 }
 
 export interface PromoCodeConfig {
