@@ -136,6 +136,7 @@ export default function CheckoutPage() {
   const [hasStockConflict, setHasStockConflict] = useState(false);
   const [stockConflictMessage, setStockConflictMessage] = useState("");
   const [codUnavailableNames, setCodUnavailableNames] = useState<string[]>([]);
+  const [hasCheckedCodAvailability, setHasCheckedCodAvailability] = useState(false);
 
   // Use buyNowItem if present (Buy Now flow), otherwise use cart items
   const checkoutItems = buyNowItem ? [buyNowItem] : items;
@@ -145,7 +146,7 @@ export default function CheckoutPage() {
   const codCharge = paymentMethod === "COD" ? COD_CHARGE : 0;
   const total = subtotal + SHIPPING + codCharge;
   const isPageLoading = isHydrating || isAuthLoading || isSettingsLoading;
-  const isCodAvailableForCheckout = checkoutItems.length > 0 && codUnavailableNames.length === 0;
+  const isCodAvailableForCheckout = checkoutItems.length > 0 && hasCheckedCodAvailability && codUnavailableNames.length === 0;
   const codUnavailableMessage = codUnavailableNames.length
     ? `COD is not available for ${codUnavailableNames.slice(0, 2).join(", ")}${codUnavailableNames.length > 2 ? " and more" : ""}.`
     : "";
@@ -170,8 +171,10 @@ export default function CheckoutPage() {
         setHasStockConflict(false);
         setStockConflictMessage("");
         setCodUnavailableNames([]);
+        setHasCheckedCodAvailability(true);
         return;
       }
+      setHasCheckedCodAvailability(false);
       try {
         const products = await fetchBackendProducts();
         const map = new Map(products.map((product) => [product.id, product]));
@@ -182,6 +185,7 @@ export default function CheckoutPage() {
             setHasStockConflict(true);
             setStockConflictMessage("Some items are unavailable. Please review your cart.");
             setCodUnavailableNames([]);
+            setHasCheckedCodAvailability(true);
             return;
           }
           if (product.codAvailable !== true) {
@@ -195,16 +199,19 @@ export default function CheckoutPage() {
             setHasStockConflict(true);
             setStockConflictMessage("Some items are out of stock. Please update cart before checkout.");
             setCodUnavailableNames(codBlocked);
+            setHasCheckedCodAvailability(true);
             return;
           }
         }
         setHasStockConflict(false);
         setStockConflictMessage("");
         setCodUnavailableNames(codBlocked);
+        setHasCheckedCodAvailability(true);
       } catch {
         setHasStockConflict(false);
         setStockConflictMessage("");
         setCodUnavailableNames([]);
+        setHasCheckedCodAvailability(true);
       }
     };
     validateCheckoutStock();
