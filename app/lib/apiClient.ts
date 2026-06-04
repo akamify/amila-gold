@@ -410,6 +410,8 @@ export interface AdminProductLite {
     selling_price?: number;
     quantity?: number;
     status?: string;
+    cod_available?: boolean;
+    codAvailable?: boolean;
 }
 
 export interface PromoCodeConfig {
@@ -1221,6 +1223,8 @@ export async function fetchAdminProductsLite(): Promise<AdminProductLite[]> {
                 return undefined;
             })(),
             status: typeof row.status === 'string' ? row.status : undefined,
+            cod_available: row.cod_available === true,
+            codAvailable: row.cod_available === true || row.codAvailable === true,
         } as AdminProductLite;
     });
 }
