@@ -1223,8 +1223,8 @@ export async function fetchAdminProductsLite(): Promise<AdminProductLite[]> {
                 return undefined;
             })(),
             status: typeof row.status === 'string' ? row.status : undefined,
-            cod_available: row.cod_available === true,
-            codAvailable: row.cod_available === true || row.codAvailable === true,
+            cod_available: row.cod_available === true || row.cod_available === 'true',
+            codAvailable: row.cod_available === true || row.cod_available === 'true' || row.codAvailable === true || row.codAvailable === 'true',
         } as AdminProductLite;
     });
 }

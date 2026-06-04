@@ -160,7 +160,7 @@ export default function ProductEditor({
         editorRef.current.innerHTML = descriptionHtml;
       }
       setSku(product.sku || '');
-      setCodAvailable(product.cod_available === true || product.codAvailable === true);
+      setCodAvailable(product.cod_available === true || product.cod_available === 'true' || product.codAvailable === true || product.codAvailable === 'true');
       setHighlights(Array.isArray(product.key_highlights) ? product.key_highlights.join('\n') : '');
       setSelectedCategoryId(parseCategoryId(product.catagory_id));
 
