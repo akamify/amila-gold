@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/app/context/CartContext";
@@ -18,7 +18,7 @@ import {
 import AddressCard from "@/app/components/address/AddressCard";
 import AddressForm from "@/app/components/address/AddressForm";
 import AddressModal from "@/app/components/address/AddressModal";
-import { fetchBackendProducts, matchVariantByCartSize } from "@/app/lib/backendProducts";
+import { fetchBackendProductById, matchVariantByCartSize } from "@/app/lib/backendProducts";
 
 declare global {
   interface Window {
@@ -139,7 +139,7 @@ export default function CheckoutPage() {
   const [hasCheckedCodAvailability, setHasCheckedCodAvailability] = useState(false);
 
   // Use buyNowItem if present (Buy Now flow), otherwise use cart items
-  const checkoutItems = buyNowItem ? [buyNowItem] : items;
+  const checkoutItems = useMemo(() => (buyNowItem ? [buyNowItem] : items), [buyNowItem, items]);
   const checkoutItemCount = buyNowItem ? buyNowItem.qty : itemCount;
 
   const subtotal = checkoutItems.reduce((sum, item) => sum + item.price * item.qty, 0);
@@ -176,8 +176,13 @@ export default function CheckoutPage() {
       }
       setHasCheckedCodAvailability(false);
       try {
-        const products = await fetchBackendProducts();
-        const map = new Map(products.map((product) => [product.id, product]));
+        const uniqueProductIds = [...new Set(checkoutItems.map((item) => Number(item.id)).filter(Boolean))];
+        const products = await Promise.all(uniqueProductIds.map((productId) => fetchBackendProductById(productId)));
+        const map = new Map(
+          products
+            .filter((product): product is NonNullable<typeof product> => Boolean(product))
+            .map((product) => [product.id, product])
+        );
         const codBlocked: string[] = [];
         for (const item of checkoutItems) {
           const product = map.get(item.id);

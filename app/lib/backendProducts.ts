@@ -113,6 +113,13 @@ function normalizeToken(value: unknown) {
     return String(value || '').trim().toLowerCase();
 }
 
+function isEnabledFlag(value: unknown) {
+    if (value === true) return true;
+    if (typeof value === 'number') return value === 1;
+    const normalized = String(value || '').trim().toLowerCase();
+    return normalized === 'true' || normalized === '1' || normalized === 'yes' || normalized === 'enabled';
+}
+
 function buildStockMaps(raw: GenericRecord) {
     const variants = Array.isArray(raw.variants) ? raw.variants : [];
     const stockBySize: Record<string, number> = {};
@@ -280,7 +287,7 @@ export function normalizeBackendProduct(input: unknown): Product {
         stockByVariant,
         variantPrices, // Per-variant pricing
         variants: variantData, // Full variant data
-        codAvailable: raw.cod_available === true || raw.cod_available === 'true' || raw.codAvailable === true || raw.codAvailable === 'true',
+        codAvailable: isEnabledFlag(raw.cod_available) || isEnabledFlag(raw.codAvailable),
         collection: String(category || 'SHOP').toUpperCase(),
         category,
         tag: quantity <= 0 ? 'Out of Stock' : undefined,
