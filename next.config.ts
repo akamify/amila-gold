@@ -77,8 +77,8 @@ const nextConfig: NextConfig = {
       "font-src 'self' https://fonts.gstatic.com data:",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       isProd
-        ? "script-src 'self' 'unsafe-inline' https://checkout.razorpay.com"
-        : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com",
+        ? "script-src 'self' 'unsafe-inline' https://checkout.razorpay.com https://connect.facebook.net"
+        : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://connect.facebook.net",
       "connect-src 'self' https: wss:",
       "frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com",
       "form-action 'self'",
