@@ -39,6 +39,15 @@ export default function RootLayout({
         suppressHydrationWarning
         className={`${manrope.variable} ${newsreader.variable} font-body bg-surface text-on-surface antialiased selection:bg-secondary-container selection:text-on-secondary-container`}
       >
+        {/* Google Tag Manager (noscript) */}
+        <noscript>
+          <iframe
+            src="https://www.googletagmanager.com/ns.html?id=GTM-MZ4ZH9PH"
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+          />
+        </noscript>
         <MetaPixel />
         <Providers>
           <ClientWrapper>{children}</ClientWrapper>
