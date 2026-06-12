@@ -128,20 +128,23 @@ export const isRefundStatus = (order: AdminOrder) => {
 export const formatAddress = (order: AdminOrder) => {
   const primary = [
     order.address?.address,
-    order.address?.address_line2,
+    order.address?.address_line1,
     order.address_line1,
+    order.address?.address_line2,
+    order.address_line2,
   ]
     .map((value) => String(value || '').trim())
     .filter(Boolean);
 
   const region = [
     order.address?.city || order.city,
+    order.address?.district || order.district,
     order.address?.state || order.state,
-    order.address?.country || order.country,
     order.address?.pinCode || order.pinCode,
+    order.address?.country || order.country,
   ]
     .map((value) => String(value || '').trim())
     .filter(Boolean);
 
-  return [...primary, ...region].join(', ') || 'N/A';
+  return Array.from(new Set([...primary, ...region])).join(', ') || 'N/A';
 };

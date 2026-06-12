@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import React, {
   useEffect,
   useRef,
@@ -9,6 +8,7 @@ import React, {
   type FormEventHandler,
   type MouseEventHandler,
 } from 'react';
+import ResilientProductImage from '@/app/components/ResilientProductImage';
 import { useSiteSettings } from '@/app/context/SiteSettingsContext';
 import {
   createAdminCategory,
@@ -69,6 +69,28 @@ function StepBadge({ active, done, label }: StepProps) {
         }`}
     >
       <span className="font-semibold">{label}</span>
+    </div>
+  );
+}
+
+function LocalImagePreview({ file }: { file: File }) {
+  const [source, setSource] = useState('');
+
+  useEffect(() => {
+    const objectUrl = URL.createObjectURL(file);
+    setSource(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [file]);
+
+  return (
+    <div className="relative h-20 w-20 flex-none overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-200">
+      <ResilientProductImage
+        sources={[source]}
+        alt={`New variant ${file.name}`}
+        className="h-full w-full object-cover"
+        fallbackClassName="bg-slate-100 text-slate-400"
+        compact
+      />
     </div>
   );
 }
@@ -976,30 +998,28 @@ export default function ProductEditor({
                         {variant.existingImages.length > 0 && variant.images.length === 0 ? (
                           <div className="flex gap-3 overflow-x-auto pt-2 pb-1">
                             {variant.existingImages.slice(0, 4).map((src) => (
-                              <Image
+                              <div
                                 key={src}
-                                src={src}
-                                alt="Existing variant"
-                                width={96}
-                                height={96}
-                                unoptimized
-                                className="h-20 w-20 flex-none rounded-2xl object-cover ring-1 ring-slate-200"
-                              />
+                                className="relative h-20 w-20 flex-none overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-200"
+                              >
+                                <ResilientProductImage
+                                  sources={[src]}
+                                  alt="Existing variant"
+                                  className="h-full w-full object-cover"
+                                  fallbackClassName="bg-slate-100 text-slate-400"
+                                  compact
+                                />
+                              </div>
                             ))}
                           </div>
                         ) : null}
 
                         {variant.images.length > 0 ? (
                           <div className="flex gap-3 overflow-x-auto pt-2 pb-1">
-                            {variant.images.slice(0, 4).map((file, idx) => (
-                              <Image
-                                key={`${file.name}-${idx}`}
-                                src={URL.createObjectURL(file)}
-                                alt="New variant"
-                                width={96}
-                                height={96}
-                                unoptimized
-                                className="h-20 w-20 flex-none rounded-2xl object-cover ring-1 ring-slate-200"
+                            {variant.images.slice(0, 4).map((file) => (
+                              <LocalImagePreview
+                                key={`${file.name}-${file.lastModified}-${file.size}`}
+                                file={file}
                               />
                             ))}
                           </div>

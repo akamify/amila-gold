@@ -5,13 +5,14 @@ import { useRequireAuth } from "@/app/context/AuthContext";
 import { useSiteSettings } from "@/app/context/SiteSettingsContext";
 import { fetchOrders } from "@/app/lib/apiClient";
 import { createProductHref } from "@/app/data/products";
+import ResilientProductImage from "@/app/components/ResilientProductImage";
 type UserOrder = {
   order_id?: string;
   order_code?: string;
   status?: string;
   amount?: number;
   createdAt?: string;
-  items?: Array<{ product_id?: number; quantity?: number; price?: number; product_image?: string; product?: { product_code?: string; title?: string; name?: string; product_image?: string[] } }>;
+  items?: Array<{ product_id?: number; quantity?: number; price?: number; size?: string; product_image?: string; product?: { product_code?: string; title?: string; name?: string; product_image?: string[] } }>;
 };
 
 import { OrderListSkeleton } from "@/app/components/Skeletons";
@@ -63,9 +64,11 @@ export default function OrdersPage() {
       statusBg,
       icon,
       total: `${currencySymbol}${normalizedAmount.toFixed(2)}`,
-      img: firstImage,
+      images: Array.isArray(firstProduct?.product?.product_image)
+        ? [firstImage, ...firstProduct.product.product_image]
+        : [firstImage],
       productHref: firstId > 0 && firstName
-        ? createProductHref({ id: firstId, publicId: firstPublicId || undefined, name: firstName })
+        ? createProductHref({ id: firstId, publicId: firstPublicId || undefined, name: firstName }, firstProduct?.size)
         : "",
       opacityClass: lower.includes('deliver') ? "opacity-80 grayscale-[10%]" : "",
     };
@@ -97,24 +100,12 @@ export default function OrdersPage() {
           <div key={order.id} className={`bg-surface-container-low rounded-xl p-6 md:p-8 transition-all hover:bg-surface-container group border border-transparent hover:border-outline-variant/30 ${order.opacityClass}`}>
             <div className="flex flex-col xl:flex-row gap-8 items-start xl:items-center">
               {order.productHref ? (
-                <Link href={order.productHref} className="w-24 h-24 md:w-32 md:h-32 rounded-lg overflow-hidden flex-shrink-0 bg-white shadow-sm block">
-                  {order.img ? (
-                    <img alt="Order Item" className="w-full h-full object-cover" src={order.img} />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-on-surface-variant/50">
-                      <span className="material-symbols-outlined">image</span>
-                    </div>
-                  )}
+                <Link href={order.productHref} className="relative w-24 h-24 md:w-32 md:h-32 rounded-lg overflow-hidden flex-shrink-0 bg-white shadow-sm block">
+                  <ResilientProductImage sources={order.images} alt="Order Item" />
                 </Link>
               ) : (
-                <div className="w-24 h-24 md:w-32 md:h-32 rounded-lg overflow-hidden flex-shrink-0 bg-white shadow-sm">
-                  {order.img ? (
-                    <img alt="Order Item" className="w-full h-full object-cover" src={order.img} />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-on-surface-variant/50">
-                      <span className="material-symbols-outlined">image</span>
-                    </div>
-                  )}
+                <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-lg overflow-hidden flex-shrink-0 bg-white shadow-sm">
+                  <ResilientProductImage sources={order.images} alt="Order Item" />
                 </div>
               )}
               

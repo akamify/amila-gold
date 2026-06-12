@@ -33,6 +33,7 @@ export type ProductItem = {
     originalPrice?: number;
     selling_price?: number;
     image?: string;
+    images?: string[];
   }>;
   ingredients?: Array<{ key: string; value: string }>;
   nutritions?: Array<{ key: string; value: string }>;
@@ -83,6 +84,17 @@ export const parseCategoryId = (value: ProductItem['catagory_id']) => {
 export const formatCurrency = (value?: number) => {
   const n = Number(value || 0);
   return Number.isFinite(n) ? n.toFixed(2) : '0.00';
+};
+
+export const getAdminProductImageSources = (product: ProductItem) => {
+  const candidates = [
+    ...(Array.isArray(product.product_image) ? product.product_image : []),
+    ...(product.variants || []).flatMap((variant) => [
+      ...(Array.isArray(variant.images) ? variant.images : []),
+      variant.image,
+    ]),
+  ];
+  return Array.from(new Set(candidates.map((source) => String(source || '').trim()).filter(Boolean)));
 };
 
 export const normalizeSkuInput = (value: string) => {

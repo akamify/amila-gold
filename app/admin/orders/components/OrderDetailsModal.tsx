@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
 import { createPortal } from 'react-dom';
+import ResilientProductImage from '@/app/components/ResilientProductImage';
 import {
   X,
   MapPin,
+  Mail,
+  Phone,
   CreditCard,
   Package,
   History,
@@ -70,6 +72,10 @@ export default function OrderDetailsModal({ order, currency, onClose, onUpdated 
   const orderKey = getOrderKey(order);
   const statusHistory = order.status_history ?? [];
   const lineItems = order.items ?? [];
+  const customerName = order.address?.FullName || order.FullName || getCustomerName(order);
+  const customerEmail = order.address?.email || order.user_email || '';
+  const primaryPhone = order.address?.phone1 || order.phone1 || '';
+  const alternatePhone = order.address?.phone2 || order.phone2 || '';
 
   const normalizedStatus = String(order.status || 'pending').toLowerCase();
 
@@ -101,11 +107,12 @@ export default function OrderDetailsModal({ order, currency, onClose, onUpdated 
     ...nextStatuses.filter((s) => s !== normalizedStatus),
   ];
 
-  const totalAmount = lineItems.reduce((sum, item) => {
+  const lineItemsTotal = lineItems.reduce((sum, item) => {
     const quantity = Number(item.quantity || 0);
     const price = Number(item.price || 0);
     return sum + quantity * price;
   }, 0);
+  const totalAmount = Number(order.amount || 0) > 0 ? Number(order.amount) : lineItemsTotal;
 
   const SectionTitle = ({ icon: Icon, title }: { icon: LucideIcon; title: string }) => (
     <div className="mb-4 flex items-center gap-2 border-b border-slate-100 pb-2">
@@ -135,7 +142,7 @@ export default function OrderDetailsModal({ order, currency, onClose, onUpdated 
               </p>
             </div>
             <h3 className="mt-1 text-2xl font-black italic tracking-tighter text-slate-900 uppercase md:text-3xl">
-              {getCustomerName(order)}
+              {customerName}
             </h3>
           </div>
 
@@ -212,21 +219,12 @@ export default function OrderDetailsModal({ order, currency, onClose, onUpdated 
                       key={index}
                       className="grid gap-4 rounded-xl border border-slate-50 bg-white p-4 shadow-sm transition-hover hover:border-slate-200 sm:grid-cols-[72px_1fr_auto]"
                     >
-                      <div className="h-20 w-full overflow-hidden rounded-2xl bg-slate-50 sm:h-20 sm:w-20">
-                        {item.product_image ? (
-                          <Image
-                            src={item.product_image}
-                            alt={item.product_name || `Product ${item.product_id}`}
-                            width={80}
-                            height={80}
-                            className="h-full w-full object-cover"
-                            unoptimized
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center text-slate-400">
-                            <Package size={24} />
-                          </div>
-                        )}
+                      <div className="relative h-20 w-full overflow-hidden rounded-2xl bg-slate-50 sm:h-20 sm:w-20">
+                        <ResilientProductImage
+                          sources={item.product_images || [item.product_image]}
+                          alt={item.product_name || `Product ${item.product_id}`}
+                          fallbackClassName="bg-slate-50 text-slate-400"
+                        />
                       </div>
                       <div className="min-w-0">
                         <p className="truncate text-xs font-black uppercase tracking-tight text-slate-900">
@@ -298,12 +296,40 @@ export default function OrderDetailsModal({ order, currency, onClose, onUpdated 
             <div className="lg:sticky space-y-6 lg:col-span-5">
               <div className="rounded-2xl border border-slate-100 p-6">
                 <SectionTitle icon={MapPin} title="Shipping Registry" />
+                <p className="mb-2 text-sm font-black text-slate-900">{customerName}</p>
                 <p className="text-xs font-bold leading-relaxed text-slate-600">
                   {formatAddress(order)}
                 </p>
                 <div className="mt-4 flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-[10px] font-black text-slate-400">
                   <Truck size={12} />
                   TYPE: {String(order.address?.addressType || order.addressType || 'RESIDENTIAL')}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-slate-100 p-6">
+                <SectionTitle icon={Phone} title="Customer Contact" />
+                <div className="space-y-3">
+                  {primaryPhone ? (
+                    <a href={`tel:${primaryPhone}`} className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3 text-xs font-bold text-slate-800 hover:bg-slate-100">
+                      <Phone size={14} className="text-red-600" />
+                      <span>{primaryPhone}</span>
+                    </a>
+                  ) : null}
+                  {alternatePhone && alternatePhone !== primaryPhone ? (
+                    <a href={`tel:${alternatePhone}`} className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3 text-xs font-bold text-slate-800 hover:bg-slate-100">
+                      <Phone size={14} className="text-slate-500" />
+                      <span>{alternatePhone} <span className="text-[9px] uppercase text-slate-400">(Alternate)</span></span>
+                    </a>
+                  ) : null}
+                  {customerEmail ? (
+                    <a href={`mailto:${customerEmail}`} className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3 text-xs font-bold text-slate-800 hover:bg-slate-100">
+                      <Mail size={14} className="text-red-600" />
+                      <span className="min-w-0 break-all">{customerEmail}</span>
+                    </a>
+                  ) : null}
+                  {!primaryPhone && !alternatePhone && !customerEmail ? (
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Contact details unavailable</p>
+                  ) : null}
                 </div>
               </div>
 

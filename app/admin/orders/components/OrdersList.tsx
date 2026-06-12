@@ -1,12 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
+import ResilientProductImage from '@/app/components/ResilientProductImage';
 import {
   Box,
   ChevronRight,
   ExternalLink,
-  Layers,
   Clock,
   CreditCard,
   CheckCircle2,
@@ -108,17 +107,11 @@ export default function OrdersList({ orders, currency, onOpen }: Props) {
                 <div className="lg:col-span-3">
                   <div className="flex items-center gap-3 rounded-xl bg-slate-50/80 p-2 ring-1 ring-slate-100 transition-colors group-hover:bg-white">
                     <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg border border-white bg-white shadow-sm">
-                      {firstItem?.product_image ? (
-                        <Image
-                          src={firstItem.product_image}
-                          alt="product"
-                          fill
-                          className="object-cover"
-                          unoptimized
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center text-slate-300"><Layers size={16} /></div>
-                      )}
+                      <ResilientProductImage
+                        sources={firstItem?.product_images || [firstItem?.product_image]}
+                        alt={firstItem?.product_name || 'Product'}
+                        fallbackClassName="bg-slate-50 text-slate-400"
+                      />
                     </div>
                     <div className="min-w-0">
                       <p className="truncate text-xs font-bold text-slate-800">{firstItem?.product_name || 'Generic Item'}</p>

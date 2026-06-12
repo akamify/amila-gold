@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { cancelUserOrder, fetchOrders } from "@/app/lib/apiClient";
 import { useSiteSettings } from "@/app/context/SiteSettingsContext";
 import { createProductHref } from "@/app/data/products";
+import ResilientProductImage from "@/app/components/ResilientProductImage";
 
 type OrderRow = {
   order_id?: string;
@@ -22,7 +23,7 @@ type OrderRow = {
   refund_reason?: string;
   razorpay_payment_id?: string;
   status_history?: Array<{ status?: string; updatedAt?: string }>;
-  items?: Array<{ product_id?: number; quantity?: number; price?: number; product_image?: string; product?: { product_code?: string; title?: string; name?: string; product_image?: string[] } }>;
+  items?: Array<{ product_id?: number; quantity?: number; price?: number; size?: string; product_image?: string; product?: { product_code?: string; title?: string; name?: string; product_image?: string[] } }>;
 };
 
 import { OrderDetailSkeleton } from "@/app/components/Skeletons";
@@ -213,16 +214,13 @@ export default function OrderDetailsPage() {
                         id: Number(item.product_id || 0),
                         publicId: item.product?.product_code || undefined,
                         name: item.product?.title || item.product?.name || `product-${item.product_id || "item"}`,
-                      })}
-                      className="w-24 h-24 bg-surface-variant rounded-lg overflow-hidden flex-shrink-0 block"
+                      }, item.size)}
+                      className="relative w-24 h-24 bg-surface-variant rounded-lg overflow-hidden flex-shrink-0 block"
                     >
-                      {(item.product?.product_image?.[0] || item.product_image) ? (
-                        <img className="w-full h-full object-cover" src={item.product?.product_image?.[0] || item.product_image || ""} alt={item.product?.title || item.product?.name || "Product"} />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-on-surface-variant/50">
-                          <span className="material-symbols-outlined">image</span>
-                        </div>
-                      )}
+                      <ResilientProductImage
+                        sources={[...(item.product?.product_image || []), item.product_image]}
+                        alt={item.product?.title || item.product?.name || "Product"}
+                      />
                     </Link>
                     <div className="flex-1">
                       <p className="text-[10px] text-secondary font-bold uppercase tracking-widest mb-1.5">Order Item</p>

@@ -2,9 +2,11 @@
 
 import React from 'react';
 import { Edit3, Trash2, Box, Tag, Layers, ChevronRight } from 'lucide-react';
+import ResilientProductImage from '@/app/components/ResilientProductImage';
 import {
   ProductItem,
   formatCurrency,
+  getAdminProductImageSources,
   stripHtmlToPlainText,
 } from '../utils/admin-products.utils';
 
@@ -15,18 +17,6 @@ type Props = {
   onEdit: (product: ProductItem) => void;
   onDelete: (productId: number) => void;
 };
-
-function getProductThumb(product: ProductItem): string {
-  const fromProductImages = Array.isArray(product.product_image) ? product.product_image[0] : '';
-  if (fromProductImages) return fromProductImages;
-
-  const firstVariantImage =
-    Array.isArray(product.variants) && product.variants.length > 0
-      ? String(product.variants[0]?.image || '')
-      : '';
-
-  return firstVariantImage;
-}
 
 function truncateDescription(text: string, wordLimit = 7) {
   const plainText = stripHtmlToPlainText(text || '');
@@ -74,7 +64,7 @@ export default function ProductTable({
                 ? product.catagory_id?.name || 'Uncategorized'
                 : 'General';
 
-            const thumb = getProductThumb(product);
+            const imageSources = getAdminProductImageSources(product);
             const status = String(product.status || 'draft').toLowerCase();
             const isPublished = status === 'published';
             const stockCount = Number(product.quantity || 0);
@@ -90,15 +80,13 @@ export default function ProductTable({
                 <div className="flex flex-col gap-5 lg:grid lg:grid-cols-12 lg:items-center">
                   <div className="flex items-start gap-4 lg:col-span-5">
                     <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-200">
-                      {thumb ? (
-                        <img
-                          src={thumb}
+                      {imageSources.length ? (
+                        <ResilientProductImage
+                          sources={imageSources}
                           alt={product.name}
-                          loading="lazy"
-                          onError={(event) => {
-                            event.currentTarget.style.display = 'none';
-                          }}
                           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          fallbackClassName="bg-gradient-to-br from-slate-100 to-slate-200 text-slate-400"
+                          compact
                         />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
@@ -107,7 +95,7 @@ export default function ProductTable({
                       )}
 
                       <div
-                        className={`absolute bottom-0 left-0 right-0 py-1 text-center text-[8px] font-black uppercase tracking-[0.2em] ${
+                        className={`absolute bottom-0 left-0 right-0 z-10 py-1 text-center text-[8px] font-black uppercase tracking-[0.2em] ${
                           isPublished ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-black'
                         }`}
                       >

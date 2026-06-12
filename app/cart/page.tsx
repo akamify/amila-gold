@@ -2,10 +2,11 @@
 
 import React from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useCart } from "@/app/context/CartContext";
 import { useSiteSettings } from "@/app/context/SiteSettingsContext";
-import { fetchBackendProducts, matchVariantByCartSize } from "@/app/lib/backendProducts";
+import { fetchBackendProductById, matchVariantByCartSize } from "@/app/lib/backendProducts";
+import { createProductHref } from "@/app/data/products";
+import ResilientProductImage from "@/app/components/ResilientProductImage";
 
 const SHIPPING = 0;
 
@@ -96,39 +97,79 @@ export default function CartPage() {
   const currencySymbol = settings.currencySymbol || "Rs.";
 
   const [stockByItem, setStockByItem] = React.useState<Record<string, number>>({});
+  const [productHrefByItem, setProductHrefByItem] = React.useState<Record<string, string>>({});
+  const [imageSourcesByItem, setImageSourcesByItem] = React.useState<Record<string, string[]>>({});
+  const [isStockLoading, setIsStockLoading] = React.useState(false);
+  const [stockError, setStockError] = React.useState("");
 
-  React.useEffect(() => {
-    const loadStock = async () => {
-      if (!items.length) {
-        setStockByItem({});
-        return;
-      }
-      try {
-        const products = await fetchBackendProducts();
-        const map = new Map(products.map((product) => [product.id, product]));
-        const next: Record<string, number> = {};
-        items.forEach((item) => {
-          const product = map.get(item.id);
-          const variant = product ? matchVariantByCartSize(product, item.size) : undefined;
-          const available = variant
-            ? Math.max(0, Number(variant.stock || 0))
-            : product
-              ? Math.max(0, Number(product.quantity || 0))
-              : 0;
-          next[`${item.id}|${item.size}|${item.color}`] = available;
-        });
-        setStockByItem(next);
-      } catch {
-        setStockByItem({});
-      }
-    };
-    loadStock();
+  const loadStock = React.useCallback(async () => {
+    if (!items.length) {
+      setStockByItem({});
+      setProductHrefByItem({});
+      setImageSourcesByItem({});
+      setStockError("");
+      return;
+    }
+
+    setIsStockLoading(true);
+    setStockError("");
+    try {
+      const productIds = [...new Set(items.map((item) => item.id).filter((id) => id > 0))];
+      const products = await Promise.all(productIds.map((productId) => fetchBackendProductById(productId)));
+      const productMap = new Map(
+        products
+          .filter((product): product is NonNullable<typeof product> => Boolean(product))
+          .map((product) => [product.id, product])
+      );
+      const nextStock: Record<string, number> = {};
+      const nextHrefs: Record<string, string> = {};
+      const nextImages: Record<string, string[]> = {};
+
+      items.forEach((item) => {
+        const key = `${item.id}|${item.size}|${item.color}`;
+        const product = productMap.get(item.id);
+        const variant = product ? matchVariantByCartSize(product, item.size) : undefined;
+        nextStock[key] = variant
+          ? Math.max(0, Number(variant.stock || 0))
+          : product
+            ? Math.max(0, Number(product.quantity || 0))
+            : 0;
+        nextHrefs[key] = product
+          ? createProductHref(product, variant?.label || item.size)
+          : createProductHref({ id: item.id, name: item.name }, item.size);
+        nextImages[key] = [
+          variant?.image,
+          ...(variant?.images || []),
+          item.image,
+          ...(product?.images || []),
+          product?.image,
+        ].map((source) => String(source || "").trim()).filter(Boolean);
+      });
+
+      setStockByItem(nextStock);
+      setProductHrefByItem(nextHrefs);
+      setImageSourcesByItem(nextImages);
+    } catch {
+      setStockError("Stock status could not be refreshed. Please try again.");
+    } finally {
+      setIsStockLoading(false);
+    }
   }, [items]);
 
-  const hasOutOfStockItems = items.some((item) => {
+  React.useEffect(() => {
+    loadStock();
+  }, [loadStock]);
+
+  const hasOutOfStockItems = !isStockLoading && !stockError && items.some((item) => {
     const key = `${item.id}|${item.size}|${item.color}`;
     return (stockByItem[key] ?? 0) <= 0;
   });
+  const hasQuantityConflict = !isStockLoading && !stockError && items.some((item) => {
+    const key = `${item.id}|${item.size}|${item.color}`;
+    const available = stockByItem[key] ?? 0;
+    return available > 0 && item.qty > available;
+  });
+  const isCheckoutBlocked = isStockLoading || Boolean(stockError) || hasOutOfStockItems || hasQuantityConflict;
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.qty, 0);
   const total = subtotal + SHIPPING;
@@ -161,7 +202,7 @@ export default function CartPage() {
   return (
     <main className="min-h-screen pt-30 pb-2 px-3 sm:px-8 lg:px-16 bg-surface font-['Poppins'] max-w-[1600px] mx-auto">
       <div className="flex flex-col lg:grid lg:grid-cols-12 gap-12 items-start">
-        
+
         {/* Left Side: Items List (Height is now flexible) */}
         <section className="w-full lg:col-span-8 space-y-10">
           <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
@@ -178,93 +219,116 @@ export default function CartPage() {
           </header>
 
           <div className="space-y-6">
-            {items.map((item) => (
-              <div 
-                key={`${item.id}-${item.size}-${item.color}`} 
-                className="group relative bg-white border border-outline-variant/30 rounded-[0.5rem] p-3 sm:p-6 flex flex-row sm:flex-row gap-3 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500"
-              >
-                {/* Product Image */}
-                <div className="w-[30vw] h-[16vh] lg:w-[15vw] lg:h-[30vh] rounded-[0.5rem] overflow-hidden bg-surface-variant/10 shrink-0 relative">
-                  <Image 
-                    src={item.image} 
-                    alt={item.name} 
-                    fill 
-                    unoptimized 
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
-                    // sizes="(max-width: 640px) 100vw, 128px" 
+            {items.map((item) => {
+              const key = `${item.id}|${item.size}|${item.color}`;
+              const hasStockValue = Object.prototype.hasOwnProperty.call(stockByItem, key);
+              const available = stockByItem[key] ?? 0;
+              const stockKnown = !isStockLoading && !stockError && hasStockValue;
+              const isOutOfStock = stockKnown && available <= 0;
+              const exceedsStock = stockKnown && available > 0 && item.qty > available;
+              const productHref = productHrefByItem[key] || createProductHref({ id: item.id, name: item.name }, item.size);
+              const imageContent = (
+                <>
+                  <ResilientProductImage
+                    sources={imageSourcesByItem[key] || [item.image]}
+                    alt={item.name}
+                    className={`h-full w-full object-cover transition-transform duration-700 ${isOutOfStock ? "grayscale opacity-55" : "group-hover:scale-110"
+                      }`}
                   />
-                </div>
+                  {isOutOfStock ? (
+                    <div className="absolute inset-0 z-[2] flex items-center justify-center bg-black/25">
+                      <span className="rounded-full bg-white px-3 py-2 text-[9px] font-black uppercase tracking-widest text-error">Out of Stock</span>
+                    </div>
+                  ) : null}
+                </>
+              );
+              return (
+                <div
+                  key={`${item.id}-${item.size}-${item.color}`}
+                  className={`group relative rounded-[0.5rem] border p-3 sm:p-6 flex flex-row gap-3 transition-all duration-500 ${isOutOfStock || exceedsStock
+                      ? "border-error/30 bg-error/[0.03]"
+                      : "border-outline-variant/30 bg-white hover:shadow-2xl hover:shadow-primary/5"
+                    }`}
+                >
+                  {/* Product Image */}
+                  {isOutOfStock ? (
+                    <div className="w-[30vw] h-[16vh] lg:w-[15vw] lg:h-[30vh] rounded-[0.5rem] overflow-hidden bg-surface-variant/10 shrink-0 relative">
+                      {imageContent}
+                    </div>
+                  ) : (
+                    <Link
+                      href={productHref}
+                      className="w-[30vw] h-[16vh] lg:w-[15vw] lg:h-[30vh] rounded-[0.5rem] overflow-hidden bg-surface-variant/10 shrink-0 relative block"
+                      aria-label={`Open ${item.name} ${item.size}`}
+                    >
+                      {imageContent}
+                    </Link>
+                  )}
 
-                {/* Product Details */}
-                <div className="flex-1 flex flex-col justify-between">
-                  {(() => {
-                    const key = `${item.id}|${item.size}|${item.color}`;
-                    const available = stockByItem[key] ?? 0;
-                    return available <= 0 ? (
-                      <p className="mb-2 text-xs font-semibold text-error">Out of stock</p>
-                    ) : null;
-                  })()}
-                  <div className="flex justify-between items-start gap-4">
-                    <div>
-                      <h3 className="text-xl font-bold text-primary mb-1 group-hover:text-primary-container transition-colors">
-                        {item.name}
-                      </h3>
-                      <div className="flex flex-wrap gap-2">
-                        <span className="px-3 py-1 bg-surface-variant/30 rounded-full text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
-                          Size: {item.size}
-                        </span>
-                        {item.color && (
-                          <span className="px-3 py-1 bg-surface-variant/30 rounded-full text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
-                            Color: {item.color}
-                          </span>
+                  {/* Product Details */}
+                  <div className="flex-1 flex flex-col justify-between">
+                    <div className="flex justify-between items-start gap-4">
+                      <div>
+                        {isOutOfStock ? (
+                          <h3 className="text-xl font-bold text-primary/60 mb-1">{item.name}</h3>
+                        ) : (
+                          <Link href={productHref} className="block">
+                            <h3 className="text-xl font-bold text-primary mb-1 group-hover:text-primary-container transition-colors">{item.name}</h3>
+                          </Link>
                         )}
+                        <div className="flex flex-wrap gap-2">
+                          <span className="px-3 py-1 bg-surface-variant/30 rounded-full text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+                            Size: {item.size}
+                          </span>
+                          {item.color && (
+                            <span className="px-3 py-1 bg-surface-variant/30 rounded-full text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+                              Color: {item.color}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => removeItem(item.id, item.size, item.color)}
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant/40 hover:bg-error/10 hover:text-error transition-all"
+                      >
+                        <span className="material-symbols-outlined text-xl leading-none">delete_sweep</span>
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between mt-6 sm:mt-2">
+                      {/* Quantity Controls */}
+                      <div className="flex items-center bg-surface-variant/20 rounded-2xl p-1 border border-outline-variant/10">
+                        <button
+                          onClick={() => updateQty(item.id, item.size, -1, item.color)}
+                          className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-white hover:shadow-sm text-primary transition-all disabled:opacity-30"
+                          disabled={item.qty <= 1 || isOutOfStock || isStockLoading || Boolean(stockError)}
+                        >
+                          <span className="material-symbols-outlined text-base">remove</span>
+                        </button>
+                        <span className="w-10 text-center font-bold text-sm text-primary">
+                          {item.qty}
+                        </span>
+                        <button
+                          onClick={() => updateQty(item.id, item.size, 1, item.color)}
+                          className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-white hover:shadow-sm text-primary transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                          disabled={!stockKnown || isOutOfStock || item.qty >= available}
+                        >
+                          <span className="material-symbols-outlined text-base">add</span>
+                        </button>
+                      </div>
+
+                      {/* Price */}
+                      <div className="text-right">
+                        <span className="text-xs text-on-surface-variant/50 block font-bold uppercase tracking-tighter leading-none">Subtotal</span>
+                        <span className="text-2xl font-black text-primary tracking-tighter leading-none">
+                          {currencySymbol}{(item.price * item.qty).toLocaleString()}
+                        </span>
                       </div>
                     </div>
-                    <button
-                      onClick={() => removeItem(item.id, item.size, item.color)}
-                      className="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant/40 hover:bg-error/10 hover:text-error transition-all"
-                    >
-                      <span className="material-symbols-outlined text-xl leading-none">delete_sweep</span>
-                    </button>
-                  </div>
-
-                  <div className="flex items-center justify-between mt-6 sm:mt-2">
-                    {/* Quantity Controls */}
-                    <div className="flex items-center bg-surface-variant/20 rounded-2xl p-1 border border-outline-variant/10">
-                      <button
-                        onClick={() => updateQty(item.id, item.size, -1, item.color)}
-                        className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-white hover:shadow-sm text-primary transition-all disabled:opacity-30"
-                        disabled={item.qty <= 1}
-                      >
-                        <span className="material-symbols-outlined text-base">remove</span>
-                      </button>
-                      <span className="w-10 text-center font-bold text-sm text-primary">
-                        {item.qty}
-                      </span>
-                      <button
-                        onClick={() => updateQty(item.id, item.size, 1, item.color)}
-                        className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-white hover:shadow-sm text-primary transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                        disabled={(() => {
-                          const key = `${item.id}|${item.size}|${item.color}`;
-                          const available = stockByItem[key] ?? 0;
-                          return available <= 0 || item.qty >= available;
-                        })()}
-                      >
-                        <span className="material-symbols-outlined text-base">add</span>
-                      </button>
-                    </div>
-
-                    {/* Price */}
-                    <div className="text-right">
-                      <span className="text-xs text-on-surface-variant/50 block font-bold uppercase tracking-tighter leading-none">Subtotal</span>
-                      <span className="text-2xl font-black text-primary tracking-tighter leading-none">
-                        {currencySymbol}{(item.price * item.qty).toLocaleString()}
-                      </span>
-                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
 
@@ -282,11 +346,11 @@ export default function CartPage() {
                 <span className="text-sm font-medium">Delivery Charges</span>
                 <span className="text-secondary font-bold text-[10px] uppercase tracking-[0.2em] bg-secondary/10 px-2 py-0.5 rounded">Free</span>
               </div>
-              
+
               <div className="h-px bg-outline-variant/20 my-2" />
-              
+
               <div className="flex justify-between items-center py-2">
-                  <p className="text-[20px] text-on-surface-variant/80 uppercase font-black tracking-widest mb-1">Total</p>
+                <p className="text-[20px] text-on-surface-variant/80 uppercase font-black tracking-widest mb-1">Total</p>
                 <div className="text-right">
                   <p className="text-4xl font-black text-primary leading-none tracking-tighter">
                     {currencySymbol}{total.toLocaleString()}
@@ -296,29 +360,29 @@ export default function CartPage() {
             </div>
 
             <Link
-              href={hasOutOfStockItems ? "#" : "/checkout"}
+              href={isCheckoutBlocked ? "#" : "/checkout"}
               onClick={(event) => {
-                if (hasOutOfStockItems) event.preventDefault();
+                if (isCheckoutBlocked) event.preventDefault();
               }}
-              aria-disabled={hasOutOfStockItems}
-              className="mt-10 w-full bg-primary text-white py-5 rounded-[1.5rem] font-bold text-lg hover:shadow-2xl hover:shadow-primary/30 transition-all flex items-center justify-center gap-3 active:scale-[0.98] group disabled:opacity-50"
+              aria-disabled={isCheckoutBlocked}
+              className={`mt-10 w-full py-5 rounded-[1.5rem] font-bold text-lg transition-all flex items-center justify-center gap-3 group ${isCheckoutBlocked
+                  ? "cursor-not-allowed bg-surface-variant text-on-surface-variant/50"
+                  : "bg-primary text-white hover:shadow-2xl hover:shadow-primary/30 active:scale-[0.98]"
+                }`}
             >
-              Secure Checkout
+              {isStockLoading ? "Checking Stock…" : stockError ? "Stock Check Required" : hasOutOfStockItems || hasQuantityConflict ? "Update Cart to Continue" : "Secure Checkout"}
               <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
             </Link>
 
             <div className="mt-8 flex flex-col gap-4">
-              {hasOutOfStockItems ? (
-                <p className="text-xs font-semibold text-error">Remove out-of-stock items to continue checkout.</p>
-              ) : null}
-               <div className="flex items-center gap-3 text-on-surface-variant/60">
-                  <span className="material-symbols-outlined text-primary/60 text-lg">verified</span>
-                  <p className="text-xs font-medium">Authenticity Guaranteed</p>
-               </div>
-               <div className="flex items-center gap-3 text-on-surface-variant/60">
-                  <span className="material-symbols-outlined text-primary/60 text-lg">local_shipping</span>
-                  <p className="text-xs font-medium">Safe & Disinfected Delivery</p>
-               </div>
+              <div className="flex items-center gap-3 text-on-surface-variant/60">
+                <span className="material-symbols-outlined text-primary/60 text-lg">verified</span>
+                <p className="text-xs font-medium">Authenticity Guaranteed</p>
+              </div>
+              <div className="flex items-center gap-3 text-on-surface-variant/60">
+                <span className="material-symbols-outlined text-primary/60 text-lg">local_shipping</span>
+                <p className="text-xs font-medium">Safe & Disinfected Delivery</p>
+              </div>
             </div>
           </div>
         </aside>

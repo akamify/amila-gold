@@ -1,12 +1,14 @@
 "use client";
 import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useCart } from "@/app/context/CartContext";
 import ProductGridSkeleton from "@/app/components/ProductGridSkeleton";
+import ResilientProductImage from "@/app/components/ResilientProductImage";
 import type { Product } from "@/app/data/products";
+import { createProductHref } from "@/app/data/products";
 import { fetchBackendProducts } from "@/app/lib/backendProducts";
 import { flyImageToCart } from "@/app/lib/flyToCart";
+import { productMatchesWeightFilters, resolveListingVariant } from "@/app/lib/shopListing";
 
 const sortOptions = [
   { label: "Featured", value: "featured" },
@@ -66,14 +68,14 @@ export default function ShopPageClient() {
   const AVAILABLE_WEIGHTS = useMemo(() => ["100g", "250g", "500g", "1kg", "2kg", "5kg"], []);
 
   const handleAddToCart = (product: Product, event?: React.MouseEvent) => {
-    const inStock = Number(product.quantity || 0) > 0 || Object.values(product.stockByVariant || {}).some((qty) => Number(qty || 0) > 0);
-    if (!inStock) return;
+    const variant = resolveListingVariant(product, selectedWeights);
+    if (variant.stock <= 0) return;
 
     try {
       const card = (event?.currentTarget as HTMLElement | null)?.closest?.("[data-product-card]") as HTMLElement | null;
       const img = card?.querySelector?.("img") as HTMLImageElement | null;
       const fromRect = img?.getBoundingClientRect?.() ?? (event?.currentTarget as HTMLElement | undefined)?.getBoundingClientRect?.();
-      const imageUrl = String(product.image || "").trim();
+      const imageUrl = String(img?.currentSrc || img?.src || variant.image || product.image || "").trim();
       if (fromRect && imageUrl) {
         flyImageToCart({ imageUrl, fromRect, durationMs: 950 });
       }
@@ -84,10 +86,10 @@ export default function ShopPageClient() {
     addItem({
       id: product.id,
       name: product.name,
-      price: product.price,
+      price: variant.price,
       color: "",
-      size: selectedWeights[0] || "1kg",
-      image: product.image,
+      size: variant.label,
+      image: variant.image,
       collection: product.collection || "SHOP COLLECTION",
     });
   };
@@ -110,12 +112,7 @@ export default function ShopPageClient() {
     if (checkedCategories.length > 0) results = results.filter(p => checkedCategories.includes(String(p.category || "")));
     results = results.filter(p => p.price <= maxPrice);
     if (selectedWeights.length > 0) {
-      results = results.filter(p =>
-        selectedWeights.some(weight =>
-          p.name.toLowerCase().includes(weight.toLowerCase()) ||
-          String(p.description || "").toLowerCase().includes(weight.toLowerCase())
-        )
-      );
+      results = results.filter(p => productMatchesWeightFilters(p, selectedWeights));
     }
     return results;
   }, [products, checkedCategories, maxPrice, selectedWeights]);
@@ -252,8 +249,10 @@ export default function ShopPageClient() {
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-20">
                 {getSortedProducts().slice((currentPage - 1) * PRODUCTS_PER_PAGE, currentPage * PRODUCTS_PER_PAGE).map((p) => {
-                  const inStock = Number(p.quantity || 0) > 0 || Object.values(p.stockByVariant || {}).some((qty) => Number(qty || 0) > 0);
-                  const inCart = isVariantInCart(p.id, selectedWeights[0] || "1kg", "");
+                  const variant = resolveListingVariant(p, selectedWeights);
+                  const inStock = variant.stock > 0;
+                  const inCart = isVariantInCart(p.id, variant.label, "");
+                  const productHref = createProductHref(p, variant.label);
                   return (
                   <div
                     key={p.id}
@@ -264,25 +263,24 @@ export default function ShopPageClient() {
 
                         {/* RIGHT IMAGE */}
                         <Link
-                          href={`/product/${p.id}/${p.name.toLowerCase().replace(/\s+/g, '-')}`}
+                          href={productHref}
                           className="block order-2 sm:order-none"
                         >
                           <div className="relative overflow-hidden rounded-[1rem] bg-surface-container-high w-28 h-30 sm:w-auto sm:h-auto sm:aspect-square sm:mb-8 shadow-sm group-hover:shadow-2xl transition-all duration-700">
-                            <Image
-                              src={p.image}
+                            <ResilientProductImage
+                              sources={[variant.image, p.image, ...(p.images || [])]}
                               alt={p.name}
-                              fill
-                              unoptimized
-                              className="object-cover transition-transform duration-1000 group-hover:scale-110"
+                              className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110"
                             />
 
                             <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                            {!inStock ? <div className="absolute inset-0 z-[2] flex items-center justify-center bg-stone-950/45"><span className="rounded-full bg-white px-4 py-2 text-[10px] font-black uppercase tracking-widest text-error">Out of Stock</span></div> : null}
                           </div>
                         </Link>
                         {/* LEFT CONTENT */}
                         <div className="flex-1 order-1 sm:order-none">
                           <Link
-                            href={`/product/${p.id}/${p.name.toLowerCase().replace(/\s+/g, '-')}`}
+                            href={productHref}
                             className="block"
                           >
                             <div className="flex flex-col gap-2 px-1 sm:px-2">
@@ -294,12 +292,12 @@ export default function ShopPageClient() {
 
                               <div className="flex items-center gap-3">
                                 <span className="text-xl sm:text-2xl font-black text-primary">
-                                  ₹{p.price}
+                                  ₹{variant.price}
                                 </span>
 
-                                {p.originalPrice && (
+                                {variant.originalPrice && (
                                   <span className="text-xs sm:text-sm text-on-surface-variant/50 line-through font-bold">
-                                    ₹{p.originalPrice}
+                                    ₹{variant.originalPrice}
                                   </span>
                                 )}
                               </div>
@@ -317,7 +315,7 @@ export default function ShopPageClient() {
                                   shopping_cart_checkout
                                 </span>
 
-                                Go to Cart
+                                {inStock ? "Go to Cart" : "Review Cart"}
                               </Link>
                             ) : (
                               <button

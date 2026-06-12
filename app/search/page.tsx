@@ -1,13 +1,15 @@
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/app/context/CartContext";
 import ProductGridSkeleton from "@/app/components/ProductGridSkeleton";
+import ResilientProductImage from "@/app/components/ResilientProductImage";
 import type { Product } from "@/app/data/products";
+import { createProductHref } from "@/app/data/products";
 import { fetchBackendProducts } from "@/app/lib/backendProducts";
 import { flyImageToCart } from "@/app/lib/flyToCart";
+import { productMatchesWeightFilters, resolveListingVariant } from "@/app/lib/shopListing";
 
 const sortOptions = [
   { label: "Featured", value: "featured" },
@@ -78,11 +80,7 @@ export default function SearchPage() {
     if (checkedCategories.length > 0) results = results.filter((p) => checkedCategories.includes(String(p.category || "")));
     results = results.filter((p) => p.price <= maxPrice);
     if (selectedWeights.length > 0) {
-      results = results.filter((p) =>
-        selectedWeights.some(
-          (w) => p.name.toLowerCase().includes(w.toLowerCase()) || String(p.description || "").toLowerCase().includes(w.toLowerCase())
-        )
-      );
+      results = results.filter((p) => productMatchesWeightFilters(p, selectedWeights));
     }
     return results;
   }, [products, query, checkedCategories, maxPrice, selectedWeights]);
@@ -110,14 +108,14 @@ export default function SearchPage() {
   };
 
   const handleAddToCart = (product: Product, event?: React.MouseEvent) => {
-    const inStock = Number(product.quantity || 0) > 0 || Object.values(product.stockByVariant || {}).some((qty) => Number(qty || 0) > 0);
-    if (!inStock) return;
+    const variant = resolveListingVariant(product, selectedWeights);
+    if (variant.stock <= 0) return;
 
     try {
       const card = (event?.currentTarget as HTMLElement | null)?.closest?.("[data-product-card]") as HTMLElement | null;
       const img = card?.querySelector?.("img") as HTMLImageElement | null;
       const fromRect = img?.getBoundingClientRect?.() ?? (event?.currentTarget as HTMLElement | undefined)?.getBoundingClientRect?.();
-      const imageUrl = String(product.image || "").trim();
+      const imageUrl = String(img?.currentSrc || img?.src || variant.image || product.image || "").trim();
       if (fromRect && imageUrl) {
         flyImageToCart({ imageUrl, fromRect, durationMs: 950 });
       }
@@ -128,10 +126,10 @@ export default function SearchPage() {
     addItem({
       id: product.id,
       name: product.name,
-      price: product.price,
+      price: variant.price,
       color: "",
-      size: selectedWeights[0] || "1kg",
-      image: product.image,
+      size: variant.label,
+      image: variant.image,
       collection: product.collection || "SEARCH RESULTS",
     });
   };
@@ -296,8 +294,10 @@ export default function SearchPage() {
             ) : (
               <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-10 gap-y-20">
                 {getSortedResults().slice((currentPage - 1) * PRODUCTS_PER_PAGE, currentPage * PRODUCTS_PER_PAGE).map((p) => {
-                  const inStock = Number(p.quantity || 0) > 0 || Object.values(p.stockByVariant || {}).some((qty) => Number(qty || 0) > 0);
-                  const inCart = isVariantInCart(p.id, selectedWeights[0] || "1kg", "");
+                  const variant = resolveListingVariant(p, selectedWeights);
+                  const inStock = variant.stock > 0;
+                  const inCart = isVariantInCart(p.id, variant.label, "");
+                  const productHref = createProductHref(p, variant.label);
                   return (
                     <motion.div
                       layout
@@ -311,19 +311,18 @@ export default function SearchPage() {
 
                         {/* IMAGE */}
                         <Link
-                          href={`/product/${p.id}/${p.name.toLowerCase().replace(/\s+/g, '-')}`}
+                          href={productHref}
                           className="block shrink-0"
                         >
                           <div className="relative overflow-hidden rounded-[1rem] bg-surface-container-high w-28 h-30 sm:w-auto sm:h-auto sm:aspect-square sm:mb-6 shadow-sm group-hover:shadow-2xl group-hover:shadow-primary/5 transition-all duration-700">
-                            <Image
-                              src={p.image}
+                            <ResilientProductImage
+                              sources={[variant.image, p.image, ...(p.images || [])]}
                               alt={p.name}
-                              fill
-                              unoptimized
-                              className="object-cover transition-transform duration-1000 group-hover:scale-110"
+                              className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110"
                             />
 
                             <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                            {!inStock ? <div className="absolute inset-0 z-[2] flex items-center justify-center bg-stone-950/45"><span className="rounded-full bg-white px-4 py-2 text-[10px] font-black uppercase tracking-widest text-error">Out of Stock</span></div> : null}
 
                             {/* DESKTOP FLOATING BUTTON */}
                             <div className="hidden sm:block absolute bottom-6 right-6">
@@ -361,7 +360,7 @@ export default function SearchPage() {
                         {/* CONTENT */}
                         <div className="flex-1 px-1 sm:px-2">
                           <Link
-                            href={`/product/${p.id}/${p.name.toLowerCase().replace(/\s+/g, '-')}`}
+                            href={productHref}
                           >
                             <div className="space-y-2">
                               <h3 className="font-headline text-base sm:text-lg lg:text-xl font-bold text-primary group-hover:text-secondary transition-colors duration-300 truncate max-w-[180px] sm:max-w-none">
@@ -370,12 +369,12 @@ export default function SearchPage() {
 
                               <div className="flex items-center gap-2">
                                 <span className="font-headline text-lg sm:text-xl text-secondary">
-                                  Rs {p.price}
+                                  Rs {variant.price}
                                 </span>
 
-                                {p.originalPrice && (
+                                {variant.originalPrice && (
                                   <span className="text-[10px] sm:text-xs text-on-surface-variant line-through opacity-40 italic">
-                                    Rs {p.originalPrice}
+                                    Rs {variant.originalPrice}
                                   </span>
                                 )}
                               </div>
@@ -407,7 +406,7 @@ export default function SearchPage() {
                                     : "block"}
                               </span>
 
-                              {inCart ? "Go to Cart" : inStock ? "Add to Cart" : "Out of Stock"}
+                              {inCart ? (inStock ? "Go to Cart" : "Review Cart") : inStock ? "Add to Cart" : "Out of Stock"}
                             </button>
                           </div>
 

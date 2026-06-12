@@ -18,7 +18,9 @@ import {
 import AddressCard from "@/app/components/address/AddressCard";
 import AddressForm from "@/app/components/address/AddressForm";
 import AddressModal from "@/app/components/address/AddressModal";
+import ResilientProductImage from "@/app/components/ResilientProductImage";
 import { fetchBackendProductById, matchVariantByCartSize } from "@/app/lib/backendProducts";
+import { createProductHref, getProductImageSources } from "@/app/data/products";
 
 declare global {
   interface Window {
@@ -29,6 +31,7 @@ declare global {
 const SHIPPING = 0;
 const SELECTED_ADDRESS_STORAGE_KEY = "checkout:selected-address-id";
 const LOGIN_RETURN_TO = "/checkout";
+const checkoutItemKey = (id: number, size: string) => `${id}-${String(size || "").trim().toLowerCase()}`;
 const COD_CHARGE = (() => {
   const parsed = Number(String(process.env.NEXT_PUBLIC_COD_CHARGE || "").trim());
   if (!Number.isFinite(parsed) || parsed <= 0) return 0;
@@ -117,7 +120,7 @@ export default function CheckoutPage() {
   const isBuyNow = searchParams?.get('buyNow') === 'true';
 
   const { items, itemCount, clearCart, isHydrating } = useCart();
-  const { isAuthenticated, user, isLoading: isAuthLoading } = useAuth();
+  const { isAuthenticated, user, isLoading: isAuthLoading, setReturnUrl } = useAuth();
   const { settings, isLoading: isSettingsLoading } = useSiteSettings();
   const currencySymbol = settings.currencySymbol || "Rs.";
 
@@ -137,6 +140,8 @@ export default function CheckoutPage() {
   const [stockConflictMessage, setStockConflictMessage] = useState("");
   const [codUnavailableNames, setCodUnavailableNames] = useState<string[]>([]);
   const [hasCheckedCodAvailability, setHasCheckedCodAvailability] = useState(false);
+  const [checkoutImageSources, setCheckoutImageSources] = useState<Record<string, string[]>>({});
+  const [checkoutProductHrefs, setCheckoutProductHrefs] = useState<Record<string, string>>({});
 
   // Use buyNowItem if present (Buy Now flow), otherwise use cart items
   const checkoutItems = useMemo(() => (buyNowItem ? [buyNowItem] : items), [buyNowItem, items]);
@@ -172,6 +177,8 @@ export default function CheckoutPage() {
         setStockConflictMessage("");
         setCodUnavailableNames([]);
         setHasCheckedCodAvailability(true);
+        setCheckoutImageSources({});
+        setCheckoutProductHrefs({});
         return;
       }
       setHasCheckedCodAvailability(false);
@@ -183,16 +190,26 @@ export default function CheckoutPage() {
             .filter((product): product is NonNullable<typeof product> => Boolean(product))
             .map((product) => [product.id, product])
         );
+        const nextImageSources: Record<string, string[]> = {};
+        const nextProductHrefs: Record<string, string> = {};
         const codBlocked: string[] = [];
         for (const item of checkoutItems) {
           const product = map.get(item.id);
+          const itemKey = checkoutItemKey(item.id, item.size);
           if (!product) {
+            nextImageSources[itemKey] = [item.image].filter(Boolean);
             setHasStockConflict(true);
             setStockConflictMessage("Some items are unavailable. Please review your cart.");
             setCodUnavailableNames([]);
             setHasCheckedCodAvailability(true);
+            setCheckoutImageSources(nextImageSources);
+            setCheckoutProductHrefs(nextProductHrefs);
             return;
           }
+          nextImageSources[itemKey] = Array.from(
+            new Set([...getProductImageSources(product, item.size), item.image].filter(Boolean))
+          );
+          nextProductHrefs[itemKey] = createProductHref(product, item.size);
           if (product.codAvailable !== true) {
             codBlocked.push(product.name || item.name || `Product ${item.id}`);
           }
@@ -205,6 +222,8 @@ export default function CheckoutPage() {
             setStockConflictMessage("Some items are out of stock. Please update cart before checkout.");
             setCodUnavailableNames(codBlocked);
             setHasCheckedCodAvailability(true);
+            setCheckoutImageSources(nextImageSources);
+            setCheckoutProductHrefs(nextProductHrefs);
             return;
           }
         }
@@ -212,11 +231,19 @@ export default function CheckoutPage() {
         setStockConflictMessage("");
         setCodUnavailableNames(codBlocked);
         setHasCheckedCodAvailability(true);
+        setCheckoutImageSources(nextImageSources);
+        setCheckoutProductHrefs(nextProductHrefs);
       } catch {
         setHasStockConflict(false);
         setStockConflictMessage("");
         setCodUnavailableNames([]);
         setHasCheckedCodAvailability(true);
+        setCheckoutImageSources(
+          Object.fromEntries(
+            checkoutItems.map((item) => [checkoutItemKey(item.id, item.size), [item.image].filter(Boolean)])
+          )
+        );
+        setCheckoutProductHrefs({});
       }
     };
     validateCheckoutStock();
@@ -344,6 +371,12 @@ export default function CheckoutPage() {
 
   const handlePayment = async () => {
     if (!checkoutItemCount || isProcessing) return;
+    if (!isAuthenticated) {
+      setPaymentError("");
+      setReturnUrl(LOGIN_RETURN_TO);
+      router.push(`/user/auth?returnTo=${encodeURIComponent(LOGIN_RETURN_TO)}`);
+      return;
+    }
     if (hasStockConflict) {
       setPaymentError(stockConflictMessage || "Some items are out of stock.");
       return;
@@ -354,10 +387,6 @@ export default function CheckoutPage() {
     }
     if (!selectedAddressId) {
       setPaymentError("Please select a delivery address.");
-      return;
-    }
-    if (!isAuthenticated) {
-      router.push(`/user/auth?returnTo=${encodeURIComponent(LOGIN_RETURN_TO)}`);
       return;
     }
 
@@ -570,20 +599,29 @@ export default function CheckoutPage() {
 
               {/* Products List */}
               <div className="mt-6 space-y-4 max-h-[250px] overflow-y-auto hide-scrollbar overscroll-contain pr-1" data-lenis-prevent="true">
-                {checkoutItems.map((item) => (
-                  <div key={`${item.id}-${item.size}`} className="flex gap-4 p-3 bg-white rounded-2xl border border-outline-variant/10">
-                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-surface-variant/20 shrink-0">
-                      <img
-                        src={item.image}
+                {checkoutItems.map((item) => {
+                  const itemKey = checkoutItemKey(item.id, item.size);
+                  const productHref = checkoutProductHrefs[itemKey];
+                  const image = (
+                    <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-surface-variant/20 shrink-0">
+                      <ResilientProductImage
+                        sources={checkoutImageSources[itemKey] || [item.image]}
                         alt={item.name}
-                        width={64}
-                        height={64}
-                        className="w-full h-full object-cover"
-                        // unoptimized
+                        compact
                       />
                     </div>
+                  );
+                  return (
+                  <div key={itemKey} className="flex gap-4 p-3 bg-white rounded-2xl border border-outline-variant/10">
+                    {productHref ? <Link href={productHref}>{image}</Link> : image}
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-primary text-sm truncate">{item.name}</h3>
+                      {productHref ? (
+                        <Link href={productHref} className="block font-bold text-primary text-sm truncate hover:text-secondary">
+                          {item.name}
+                        </Link>
+                      ) : (
+                        <h3 className="font-bold text-primary text-sm truncate">{item.name}</h3>
+                      )}
                       {item.size && (
                         <span className="text-[10px] text-on-surface-variant uppercase tracking-wider">Size: {item.size}</span>
                       )}
@@ -593,7 +631,8 @@ export default function CheckoutPage() {
                       </div>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
 
               <div className="mt-6 pt-4 border-t border-outline-variant/20 space-y-3">
@@ -644,14 +683,33 @@ export default function CheckoutPage() {
               <button
                 type="button"
                 onClick={handlePayment}
-                disabled={isProcessing || !selectedAddressId || !isAuthenticated || hasStockConflict}
+                disabled={
+                  isProcessing ||
+                  (isAuthenticated && (!selectedAddressId || hasStockConflict))
+                }
                 className="mt-6 w-full bg-primary text-on-primary py-4 rounded-full font-headline text-lg font-bold tracking-wide hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-xl"
               >
-                <span className="material-symbols-outlined">credit_card</span>
-                <span>{isProcessing ? "Processing..." : paymentMethod === "COD" ? "Place COD Order" : `Pay ${currencySymbol}${total.toFixed(2)}`}</span>
+                <span className="material-symbols-outlined">
+                  {isAuthenticated ? "credit_card" : "login"}
+                </span>
+                <span>
+                  {isProcessing
+                    ? "Processing..."
+                    : !isAuthenticated
+                      ? "Login to Checkout"
+                      : paymentMethod === "COD"
+                        ? "Place COD Order"
+                        : `Pay ${currencySymbol}${total.toFixed(2)}`}
+                </span>
               </button>
 
-              <p className="text-center text-on-surface-variant text-xs font-body mt-3">{paymentMethod === "COD" ? "Cash on Delivery selected" : "Secure checkout via Razorpay"}</p>
+              <p className="text-center text-on-surface-variant text-xs font-body mt-3">
+                {!isAuthenticated
+                  ? "Login securely to select an address and complete your order."
+                  : paymentMethod === "COD"
+                    ? "Cash on Delivery selected"
+                    : "Secure checkout via Razorpay"}
+              </p>
               {hasStockConflict ? <p className="text-center text-sm text-error mt-2">{stockConflictMessage || "Some items are out of stock."}</p> : null}
               {paymentError ? <p className="text-center text-sm text-error mt-2">{paymentError}</p> : null}
             </div>

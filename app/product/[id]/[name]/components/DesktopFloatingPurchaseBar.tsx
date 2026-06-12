@@ -1,14 +1,14 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
+import ResilientProductImage from "@/app/components/ResilientProductImage";
 
 type Props = {
   visible: boolean;
   currencySymbol: string;
   name: string;
-  imageUrl: string;
+  imageUrls: string[];
   price: number;
   originalPrice?: number | null;
   qty: number;
@@ -22,7 +22,7 @@ export default function DesktopFloatingPurchaseBar({
   visible,
   currencySymbol,
   name,
-  imageUrl,
+  imageUrls,
   price,
   originalPrice,
   qty,
@@ -44,20 +44,16 @@ export default function DesktopFloatingPurchaseBar({
           <div className="w-[min(860px,calc(100vw-1.5rem))] bg-white/92 backdrop-blur-xl border border-stone-200 shadow-[0_24px_80px_rgba(0,0,0,0.18)] rounded-[1.75rem] sm:rounded-[2rem] px-3.5 sm:px-5 py-3.5 sm:py-4">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
               <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-                <div className="w-12 h-12 rounded-2xl overflow-hidden bg-stone-100 shrink-0">
-                  {imageUrl ? (
-                    <Image
-                      src={imageUrl}
-                      alt={name || "Product"}
-                      width={48}
-                      height={48}
-                      className="w-full h-full object-cover"
-                      unoptimized
-                      data-floating-bar-image
-                    />
-                  ) : (
-                    <div className="w-full h-full" />
-                  )}
+                <div
+                  className="relative w-12 h-12 rounded-2xl overflow-hidden bg-stone-100 shrink-0"
+                  data-floating-bar-image
+                >
+                  <ResilientProductImage
+                    sources={imageUrls}
+                    alt={name || "Product"}
+                    compact
+                    fallbackClassName="bg-stone-100 text-stone-400"
+                  />
                 </div>
 
                 <div className="min-w-0 flex-1">

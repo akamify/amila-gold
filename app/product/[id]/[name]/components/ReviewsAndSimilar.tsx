@@ -1,13 +1,14 @@
 "use client";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/app/context/CartContext";
 import { useSiteSettings } from "@/app/context/SiteSettingsContext";
+import ResilientProductImage from "@/app/components/ResilientProductImage";
 import ReviewFormModal from "./review/ReviewFormModal";
 import { fetchBackendProducts } from "@/app/lib/backendProducts";
 import { fetchProductReviews, submitProductReview } from "@/app/lib/apiClient";
-import { createProductHref } from "@/app/data/products";
+import { createProductHref, getProductImageSources } from "@/app/data/products";
+import { resolveListingVariant } from "@/app/lib/shopListing";
 import type { ReviewFormState } from "./types";
 import type { Product } from "@/app/data/products";
 import { flyImageToCart } from "@/app/lib/flyToCart";
@@ -128,14 +129,14 @@ export default function ReviewsAndSimilar({ product }: { product?: Product | nul
   };
 
   const handleAddToCart = (item: Product, event?: React.MouseEvent) => {
-    const inStock = Number(item.quantity || 0) > 0 || Object.values(item.stockByVariant || {}).some((qty) => Number(qty || 0) > 0);
-    if (!inStock) return;
+    const variant = resolveListingVariant(item, []);
+    if (variant.stock <= 0) return;
 
     try {
       const card = (event?.currentTarget as HTMLElement | null)?.closest?.("[data-product-card]") as HTMLElement | null;
       const img = card?.querySelector?.("img") as HTMLImageElement | null;
       const fromRect = img?.getBoundingClientRect?.() ?? (event?.currentTarget as HTMLElement | undefined)?.getBoundingClientRect?.();
-      const imageUrl = String(item.image || "").trim();
+      const imageUrl = String(img?.currentSrc || img?.src || variant.image || item.image || "").trim();
       if (fromRect && imageUrl) {
         flyImageToCart({ imageUrl, fromRect, durationMs: 950 });
       }
@@ -146,10 +147,10 @@ export default function ReviewsAndSimilar({ product }: { product?: Product | nul
     addItem({
       id: item.id,
       name: item.name,
-      price: Number(item.price || 0),
+      price: variant.price,
       color: "",
-      size: "Default",
-      image: item.image || "",
+      size: variant.label,
+      image: variant.image || item.image || "",
       collection: item.collection || "SIMILAR COLLECTIONS",
     });
   };
@@ -246,25 +247,25 @@ export default function ReviewsAndSimilar({ product }: { product?: Product | nul
         
         <div className="flex gap-6 overflow-x-auto pb-8 -mx-4 px-4 snap-x snap-mandatory scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           {similarProducts.map((item) => {
-            const isAdded = isVariantInCart(item.id, "Default", "");
-            const inStock = Number(item.quantity || 0) > 0 || Object.values(item.stockByVariant || {}).some((qty) => Number(qty || 0) > 0);
+            const variant = resolveListingVariant(item, []);
+            const isAdded = isVariantInCart(item.id, variant.label, "");
+            const inStock = variant.stock > 0;
+            const productHref = createProductHref(item, variant.label);
+            const imageSources = getProductImageSources(item, variant.label);
             
             return (
               <div key={item.id} data-product-card className="group flex flex-col w-[75vw] max-w-[280px] sm:w-[250px] md:w-[240px] lg:w-[260px] snap-start flex-shrink-0">
                 {/* Image Card Container */}
-                <Link href={createProductHref(item)} className="block relative">
+                <Link href={productHref} className="block relative">
                   <div className="w-full aspect-[4/5] rounded-3xl overflow-hidden bg-surface-container-low mb-5 shadow-sm group-hover:shadow-xl transition-all duration-500 relative">
                     {/* Subtle overlay on hover */}
                     <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10 pointer-events-none" />
                     
-                    {item.image ? (
-                      <Image 
-                        src={item.image} 
-                        alt={item.name} 
-                        width={300} 
-                        height={400} 
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-                        unoptimized 
+                    {imageSources.length ? (
+                      <ResilientProductImage
+                        sources={imageSources}
+                        alt={item.name}
+                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-on-surface-variant/40 bg-surface-container">
@@ -276,17 +277,17 @@ export default function ReviewsAndSimilar({ product }: { product?: Product | nul
 
                 {/* Product Details */}
                 <div className="flex flex-col flex-grow px-1">
-                  <Link href={createProductHref(item)} className="font-headline text-lg font-bold text-primary group-hover:text-secondary transition-colors line-clamp-1 mb-1">
+                  <Link href={productHref} className="font-headline text-lg font-bold text-primary group-hover:text-secondary transition-colors line-clamp-1 mb-1">
                     {item.name}
                   </Link>
                   
                   <div className="flex items-baseline gap-2 mt-auto">
                     <span className="font-headline text-[1.15rem] font-extrabold text-secondary tracking-tight">
-                      {currencySymbol}{Number(item.price || 0).toFixed(2)}
+                      {currencySymbol}{variant.price.toFixed(2)}
                     </span>
-                    {!!item.originalPrice && item.originalPrice > (item.price || 0) && (
+                    {!!variant.originalPrice && variant.originalPrice > variant.price && (
                       <span className="font-body text-xs text-on-surface-variant/70 line-through font-medium">
-                        {currencySymbol}{Number(item.originalPrice).toFixed(2)}
+                        {currencySymbol}{Number(variant.originalPrice).toFixed(2)}
                       </span>
                     )}
                   </div>

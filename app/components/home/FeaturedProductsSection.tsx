@@ -2,9 +2,9 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import ResilientProductImage from "@/app/components/ResilientProductImage";
 import { useSiteSettings } from "@/app/context/SiteSettingsContext";
-import { createProductHref, type Product } from "@/app/data/products";
+import { createProductHref, getProductImageSources, type Product } from "@/app/data/products";
 import { fetchFeaturedProducts } from "@/app/lib/productsClient";
 import { peekCached } from "@/app/lib/clientCache";
 
@@ -329,13 +329,11 @@ function ProductCard({ product, currency }: { product: Product; currency: string
           </div>
         )}
 
-        {product.image && (
-          <Image
-            src={product.image}
+        {getProductImageSources(product).length > 0 && (
+          <ResilientProductImage
+            sources={getProductImageSources(product)}
             alt={product.name}
-            fill
             className="object-cover transition-transform duration-1000 group-hover:scale-110"
-            sizes="(max-width: 368px) 85vw, 33vw"
           />
         )}
 

@@ -1,13 +1,13 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 import React, { useMemo, useState, useEffect, useRef } from "react";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion"; // Added AnimatePresence
 import { useCart } from "@/app/context/CartContext";
 import { useWishlist } from "@/app/context/WishlistContext";
 import { useSiteSettings } from "@/app/context/SiteSettingsContext";
-import type { Product } from '@/app/data/products';
+import ResilientProductImage from "@/app/components/ResilientProductImage";
+import { getProductImageSources, type Product } from '@/app/data/products';
 import { flyImageToCart } from "@/app/lib/flyToCart";
 
 type ProductHeaderProps = {
@@ -41,6 +41,7 @@ export default function ProductHeader({
   buyNowButtonRef,
 }: ProductHeaderProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toggle, isInWishlist } = useWishlist();
   const { settings } = useSiteSettings();
   const currencySymbol = settings.currencySymbol || "₹";
@@ -49,14 +50,15 @@ export default function ProductHeader({
   const [selectedSize, setSelectedSize] = useState<string>(firstSize);
   const productId = product?.id ?? 0;
 
-  const { addItem, isVariantInCart, updateQty } = useCart();
+  const { addItem, isVariantInCart } = useCart();
   const inCart = isVariantInCart(productId, selectedSize, "");
   const inWishlist = isInWishlist(productId);
 
   const selectedVariant = useMemo(() => {
     if (!product) return undefined;
     if (Array.isArray(product.variants) && product.variants.length > 0) {
-      return product.variants.find((v) => v.label === selectedSize) ?? product.variants[0];
+      const normalizedSize = selectedSize.trim().toLowerCase();
+      return product.variants.find((v) => String(v.label || '').trim().toLowerCase() === normalizedSize) ?? product.variants[0];
     }
     return undefined;
   }, [product, selectedSize]);
@@ -116,15 +118,31 @@ export default function ProductHeader({
     if (product.stockBySize && selectedSize) {
       return product.stockBySize[selectedSize] ?? 0;
     }
-    return 0;
+    return Math.max(0, Number(product.quantity || 0));
   }, [product, selectedVariant, selectedSize]);
   const isOutOfStock = availableStock <= 0;
 
   const [qty, setQty] = useState<number>(1);
   const [shareStatus, setShareStatus] = useState('');
 
+  useEffect(() => {
+    if (!product) return;
+    const requestedVariant = String(searchParams.get('variant') || '').trim().toLowerCase();
+    const requested = product.variants?.find(
+      (variant) => String(variant.label || '').trim().toLowerCase() === requestedVariant
+    );
+    const firstInStock = product.variants?.find((variant) => Number(variant.stock || 0) > 0);
+    const nextSize = requested?.label || firstInStock?.label || product.sizes?.[0] || '';
+    setSelectedSize(nextSize);
+  }, [product, searchParams]);
+
+  useEffect(() => {
+    setQty((current) => Math.max(1, Math.min(current, availableStock > 0 ? availableStock : 1)));
+  }, [availableStock, selectedSize]);
+
   // Set the first image from our robust gallery as active initially
   const [activeImage, setActiveImage] = useState<string>(galleryImages[0] || initialImage);
+  const [resolvedMainImage, setResolvedMainImage] = useState<string>(galleryImages[0] || initialImage);
   const mobileCarouselRef = useRef<HTMLDivElement | null>(null);
   const mainImageContainerRef = useRef<HTMLDivElement | null>(null);
   const isAdjustingRef = useRef(false);
@@ -144,6 +162,18 @@ export default function ProductHeader({
   }, [galleryImages, activeImage]);
 
   useEffect(() => {
+    setResolvedMainImage(activeImage || initialImage);
+  }, [activeImage, initialImage]);
+
+  const activeImageSources = useMemo(
+    () => Array.from(new Set([
+      activeImage,
+      ...getProductImageSources(product, selectedSize),
+    ].map((source) => String(source || '').trim()).filter(Boolean))),
+    [activeImage, product, selectedSize]
+  );
+
+  useEffect(() => {
     const el = mobileCarouselRef.current;
 
     if (!el) return;
@@ -159,7 +189,7 @@ export default function ProductHeader({
     if (!onStickyInfoChange) return;
     onStickyInfoChange({
       name: product?.name ?? "Product",
-      image: (activeImage || initialImage || "").trim(),
+      image: (resolvedMainImage || activeImage || initialImage || "").trim(),
       price: Number(displayPrice || 0),
       originalPrice: typeof displayOriginal === "number" ? displayOriginal : null,
       currencySymbol,
@@ -170,6 +200,7 @@ export default function ProductHeader({
   }, [
     onStickyInfoChange,
     product?.name,
+    resolvedMainImage,
     activeImage,
     initialImage,
     displayPrice,
@@ -226,7 +257,15 @@ export default function ProductHeader({
         (event?.currentTarget as HTMLElement | null)?.getBoundingClientRect() ||
         null;
 
-      const imageUrl = (activeImage || initialImage || "").trim();
+      const renderedImage = mainImageContainerRef.current?.querySelector("img") as HTMLImageElement | null;
+      const imageUrl = String(
+        renderedImage?.currentSrc ||
+        renderedImage?.src ||
+        resolvedMainImage ||
+        activeImage ||
+        initialImage ||
+        ""
+      ).trim();
       if (fromRect && imageUrl) {
         flyImageToCart({
           imageUrl,
@@ -243,15 +282,10 @@ export default function ProductHeader({
       price: displayPrice,
       color: "",
       size: selectedSize,
-      image: initialImage, // Use the primary image for cart
+      image: resolvedMainImage || selectedVariant?.image || activeImage || initialImage,
       collection: product?.collection ?? 'SHOP',
+      qty,
     });
-
-    if (qty > 1) {
-      try {
-        updateQty(productId, selectedSize, qty - 1);
-      } catch { /* ignore */ }
-    }
   };
 
   const handleWishlist = () => {
@@ -260,7 +294,7 @@ export default function ProductHeader({
       id: productId,
       name: product?.name ?? 'Product',
       price: displayPrice,
-      image: initialImage, // Use the primary image for wishlist
+      image: resolvedMainImage || initialImage,
       collection: product?.collection ?? 'SHOP',
     });
   };
@@ -276,7 +310,7 @@ export default function ProductHeader({
       price: displayPrice,
       color: "",
       size: selectedSize,
-      image: initialImage, // Use the primary image for buy now
+      image: resolvedMainImage || selectedVariant?.image || activeImage || initialImage,
       collection: product?.collection ?? 'SHOP',
       qty: qty,
     };
@@ -335,14 +369,11 @@ export default function ProductHeader({
                   key={`${src}-${idx}`}
                   className="relative w-full flex-none aspect-square snap-center snap-always"
                 >
-                  <Image
+                  <ResilientProductImage
                     alt={product?.name ?? "Product Image"}
-                    src={src}
-                    fill
-                    priority={idx === 0}
-                    sizes="100vw"
-                    draggable={false}
-                    className="object-cover pointer-events-none select-none"
+                    sources={[src, ...galleryImages.filter((image) => image !== src)]}
+                    eager={idx === 0}
+                    className="h-full w-full object-cover pointer-events-none select-none"
                   />
                 </div>
               ))}
@@ -382,13 +413,12 @@ export default function ProductHeader({
               className="absolute inset-0 z-0"
             >
               {activeImage ? (
-                <Image
+                <ResilientProductImage
                   alt={product?.name ?? "Product Image"}
-                  src={activeImage}
-                  fill
-                  priority
-                  sizes="(min-width: 1024px) 50vw, 100vw"
-                  className="object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-105"
+                  sources={activeImageSources}
+                  eager
+                  onSourceResolved={setResolvedMainImage}
+                  className="h-full w-full object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-105"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-on-surface-variant/50">No Image</div>
@@ -428,11 +458,11 @@ export default function ProductHeader({
                       className={`relative aspect-square overflow-hidden rounded-2xl ring-2 transition-all duration-300 ${isActive ? "ring-primary shadow-lg shadow-primary/20" : "ring-outline-variant/30 hover:ring-primary/50"}`}
                       aria-label={`View product image ${index + 1}`}
                     >
-                      <Image
+                      <ResilientProductImage
                         alt={`${product?.name ?? "Product"} - Image ${index + 1}`}
-                        src={src}
-                        fill
-                        className={`relative flex-none w-24 h-24 object-cover overflow-hidden rounded-xl ring-2 transition-all duration-300 ${isActive ? "ring-primary" : "ring-outline-variant/40"}`}
+                        sources={[src]}
+                        compact
+                        className="h-full w-full object-cover"
                       />
                       {/* Subtle overlay on active */}
                       {isActive && <div className="absolute inset-0 bg-primary/5 z-[1]" />}
@@ -543,18 +573,29 @@ export default function ProductHeader({
             <div className="space-y-4">
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant py-3">Available Options</span>
               <div className="flex gap-3 flex-wrap">
-                {(product?.sizes && product.sizes.length > 0 ? product.sizes : ['Standard']).map((s) => (
+                {(product?.sizes && product.sizes.length > 0 ? product.sizes : ['Standard']).map((s) => {
+                  const optionVariant = product?.variants?.find(
+                    (variant) => String(variant.label || '').trim().toLowerCase() === String(s).trim().toLowerCase()
+                  );
+                  const optionStock = optionVariant ? Number(optionVariant.stock || 0) : Number(product?.quantity || 0);
+                  const optionOutOfStock = optionStock <= 0;
+                  return (
                   <button
                     key={s}
                     onClick={() => setSelectedSize(s)}
-                    className={`px-8 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 border ${s === selectedSize
+                    disabled={optionOutOfStock}
+                    className={`relative px-8 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 border disabled:cursor-not-allowed ${s === selectedSize
                       ? 'bg-primary text-on-primary border-primary shadow-lg shadow-primary/20 scale-105'
-                      : 'bg-transparent text-on-surface-variant hover:border-primary border-outline-variant/40'
+                      : optionOutOfStock
+                        ? 'bg-surface-variant/20 text-on-surface-variant/35 border-outline-variant/20 line-through'
+                        : 'bg-transparent text-on-surface-variant hover:border-primary border-outline-variant/40'
                       }`}
                   >
                     {s}
+                    {optionOutOfStock ? <span className="ml-2 text-[8px] no-underline">Sold out</span> : null}
                   </button>
-                ))}
+                  );
+                })}
               </div>
             </div>
 

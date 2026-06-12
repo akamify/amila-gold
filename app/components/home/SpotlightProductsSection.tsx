@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import ResilientProductImage from "@/app/components/ResilientProductImage";
 import { useCart } from "@/app/context/CartContext";
 import { useSiteSettings } from "@/app/context/SiteSettingsContext";
-import { createProductHref, type Product } from "@/app/data/products";
+import { createProductHref, getProductImageSources, type Product } from "@/app/data/products";
 import { fetchFeaturedProducts } from "@/app/lib/productsClient";
 import { peekCached } from "@/app/lib/clientCache";
 import { flyImageToCart } from "@/app/lib/flyToCart";
@@ -137,14 +137,11 @@ export default function SpotlightProductsSection({ initialProducts = [] }: { ini
                     href={createProductHref(product)}
                     className="relative aspect-square rounded-xl lg:rounded-[1.5rem] overflow-hidden bg-slate-50"
                   >
-                    {product.image && (
-                      <Image
-                        src={product.image}
+                    {getProductImageSources(product, weightLabel).length > 0 && (
+                      <ResilientProductImage
+                        sources={getProductImageSources(product, weightLabel)}
                         alt={product.name}
-                        fill
                         className="object-cover transition-transform duration-700 group-hover:scale-105"
-                        sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
-                        loading="lazy"
                       />
                     )}
 
@@ -182,12 +179,15 @@ export default function SpotlightProductsSection({ initialProducts = [] }: { ini
                           if (inCart) {
                             router.push("/cart");
                           } else if (inStock) {
+                            let renderedImageUrl = product.image || "";
                             try {
                               const card = (e.currentTarget as HTMLElement | null)?.closest?.("[data-product-card]") as HTMLElement | null;
                               const img = card?.querySelector?.("img") as HTMLImageElement | null;
                               const fromRect = img?.getBoundingClientRect?.() ?? (e.currentTarget as HTMLElement).getBoundingClientRect();
-                              if (product.image && fromRect) {
-                                flyImageToCart({ imageUrl: product.image, fromRect, durationMs: 950 });
+                              const imageUrl = String(img?.currentSrc || img?.src || product.image || "").trim();
+                              renderedImageUrl = imageUrl || renderedImageUrl;
+                              if (imageUrl && fromRect) {
+                                flyImageToCart({ imageUrl, fromRect, durationMs: 950 });
                               }
                             } catch {
                               // ignore
@@ -198,7 +198,7 @@ export default function SpotlightProductsSection({ initialProducts = [] }: { ini
                               price: displayPrice,
                               color: "",
                               size: weightLabel || "",
-                              image: product.image,
+                              image: renderedImageUrl,
                               collection: product.collection || "",
                             });
                           }

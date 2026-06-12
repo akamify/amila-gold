@@ -9,9 +9,9 @@ export type ListingProduct = {
   price: number;
   originalPrice?: number;
   image: string;
-  category: string;
-  collection: string;
-  description: string;
+  category?: string;
+  collection?: string;
+  description?: string;
   quantity: number;
   variants?: BackendProduct["variants"];
 };
@@ -52,7 +52,7 @@ export function productMatchesWeightFilters(p: ListingProduct, selectedWeights: 
       return p.variants.some((v) => normWeightToken(String(v.label || "")) === normWeightToken(weight));
     }
     const w = weight.toLowerCase();
-    return p.name.toLowerCase().includes(w) || p.description.toLowerCase().includes(w);
+    return p.name.toLowerCase().includes(w) || String(p.description || "").toLowerCase().includes(w);
   });
 }
 
@@ -90,17 +90,22 @@ export function compareListingPriceDesc(a: ListingProduct, b: ListingProduct, se
 export function resolveListingVariant(p: ListingProduct, selectedWeights: string[]) {
   const variants = Array.isArray(p.variants) && p.variants.length > 0 ? p.variants : null;
   if (variants) {
+    const selectedMatches = [];
     for (const w of selectedWeights) {
       const m = matchVariantByCartSize(p, w);
       if (m) {
-        return {
-          label: m.label,
-          price: Number(m.price ?? p.price ?? 0),
-          originalPrice: m.originalPrice ?? p.originalPrice,
-          image: m.image && m.image.trim() ? m.image : p.image,
-          stock: Math.max(0, Number(m.stock || 0)),
-        };
+        selectedMatches.push(m);
       }
+    }
+    const selectedMatch = selectedMatches.find((variant) => Number(variant.stock || 0) > 0) || selectedMatches[0];
+    if (selectedMatch) {
+      return {
+        label: selectedMatch.label,
+        price: Number(selectedMatch.price ?? p.price ?? 0),
+        originalPrice: selectedMatch.originalPrice ?? p.originalPrice,
+        image: selectedMatch.image && selectedMatch.image.trim() ? selectedMatch.image : p.image,
+        stock: Math.max(0, Number(selectedMatch.stock || 0)),
+      };
     }
     const withStock = variants.find((v) => Number(v.stock || 0) > 0);
     if (withStock) {

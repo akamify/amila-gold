@@ -118,6 +118,7 @@ export interface AdminOrderItem {
     size?: string;
     product_name?: string;
     product_image?: string;
+    product_images?: string[];
 }
 
 export interface AdminOrderStatusHistoryEntry {
@@ -152,6 +153,7 @@ export interface AdminOrderAddress {
     district?: string;
     pinCode?: string;
     address?: string;
+    address_line1?: string;
     address_line2?: string;
     addressType?: string;
 }
@@ -182,7 +184,9 @@ export interface AdminOrder {
     courier_etd?: number;
     shiprocket_error?: string;
     address_line1?: string;
+    address_line2?: string;
     city?: string;
+    district?: string;
     state?: string;
     country?: string;
     pinCode?: string;
@@ -638,7 +642,11 @@ async function request(path: string, options: RequestInit = {}, auth = false) {
             clearUserSession();
             if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/user/auth')) {
                 const blocked = /blocked/i.test(String(message || ''));
-                window.location.replace(`/user/auth${blocked ? '?blocked=1' : ''}`);
+                const currentPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+                const authParams = new URLSearchParams();
+                authParams.set('returnTo', currentPath);
+                if (blocked) authParams.set('blocked', '1');
+                window.location.replace(`/user/auth?${authParams.toString()}`);
             }
         }
         throw new Error(message);
@@ -1026,8 +1034,18 @@ export async function fetchAdminOrders(): Promise<AdminOrder[]> {
             const mapped = asRecord(item);
             const product = asRecord(mapped.product);
             const productImages = Array.isArray(product.product_image) ? product.product_image : [];
+            const variants = Array.isArray(product.variants) ? product.variants : [];
+            const variantImages = variants.flatMap((variant) => {
+                const row = asRecord(variant);
+                const images = Array.isArray(row.images) ? row.images : [];
+                return [...images, row.image];
+            });
             const imageFromItem = typeof mapped.product_image === 'string' && mapped.product_image.trim() ? mapped.product_image : undefined;
-            const imageFromProduct = typeof productImages[0] === 'string' ? productImages[0] : undefined;
+            const imageCandidates = Array.from(new Set(
+                [...productImages, ...variantImages, imageFromItem]
+                    .map((value) => typeof value === 'string' ? value.trim() : '')
+                    .filter(Boolean)
+            ));
             return {
                 product_id: Number(mapped.product_id || 0),
                 quantity: Number(mapped.quantity || 0),
@@ -1041,7 +1059,8 @@ export async function fetchAdminOrders(): Promise<AdminOrder[]> {
                         : typeof product.name === 'string'
                             ? product.name
                             : undefined,
-                product_image: imageFromItem || imageFromProduct,
+                product_image: imageCandidates[0],
+                product_images: imageCandidates,
             };
         });
         const explicitAmount = Number(row.amount || 0);
@@ -1087,7 +1106,9 @@ export async function fetchAdminOrders(): Promise<AdminOrder[]> {
             courier_etd: Number(row.courier_etd || 0) || undefined,
             shiprocket_error: typeof row.shiprocket_error === 'string' ? row.shiprocket_error : undefined,
             address_line1: typeof row.address_line1 === 'string' ? row.address_line1 : undefined,
+            address_line2: typeof row.address_line2 === 'string' ? row.address_line2 : undefined,
             city: typeof row.city === 'string' ? row.city : undefined,
+            district: typeof row.district === 'string' ? row.district : undefined,
             state: typeof row.state === 'string' ? row.state : undefined,
             country: typeof row.country === 'string' ? row.country : undefined,
             pinCode: typeof row.pinCode === 'string' ? row.pinCode : undefined,
@@ -1129,16 +1150,37 @@ export async function fetchAdminOrders(): Promise<AdminOrder[]> {
                 const address = asRecord(row.address);
                 if (!Object.keys(address).length) return null;
                 return {
-                    FullName: typeof address.FullName === 'string' ? address.FullName : undefined,
-                    phone1: typeof address.phone1 === 'string' ? address.phone1 : undefined,
-                    phone2: typeof address.phone2 === 'string' ? address.phone2 : undefined,
+                    FullName: typeof address.FullName === 'string'
+                        ? address.FullName
+                        : typeof address.full_name === 'string'
+                            ? address.full_name
+                            : undefined,
+                    phone1: typeof address.phone1 === 'string'
+                        ? address.phone1
+                        : typeof address.phone === 'string'
+                            ? address.phone
+                            : undefined,
+                    phone2: typeof address.phone2 === 'string'
+                        ? address.phone2
+                        : typeof address.alt_phone === 'string'
+                            ? address.alt_phone
+                            : undefined,
                     email: typeof address.email === 'string' ? address.email : undefined,
                     country: typeof address.country === 'string' ? address.country : undefined,
                     state: typeof address.state === 'string' ? address.state : undefined,
                     city: typeof address.city === 'string' ? address.city : undefined,
                     district: typeof address.district === 'string' ? address.district : undefined,
-                    pinCode: typeof address.pinCode === 'string' ? address.pinCode : undefined,
-                    address: typeof address.address === 'string' ? address.address : undefined,
+                    pinCode: typeof address.pinCode === 'string'
+                        ? address.pinCode
+                        : typeof address.postal_code === 'string'
+                            ? address.postal_code
+                            : undefined,
+                    address: typeof address.address === 'string'
+                        ? address.address
+                        : typeof address.address_line1 === 'string'
+                            ? address.address_line1
+                            : undefined,
+                    address_line1: typeof address.address_line1 === 'string' ? address.address_line1 : undefined,
                     address_line2: typeof address.address_line2 === 'string' ? address.address_line2 : undefined,
                     addressType: typeof address.addressType === 'string' ? address.addressType : undefined,
                 } as AdminOrderAddress;

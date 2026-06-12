@@ -26,6 +26,18 @@ export default function ProductPageClient({ id, name }: { id: string; name?: str
 
   const requestedId = useMemo(() => String(id || '').trim(), [id]);
   const requestedSlug = useMemo(() => formatProductNameForPath(name || ''), [name]);
+  const floatingImageUrls = useMemo(() => {
+    if (!product || !stickyInfo) return [];
+    return Array.from(new Set([
+      stickyInfo.image,
+      ...(product.images || []),
+      product.image,
+      ...(product.variants || []).flatMap((variant) => [
+        ...(variant.images || []),
+        variant.image || '',
+      ]),
+    ].map((value) => String(value || '').trim()).filter(Boolean)));
+  }, [product, stickyInfo]);
 
   useEffect(() => {
     let active = true;
@@ -82,7 +94,7 @@ export default function ProductPageClient({ id, name }: { id: string; name?: str
           visible={floatingVisible}
           currencySymbol={stickyInfo.currencySymbol}
           name={stickyInfo.name}
-          imageUrl={stickyInfo.image}
+          imageUrls={floatingImageUrls}
           price={stickyInfo.price}
           originalPrice={stickyInfo.originalPrice ?? null}
           qty={stickyInfo.qty}
@@ -90,9 +102,10 @@ export default function ProductPageClient({ id, name }: { id: string; name?: str
           isOutOfStock={stickyInfo.isOutOfStock}
           onAddToCart={() => {
             try {
-              const img = document.querySelector('[data-floating-bar-image]') as HTMLElement | null;
+              const imageContainer = document.querySelector('[data-floating-bar-image]') as HTMLElement | null;
+              const img = imageContainer?.querySelector('img') as HTMLImageElement | null;
               const fromRect = img?.getBoundingClientRect?.();
-              const imageUrl = String(stickyInfo.image || '').trim();
+              const imageUrl = String(img?.currentSrc || img?.src || '').trim();
               if (fromRect && imageUrl) {
                 flyImageToCart({ imageUrl, fromRect });
               }

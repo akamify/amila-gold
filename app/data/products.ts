@@ -37,6 +37,25 @@ export interface Product {
   nutritions?: Array<{ key: string; value: string }>;
 }
 
+export function getProductImageSources(product?: Product | null, variantLabel?: string) {
+  if (!product) return [];
+  const normalizedVariant = String(variantLabel || '').trim().toLowerCase();
+  const selectedVariant = product.variants?.find(
+    (variant) => String(variant.label || '').trim().toLowerCase() === normalizedVariant
+  );
+  const candidates = [
+    ...(selectedVariant?.images || []),
+    selectedVariant?.image,
+    ...(product.images || []),
+    product.image,
+    ...(product.variants || []).flatMap((variant) => [
+      ...(variant.images || []),
+      variant.image,
+    ]),
+  ];
+  return Array.from(new Set(candidates.map((source) => String(source || '').trim()).filter(Boolean)));
+}
+
 // Local mock products array (fallback)
 const products: Product[] = [];
 
@@ -64,9 +83,11 @@ export function createProductHref(product: {
   tag?: string;
   details?: string[];
   sizes?: string[];
-}) {
+}, variant?: string) {
   const routeId = product.publicId || String(product.id);
-  return `/product/${routeId}/${formatProductNameForPath(product.name)}`;
+  const pathname = `/product/${routeId}/${formatProductNameForPath(product.name)}`;
+  const normalizedVariant = String(variant || '').trim();
+  return normalizedVariant ? `${pathname}?variant=${encodeURIComponent(normalizedVariant)}` : pathname;
 }
 
 export function getProductBySlug(slug: string) {

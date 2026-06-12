@@ -16,7 +16,7 @@ export interface CartItem {
 
 interface CartContextType {
   items: CartItem[];
-  addItem: (item: Omit<CartItem, 'qty'>) => void;
+  addItem: (item: Omit<CartItem, 'qty'> & { qty?: number }) => void;
   isVariantInCart: (id: number, size: string, color?: string) => boolean;
   removeItem: (id: number, size: string, color?: string) => void;
   updateQty: (id: number, size: string, delta: number, color?: string) => void;
@@ -154,7 +154,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     window.localStorage.setItem('sr_cart', JSON.stringify(items));
   }, [items]);
 
-  const addItem = (item: Omit<CartItem, 'qty'>) => {
+  const addItem = (item: Omit<CartItem, 'qty'> & { qty?: number }) => {
     const safeItem = normalizeItem(item as Record<string, unknown>);
     if (safeItem.id <= 0) return;
 
@@ -165,14 +165,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setSyncError('');
 
     // Add to local state immediately
-    setItems((prev) => [...prev, { ...safeItem, qty: 1 }]);
+    setItems((prev) => [...prev, safeItem]);
 
     // Try to sync with backend, but don't fail if it doesn't work
     addCartItem({
       product_id: safeItem.id,
       color: safeItem.color,
       size: safeItem.size,
-      qty: 1,
+      qty: safeItem.qty,
       price: safeItem.price,
       mrp: safeItem.price,
       title: safeItem.name,
