@@ -8,6 +8,11 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
   const pathname = usePathname();
   const { user, logout, isLoading } = useAuth();
   useRequireAuth('/user/auth');
+  const isAuthPage = pathname?.startsWith('/user/auth');
+
+  if (isAuthPage) {
+    return <>{children}</>;
+  }
 
   if (isLoading) {
     return (
