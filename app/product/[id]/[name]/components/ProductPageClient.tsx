@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import ProductHeader, { type FloatingPurchaseInfo } from './ProductHeader';
 import WellnessPath from './WellnessPath';
 import NutritionFacts from './NutritionFacts';
@@ -16,6 +17,7 @@ import { useDesktopFloatingBarVisibility } from './useDesktopFloatingBarVisibili
 import { flyImageToCart } from '@/app/lib/flyToCart';
 
 export default function ProductPageClient({ id, name }: { id: string; name?: string }) {
+  const router = useRouter();
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [stickyInfo, setStickyInfo] = useState<FloatingPurchaseInfo | null>(null);
@@ -101,6 +103,10 @@ export default function ProductPageClient({ id, name }: { id: string; name?: str
           inCart={stickyInfo.inCart}
           isOutOfStock={stickyInfo.isOutOfStock}
           onAddToCart={() => {
+            if (stickyInfo.inCart) {
+              router.push('/cart');
+              return;
+            }
             try {
               const imageContainer = document.querySelector('[data-floating-bar-image]') as HTMLElement | null;
               const img = imageContainer?.querySelector('img') as HTMLImageElement | null;
