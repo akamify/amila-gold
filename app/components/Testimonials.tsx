@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import * as apiClient from "../lib/apiClient";
+import { fetchPublicTestimonialsData, type PublicTestimonial } from "../lib/publicDataClient";
 import { TestimonialsGridSkeleton } from "./Skeletons";
 
 type TestimonialItem = {
@@ -15,9 +15,11 @@ const FALLBACK_TESTIMONIALS: TestimonialItem[] = [];
 const TESTIMONIALS_STORAGE_KEY = 'sr_testimonials';
 const TESTIMONIALS_CACHE_TIME = 5 * 60 * 1000; // 5 minutes
 
-function TestimonialsSection() {
-  const [testimonials, setTestimonials] = useState<TestimonialItem[]>(FALLBACK_TESTIMONIALS);
-  const [isLoading, setIsLoading] = useState(true);
+function TestimonialsSection({ initialTestimonials = [] }: { initialTestimonials?: PublicTestimonial[] }) {
+  const [testimonials, setTestimonials] = useState<TestimonialItem[]>(
+    initialTestimonials.length ? initialTestimonials : FALLBACK_TESTIMONIALS
+  );
+  const [isLoading, setIsLoading] = useState(initialTestimonials.length === 0);
   const trackRef = useRef<HTMLDivElement | null>(null);
 
   // Load testimonials from localStorage (fast initial load)
@@ -55,16 +57,7 @@ function TestimonialsSection() {
     }
 
     // Then fetch from API
-    const fetchFnUnknown =
-      (apiClient as Record<string, unknown>).fetchAdminTestimonials ??
-      (apiClient as Record<string, unknown>).fetchAdminTestimonial;
-
-    if (typeof fetchFnUnknown !== "function") {
-      setIsLoading(false);
-      return;
-    }
-
-    (fetchFnUnknown as () => Promise<unknown>)()
+    fetchPublicTestimonialsData()
       .then((rowsUnknown) => {
         if (!Array.isArray(rowsUnknown) || rowsUnknown.length === 0) return;
 

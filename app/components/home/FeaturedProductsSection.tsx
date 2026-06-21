@@ -6,7 +6,7 @@ import ResilientProductImage from "@/app/components/ResilientProductImage";
 import { useSiteSettings } from "@/app/context/SiteSettingsContext";
 import { createProductHref, getProductImageSources, type Product } from "@/app/data/products";
 import { fetchFeaturedProducts } from "@/app/lib/productsClient";
-import { peekCached } from "@/app/lib/clientCache";
+import { peekCached, putCached } from "@/app/lib/clientCache";
 
 /** Skeleton card that mirrors real ProductCard layout */
 function FeaturedCardSkeleton({ className = "" }: { className?: string }) {
@@ -73,7 +73,6 @@ function FeaturedProductsSkeleton() {
 export default function FeaturedProductsSection({ initialProducts = [] }: { initialProducts?: Product[] }) {
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [loading, setLoading] = useState(initialProducts.length === 0);
-  const [error, setError] = useState("");
   const { settings } = useSiteSettings();
   const currencySymbol = settings.currencySymbol || "₹";
   const mobileTrackRef = useRef<HTMLDivElement | null>(null);
@@ -98,11 +97,11 @@ export default function FeaturedProductsSection({ initialProducts = [] }: { init
 
     fetchFeaturedProducts()
       .then((data) => {
+        putCached("products:all", 5 * 60 * 1000, data);
         setProducts(data);
         setLoading(false);
       })
       .catch(() => {
-        setError("Failed to load products");
         setLoading(false);
       });
   }, [initialProducts.length]);
@@ -195,8 +194,10 @@ export default function FeaturedProductsSection({ initialProducts = [] }: { init
 
         {loading ? (
           <FeaturedProductsSkeleton />
-        ) : error ? (
-          <div className="text-center py-20 text-red-500 font-medium">{error}</div>
+        ) : products.length === 0 ? (
+          <div className="text-center py-14 text-slate-500 font-medium">
+            Products are being refreshed. Please check again shortly.
+          </div>
         ) : (
           <>
             {/* Mobile Carousel */}

@@ -15,7 +15,9 @@ export default function HeritageSection() {
 
     if (playPromise !== undefined) {
       playPromise.catch(() => {
-        console.log("Autoplay blocked initially, keeping it muted.");
+        if (process.env.NODE_ENV !== "production") {
+          console.warn("Autoplay blocked initially, keeping it muted.");
+        }
         setIsMuted(true);
         video.muted = true;
       });
@@ -103,7 +105,7 @@ export default function HeritageSection() {
                   autoPlay
                   muted
                   loop
-                  preload="auto"
+                  preload="metadata"
                   playsInline
                   poster="https://lh3.googleusercontent.com/aida-public/AB6AXuD-2z1dIigqEBYNJuzA_d5P4XiqmlBm3djIsa_mIZxua1FX5wTpi_-_qbCaM85WuFX_NHUr56w868SFwcrRuinbc8xFDx7vB70lXBFpimL4GcJ3Hr2O-GvfuaoDbXzQLU4CrjDAtartUEP19NKHCbYgguWYHs9Y30jspsFgnwvgPah3TisIMry62W8JoUZhTILGObXhlsgDMUQ-sc43-dogRjNw8fiItJnfyUIDrHEo-qJSp9IJbWcRX8vUQNfC28mO9gM9fslOEvo"
                   // 3. Object-cover ensure karta hai ki video stretch na ho aur cut bhi minimize ho height kam karne par.
@@ -115,7 +117,9 @@ export default function HeritageSection() {
 
                 {/* Mute/Unmute Control - Chhota aur compact */}
                 <button
+                  type="button"
                   onClick={toggleMute}
+                  aria-label={isMuted ? "Unmute heritage video" : "Mute heritage video"}
                   className="absolute bottom-3 right-3 z-30 w-9 h-9 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white hover:bg-black/80 transition-all shadow-lg active:scale-90"
                 >
                   <span className="material-symbols-outlined !text-lg pointer-events-none">

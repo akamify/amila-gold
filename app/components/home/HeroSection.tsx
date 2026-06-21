@@ -4,8 +4,8 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, ShoppingBag } from "lucide-react";
-import { fetchPublicBanners } from "@/app/lib/apiClient";
-import { peekCached } from "@/app/lib/clientCache";
+import { peekCached, putCached } from "@/app/lib/clientCache";
+import { fetchPublicBannersData } from "@/app/lib/publicDataClient";
 
 type HeroBanner = {
   id: string;
@@ -19,20 +19,25 @@ type HeroSectionProps = {
   initialBanners?: HeroBanner[];
 };
 
-const processRows = (rows: any[]): HeroBanner[] =>
+const processRows = (rows: unknown[]): HeroBanner[] =>
   rows
-    .filter((row) => row.imageUrl && row.targetUrl)
-    .map((row) => ({
-      id: String(row.id || row._id || row.imageUrl),
-      title: row.title || "",
-      subtitle: row.subtitle || "",
-      href: row.targetUrl,
-      img: row.imageUrl,
-    }));
+    .map((value) => {
+      const row = value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+      const image = String(row.imageUrl || row.img || "").trim();
+      if (!image) return null;
+      return {
+        id: String(row.id || row._id || image),
+        title: String(row.title || ""),
+        subtitle: String(row.subtitle || ""),
+        href: String(row.targetUrl || row.href || "/shop"),
+        img: image,
+      };
+    })
+    .filter((item): item is HeroBanner => item !== null);
 
 export default function HeroSection({ initialBanners = [] }: HeroSectionProps) {
   const [banners, setBanners] = useState<HeroBanner[]>(() => {
-    const cached = peekCached<any[]>("banners:public").data;
+    const cached = peekCached<unknown[]>("banners:public").data;
     if (Array.isArray(cached) && cached.length) {
       return processRows(cached);
     }
@@ -41,10 +46,15 @@ export default function HeroSection({ initialBanners = [] }: HeroSectionProps) {
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
-    fetchPublicBanners()
-      .then((rows) => setBanners(processRows(rows)))
-      .catch(() => setBanners([]));
-  }, []);
+    fetchPublicBannersData()
+      .then((rows) => {
+        putCached("banners:public", 5 * 60 * 1000, rows);
+        setBanners(rows);
+      })
+      .catch(() => {
+        if (initialBanners.length === 0) setBanners([]);
+      });
+  }, [initialBanners.length]);
 
   useEffect(() => {
     if (banners.length <= 1) return;
@@ -120,6 +130,7 @@ export default function HeroSection({ initialBanners = [] }: HeroSectionProps) {
             fetchPriority={index === 0 ? "high" : "auto"}
             loading={index === 0 ? "eager" : "lazy"}
             sizes="100vw"
+            quality={index === 0 ? 78 : 65}
             className={`object-cover transition-transform duration-[10000ms] ease-linear ${activeIndex === index ? "scale-110" : "scale-100"
               }`}
           />
@@ -169,7 +180,8 @@ export default function HeroSection({ initialBanners = [] }: HeroSectionProps) {
         <button
           onClick={() => handleSlide("prev")}
           className="text-white hover:text-amber-400 transition-colors p-1"
-          aria-label="Previous"
+          aria-label="Previous banner slide"
+          type="button"
         >
           <ChevronLeft size={20} className="sm:w-6 sm:h-6" />
         </button>
@@ -183,7 +195,8 @@ export default function HeroSection({ initialBanners = [] }: HeroSectionProps) {
                   ? "w-6 sm:w-8 bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)]"
                   : "w-1.5 sm:w-2 bg-white/40 hover:bg-white/70"
                 }`}
-              aria-label={`Slide ${index + 1}`}
+              aria-label={`Show banner slide ${index + 1}`}
+              type="button"
             />
           ))}
         </div>
@@ -191,7 +204,8 @@ export default function HeroSection({ initialBanners = [] }: HeroSectionProps) {
         <button
           onClick={() => handleSlide("next")}
           className="text-white hover:text-amber-400 transition-colors p-1"
-          aria-label="Next"
+          aria-label="Next banner slide"
+          type="button"
         >
           <ChevronRight size={20} className="sm:w-6 sm:h-6" />
         </button>

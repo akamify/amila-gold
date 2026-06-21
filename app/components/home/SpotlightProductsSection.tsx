@@ -8,7 +8,7 @@ import { useCart } from "@/app/context/CartContext";
 import { useSiteSettings } from "@/app/context/SiteSettingsContext";
 import { createProductHref, getProductImageSources, type Product } from "@/app/data/products";
 import { fetchFeaturedProducts } from "@/app/lib/productsClient";
-import { peekCached } from "@/app/lib/clientCache";
+import { peekCached, putCached } from "@/app/lib/clientCache";
 import { flyImageToCart } from "@/app/lib/flyToCart";
 
 // --- Helpers ---
@@ -26,7 +26,6 @@ export default function SpotlightProductsSection({ initialProducts = [] }: { ini
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [loading, setLoading] = useState(initialProducts.length === 0);
-  const [error, setError] = useState("");
   const { addItem, isVariantInCart } = useCart();
   const { settings } = useSiteSettings();
   const currencySymbol = settings.currencySymbol || "₹";
@@ -41,11 +40,11 @@ export default function SpotlightProductsSection({ initialProducts = [] }: { ini
 
     fetchFeaturedProducts()
       .then((data) => {
+        putCached("products:all", 5 * 60 * 1000, data);
         setProducts(data);
         setLoading(false);
       })
       .catch(() => {
-        setError("Failed to load products");
         setLoading(false);
       });
   }, [initialProducts.length]);
@@ -105,9 +104,9 @@ export default function SpotlightProductsSection({ initialProducts = [] }: { ini
               </div>
             ))}
           </div>
-        ) : error ? (
-          <div className="text-center py-10 lg:py-20 bg-red-50 rounded-3xl text-red-600 font-medium text-sm lg:text-base">
-            {error}
+        ) : spotlight.length === 0 ? (
+          <div className="text-center py-10 lg:py-20 bg-white rounded-3xl text-slate-500 font-medium text-sm lg:text-base">
+            Products are being refreshed. Please check again shortly.
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 lg:gap-6">

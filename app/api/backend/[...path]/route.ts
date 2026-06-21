@@ -12,6 +12,24 @@ const resolveBackendUrl = () => {
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+function isPublicCacheableGet(method: string, pathString: string) {
+  if (method !== 'GET') return false;
+  return [
+    'admin/homepage/public',
+    'admin/banners/public',
+    'admin/testimonials/public',
+    'admin/settings/public',
+    'user/show-product',
+    'user/get-categories',
+  ].some((publicPath) => pathString === publicPath || pathString.startsWith(`${publicPath}/`));
+}
+
+function withPublicCacheHeaders(response: NextResponse, method: string, pathString: string) {
+  if (!isPublicCacheableGet(method, pathString)) return response;
+  response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=86400');
+  return response;
+}
+
 async function proxyRequest(
   request: NextRequest,
   method: string,
@@ -62,13 +80,13 @@ async function proxyRequest(
     
     if (responseContentType.includes('application/json')) {
       const data = await response.json();
-      return NextResponse.json(data, { status: response.status });
+      return withPublicCacheHeaders(NextResponse.json(data, { status: response.status }), method, pathString);
     } else {
       const text = await response.text();
-      return new NextResponse(text, {
+      return withPublicCacheHeaders(new NextResponse(text, {
         status: response.status,
         headers: { 'Content-Type': responseContentType },
-      });
+      }), method, pathString);
     }
   } catch (error) {
     console.error(`Proxy error for ${method} ${url}:`, error);
