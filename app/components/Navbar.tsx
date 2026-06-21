@@ -1,174 +1,448 @@
 "use client";
-import React, { useState, useEffect } from "react";
+
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { useCart } from "@/app/context/CartContext";
 import { useAuth } from "@/app/context/AuthContext";
 import { useSiteSettings } from "@/app/context/SiteSettingsContext";
 import { getWholesaleWhatsAppUrl } from "@/app/lib/whatsapp";
 
+type NavLink = {
+  href: string;
+  label: string;
+  icon: string;
+  external?: boolean;
+};
+
 const WHOLESALE_WHATSAPP_URL = getWholesaleWhatsAppUrl();
 
-const NAV_LINKS = [
+const NAV_LINKS: NavLink[] = [
   { href: "/", label: "Home", icon: "home" },
   { href: "/shop", label: "Shop", icon: "storefront" },
-  { href: "/user/orders", label: "My Orders", icon: "auto_stories" },
-  { href: "/user/wishlist", label: "My Wishlist", icon: "favorite" },
-  { href: WHOLESALE_WHATSAPP_URL, label: "Wholesale", icon: "local_shipping", external: true },
+  { href: "/user/orders", label: "My Orders", icon: "inventory_2" },
+  { href: "/user/wishlist", label: "Wishlist", icon: "favorite" },
+  {
+    href: WHOLESALE_WHATSAPP_URL,
+    label: "Wholesale",
+    icon: "local_shipping",
+    external: true,
+  },
 ];
 
+const DESKTOP_LINKS: NavLink[] = [
+  { href: "/", label: "Home", icon: "home" },
+  { href: "/shop", label: "Shop", icon: "storefront" },
+  { href: "/user/orders", label: "Orders", icon: "inventory_2" },
+  { href: "/user/wishlist", label: "Wishlist", icon: "favorite" },
+];
+
+function isActivePath(pathname: string, href: string) {
+  if (href === "/") return pathname === "/";
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 export default function Navbar() {
+  const pathname = usePathname();
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
   const { itemCount, isHydrating } = useCart();
   const { isAuthenticated, logout } = useAuth();
-  const [scrolled, setScrolled] = useState(false);
   const { settings } = useSiteSettings();
+
   const stableCartCount = isHydrating ? 0 : itemCount;
-  const brandName = settings.navbarTitle || settings.siteName || "Amila Gold";
-  const brandLogo = settings.logoUrl || "/logo.png";
+  const brandName = settings?.navbarTitle || settings?.siteName || "Amila Gold";
+  const brandLogo = settings?.logoUrl || "/logo.png";
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 10);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 8);
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
   useEffect(() => {
     document.body.style.overflow = sidebarOpen ? "hidden" : "";
+
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [sidebarOpen]);
+
+  useEffect(() => {
+    if (!sidebarOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setSidebarOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [sidebarOpen]);
+
+  const handleLogout = () => {
+    logout();
+    setSidebarOpen(false);
+  };
 
   return (
     <>
-      {/* ── Navbar ── */}
-      <nav className={`fixed inset-x-0 top-0 z-[100] transition-all duration-300 bg-white border-b ${scrolled ? "border-stone-200 shadow-md h-16 md:h-20" : "border-stone-100 h-16 md:h-20"}`}>
-        <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-10">
-          <button onClick={() => setSidebarOpen(true)} className="flex h-10 w-10 flex-col items-start justify-center gap-[6px] group">
-            <span className="block h-[2px] rounded-full bg-stone-900 transition-all duration-300 w-6 group-hover:bg-amber-600 group-hover:w-7" />
-            <span className="block h-[2px] rounded-full bg-stone-900 transition-all duration-300 w-4 group-hover:bg-amber-600" />
-            <span className="block h-[2px] rounded-full bg-stone-900 transition-all duration-300 w-6 group-hover:bg-amber-600 group-hover:w-7" />
-          </button>
+      <nav
+        className={`fixed inset-x-0 top-0 z-[100] border-b font-sans transition-all duration-300 ${
+          scrolled
+            ? "h-16 border-stone-200 bg-white/95 shadow-md backdrop-blur-xl md:h-20"
+            : "h-16 border-transparent bg-white/85 backdrop-blur-xl md:h-20"
+        }`}
+      >
+        <div className="relative mx-auto flex h-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-10">
+          {/* Left: Menu + Brand */}
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              aria-label="Open navigation menu"
+              aria-expanded={sidebarOpen}
+              onClick={() => setSidebarOpen(true)}
+              className="group flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-stone-200 bg-white text-stone-900 shadow-sm transition-all duration-300 hover:border-emerald-200 hover:bg-emerald-50 active:scale-95 sm:h-11 sm:w-11"
+            >
+              <span className="relative block h-4 w-5">
+                <span className="absolute left-0 top-0 block h-[2px] w-5 rounded-full bg-current transition-all duration-300 group-hover:w-4 group-hover:text-emerald-800" />
+                <span className="absolute left-0 top-[7px] block h-[2px] w-3.5 rounded-full bg-current transition-all duration-300 group-hover:w-5 group-hover:text-emerald-800" />
+                <span className="absolute bottom-0 left-0 block h-[2px] w-5 rounded-full bg-current transition-all duration-300 group-hover:w-4 group-hover:text-emerald-800" />
+              </span>
+            </button>
 
-          <Link href="/" className="flex items-center gap-2.5 group">
-            {brandLogo && <Image src={brandLogo} alt="Logo" width={36} height={36} className="h-8 w-8 md:h-10 md:w-10 object-contain" unoptimized />}
-            <span className="font-headline text-xl md:text-2xl font-black text-stone-900 tracking-tight group-hover:text-amber-600 transition-colors">{brandName}</span>
-          </Link>
+            <Link
+              href="/"
+              aria-label={`${brandName} home`}
+              className="group flex min-w-0 items-center gap-2"
+            >
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-stone-200 transition-all duration-300 group-hover:ring-emerald-200 sm:h-10 sm:w-10 md:h-11 md:w-11">
+                <Image
+                  src={brandLogo}
+                  alt={`${brandName} logo`}
+                  width={44}
+                  height={44}
+                  className="h-7 w-7 object-contain sm:h-8 sm:w-8 md:h-9 md:w-9"
+                  unoptimized
+                  priority
+                />
+              </span>
 
-          <div className="flex items-center gap-4 sm:gap-6 text-stone-900">
-            <Link href="/search" className="hover:text-amber-600 transition-colors"><span className="material-symbols-outlined text-[24px] md:text-[26px]">search</span></Link>
-            <Link href="/cart" className="relative hover:text-amber-600 transition-colors" data-cart-target>
-              <span className="material-symbols-outlined text-[24px] md:text-[26px]">shopping_bag</span>
+              <span className="block max-w-[112px] truncate text-base font-bold tracking-[-0.03em] text-black hover:text-emerald-800 transition-all duration-300 sm:max-w-[190px] sm:text-lg md:text-xl">
+                {brandName}
+              </span>
+            </Link>
+          </div>
+
+          {/* Center: Desktop Links */}
+          <div className="pointer-events-none absolute left-1/2 hidden -translate-x-1/2 lg:block">
+            <div className="pointer-events-auto flex items-center rounded-full border border-stone-200 bg-white/90 p-1.5 shadow-sm backdrop-blur-xl">
+              {DESKTOP_LINKS.map((link) => {
+                const active = isActivePath(pathname, link.href);
+
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`rounded-full px-4 py-2 text-sm font-medium tracking-[-0.01em] transition-all duration-300 ${
+                      active
+                        ? "bg-emerald-800 text-white shadow-sm"
+                        : "text-stone-600 hover:bg-stone-100 hover:text-stone-950"
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Right: Actions */}
+          <div className="flex items-center justify-end gap-1 sm:gap-2">
+            <a
+              href={WHOLESALE_WHATSAPP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden items-center gap-2 rounded-full bg-amber-50 px-4 py-2 text-sm font-semibold tracking-[-0.01em] text-amber-900 ring-1 ring-amber-200 transition-all duration-300 hover:bg-amber-100 hover:ring-amber-300 xl:flex"
+            >
+              <span className="material-symbols-outlined text-[18px]">
+                local_shipping
+              </span>
+              Wholesale
+            </a>
+
+            <Link
+              href="/search"
+              aria-label="Search products"
+              className="flex h-10 w-10 items-center justify-center rounded-full text-stone-900 transition-all duration-300 hover:bg-stone-100 hover:text-emerald-800 active:scale-95 sm:h-11 sm:w-11"
+            >
+              <span className="material-symbols-outlined text-[24px]">
+                search
+              </span>
+            </Link>
+
+            <Link
+              href="/cart"
+              aria-label={
+                stableCartCount > 0
+                  ? `Cart, ${stableCartCount} items`
+                  : "Cart"
+              }
+              className="relative flex h-10 w-10 items-center justify-center rounded-full text-stone-900 transition-all duration-300 hover:bg-stone-100 hover:text-emerald-800 active:scale-95 sm:h-11 sm:w-11"
+              data-cart-target
+            >
+              <span className="material-symbols-outlined text-[24px]">
+                shopping_bag
+              </span>
+
               {stableCartCount > 0 && (
-                <span className="absolute -top-1.5 -right-2 bg-amber-500 text-stone-900 text-[10px] min-w-[18px] h-[18px] rounded-full flex items-center justify-center font-bold">{stableCartCount}</span>
+                <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-black leading-none text-stone-950 shadow-sm ring-2 ring-white">
+                  {stableCartCount > 99 ? "99+" : stableCartCount}
+                </span>
               )}
             </Link>
           </div>
         </div>
       </nav>
 
-      {/* ── Sidebar Overlay ── */}
-      <div className={`fixed inset-0 z-[200] ${sidebarOpen ? "visible" : "invisible"} transition-all duration-500`}>
-        
-        {/* Backdrop: Darker with more blur for high-end look */}
-        <div
+      {/* Sidebar Overlay */}
+      <div
+        className={`fixed inset-0 z-[200] font-sans transition-all duration-500 ${
+          sidebarOpen ? "visible" : "invisible"
+        }`}
+      >
+        <button
+          type="button"
+          aria-label="Close navigation menu"
           onClick={() => setSidebarOpen(false)}
-          className={`absolute inset-0 bg-stone-900/40 backdrop-blur-md transition-opacity duration-700 ${sidebarOpen ? "opacity-100" : "opacity-0"}`}
+          className={`absolute inset-0 bg-stone-950/45 backdrop-blur-md transition-opacity duration-500 ${
+            sidebarOpen ? "opacity-100" : "opacity-0"
+          }`}
         />
 
-        {/* Sidebar Panel: Slick bounce-out effect */}
         <aside
-          className={`absolute left-0 top-0 h-full w-[85vw] max-w-[380px] bg-white flex flex-col shadow-[25px_0_50px_-12px_rgba(0,0,0,0.25)] transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
           data-lenis-prevent
+          className={`absolute left-0 top-0 flex h-full w-[88vw] max-w-[410px] flex-col overflow-hidden rounded-r-[2rem] bg-[#FFFCF6] shadow-2xl transition-transform duration-500 ease-out ${
+            sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between px-6 py-8">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-amber-50 rounded-lg">
-                <Image src={brandLogo} alt="Logo" width={28} height={28} className="object-contain" unoptimized />
-              </div>
-              <span className="font-headline text-xl font-black text-stone-900">{brandName}</span>
+          {/* Sidebar Header */}
+          <div className="relative overflow-hidden border-b border-amber-100 bg-gradient-to-br from-white via-amber-50 to-emerald-50 px-6 py-7">
+            <div className="absolute -right-12 -top-12 h-36 w-36 rounded-full bg-amber-200/35 blur-2xl" />
+            <div className="absolute -bottom-16 left-10 h-36 w-36 rounded-full bg-emerald-300/20 blur-2xl" />
+
+            <div className="relative flex items-start justify-between gap-4">
+              <Link
+                href="/"
+                onClick={() => setSidebarOpen(false)}
+                className="flex min-w-0 items-center gap-3"
+              >
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white p-2 shadow-sm ring-1 ring-amber-100">
+                  <Image
+                    src={brandLogo}
+                    alt={`${brandName} logo`}
+                    width={48}
+                    height={48}
+                    className="h-10 w-10 object-contain"
+                    unoptimized
+                  />
+                </span>
+
+                <span className="min-w-0">
+                  <span className="block truncate text-black text-xl font-bold tracking-[-0.03em]">
+                    {brandName}
+                  </span>
+                  <span className="mt-0.5 block text-xs font-semibold uppercase tracking-[0.18em] text-emerald-800/70">
+                    Pure & Authentic
+                  </span>
+                </span>
+              </Link>
+
+              <button
+                type="button"
+                aria-label="Close navigation menu"
+                onClick={() => setSidebarOpen(false)}
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-stone-500 shadow-sm ring-1 ring-stone-200 transition-all duration-300 hover:text-stone-950 active:scale-95"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
             </div>
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className="w-10 h-10 flex items-center justify-center rounded-full bg-stone-50 text-stone-400 hover:bg-stone-100 hover:text-stone-900 transition-all active:scale-90"
-            >
-              <span className="material-symbols-outlined">close</span>
-            </button>
+
+            <div className="relative mt-6 grid grid-cols-3 gap-2">
+              <div className="rounded-2xl bg-white/75 px-2 py-3 text-center shadow-sm ring-1 ring-white/80">
+                <span className="material-symbols-outlined text-[20px] text-emerald-800">
+                  eco
+                </span>
+                <span className="mt-1 block text-[10px] font-bold uppercase tracking-wide text-stone-600">
+                  Natural
+                </span>
+              </div>
+
+              <div className="rounded-2xl bg-white/75 px-2 py-3 text-center shadow-sm ring-1 ring-white/80">
+                <span className="material-symbols-outlined text-[20px] text-emerald-800">
+                  verified
+                </span>
+                <span className="mt-1 block text-[10px] font-bold uppercase tracking-wide text-stone-600">
+                  Trusted
+                </span>
+              </div>
+
+              <div className="rounded-2xl bg-white/75 px-2 py-3 text-center shadow-sm ring-1 ring-white/80">
+                <span className="material-symbols-outlined text-[20px] text-emerald-800">
+                  local_shipping
+                </span>
+                <span className="mt-1 block text-[10px] font-bold uppercase tracking-wide text-stone-600">
+                  Wholesale
+                </span>
+              </div>
+            </div>
           </div>
 
-          {/* Navigation with staggered animation */}
-          <nav className="flex-1 px-4 overflow-y-auto custom-scrollbar" data-lenis-prevent>
+          {/* Sidebar Links */}
+          <nav
+            className="flex-1 overflow-y-auto px-4 py-5"
+            data-lenis-prevent
+            aria-label="Main navigation"
+          >
             <div className="space-y-1.5">
-              {NAV_LINKS.map((link, i) => {
-                const isExternal = 'external' in link;
-                const Content = (
+              {NAV_LINKS.map((link) => {
+                const active =
+                  !link.external && isActivePath(pathname, link.href);
+
+                const itemClass = `group flex items-center gap-4 rounded-3xl px-3 py-3 transition-all duration-300 ${
+                  active
+                    ? "bg-emerald-50 text-emerald-900 ring-1 ring-emerald-100"
+                    : "text-stone-700 hover:bg-white hover:shadow-sm hover:ring-1 hover:ring-stone-100"
+                }`;
+
+                const content = (
                   <>
-                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-stone-50 group-hover:bg-amber-100 transition-colors">
-                      <span className="material-symbols-outlined text-[22px] text-stone-500 group-hover:text-amber-600">{link.icon}</span>
-                    </div>
-                    <span className="font-headline text-[17px] font-bold">{link.label}</span>
-                    <span className="ml-auto material-symbols-outlined text-stone-300 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all">chevron_right</span>
+                    <span
+                      className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl transition-colors duration-300 ${
+                        active
+                          ? "bg-emerald-700 text-white"
+                          : "bg-white text-stone-500 group-hover:bg-amber-100 group-hover:text-amber-700"
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-[22px]">
+                        {link.icon}
+                      </span>
+                    </span>
+
+                    <span className="text-[17px] font-semibold tracking-[-0.01em]">
+                      {link.label}
+                    </span>
+
+                    <span className="material-symbols-outlined ml-auto text-stone-300 transition-all duration-300 group-hover:translate-x-1 group-hover:text-amber-600">
+                      {link.external ? "open_in_new" : "chevron_right"}
+                    </span>
                   </>
                 );
 
-                return isExternal ? (
-                  <a
-                    key={link.label}
-                    href={link.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() => setSidebarOpen(false)}
-                    style={{ transitionDelay: sidebarOpen ? `${i * 40 + 50}ms` : '0ms' }}
-                    className={`flex items-center gap-4 px-4 py-3 rounded-2xl text-stone-700 hover:bg-stone-50 transition-all duration-500 group ${sidebarOpen ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-8"}`}
-                  >
-                    {Content}
-                  </a>
-                ) : (
+                if (link.external) {
+                  return (
+                    <a
+                      key={link.label}
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => setSidebarOpen(false)}
+                      className={itemClass}
+                    >
+                      {content}
+                    </a>
+                  );
+                }
+
+                return (
                   <Link
-                    key={link.label}
+                    key={link.href}
                     href={link.href}
                     onClick={() => setSidebarOpen(false)}
-                    style={{ transitionDelay: sidebarOpen ? `${i * 40 + 50}ms` : '0ms' }}
-                    className={`flex items-center gap-4 px-4 py-3 rounded-2xl text-stone-700 hover:bg-stone-50 transition-all duration-500 group ${sidebarOpen ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-8"}`}
+                    className={itemClass}
                   >
-                    {Content}
+                    {content}
                   </Link>
                 );
               })}
             </div>
 
-            <div className="my-6 border-t border-stone-100 mx-4" />
+            <div className="my-5 h-px bg-gradient-to-r from-transparent via-stone-200 to-transparent" />
 
-            {/* Profile Section */}
             <Link
               href={isAuthenticated ? "/user/profile" : "/user/auth"}
               onClick={() => setSidebarOpen(false)}
-              style={{ transitionDelay: sidebarOpen ? `${NAV_LINKS.length * 40 + 50}ms` : '0ms' }}
-              className={`flex items-center gap-4 px-4 py-4 rounded-2xl bg-amber-50 text-amber-900 mb-2 transition-all duration-500 ${sidebarOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+              className="flex items-center gap-4 rounded-3xl bg-stone-950 px-4 py-4 text-white shadow-lg shadow-stone-950/10 transition-all duration-300 hover:bg-emerald-900"
             >
-              <span className="material-symbols-outlined text-amber-600">{isAuthenticated ? 'person' : 'login'}</span>
-              <span className="font-headline font-bold">{isAuthenticated ? 'Account Settings' : 'Sign In / Register'}</span>
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/10">
+                <span className="material-symbols-outlined text-amber-300">
+                  {isAuthenticated ? "person" : "login"}
+                </span>
+              </span>
+
+              <span className="min-w-0">
+                <span className="block text-base font-semibold tracking-[-0.01em]">
+                  {isAuthenticated ? "Account Settings" : "Sign In / Register"}
+                </span>
+                <span className="mt-0.5 block text-xs font-semibold text-white/60">
+                  {isAuthenticated
+                    ? "Manage profile and orders"
+                    : "Login to track your orders"}
+                </span>
+              </span>
+
+              <span className="material-symbols-outlined ml-auto text-white/50">
+                chevron_right
+              </span>
             </Link>
 
             {isAuthenticated && (
               <button
-                onClick={() => { logout(); setSidebarOpen(false); }}
-                style={{ transitionDelay: sidebarOpen ? `${(NAV_LINKS.length + 1) * 40 + 50}ms` : '0ms' }}
-                className={`flex items-center gap-4 px-4 py-3 w-full text-stone-500 hover:text-red-600 transition-all duration-500 ${sidebarOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+                type="button"
+                onClick={handleLogout}
+                className="mt-2 flex w-full items-center gap-4 rounded-3xl px-4 py-3 text-left font-semibold text-stone-500 transition-all duration-300 hover:bg-red-50 hover:text-red-600"
               >
                 <span className="material-symbols-outlined">logout</span>
-                <span className="font-headline font-semibold">Logout</span>
+                Logout
               </button>
             )}
           </nav>
 
-          {/* Footer */}
-          <div className="p-8 bg-stone-50/50 mt-auto">
-            <div className="flex justify-center gap-4 mb-4">
-               {/* Add social icons here if needed */}
-            </div>
-            <p className="text-[10px] uppercase tracking-[0.3em] text-stone-400 font-bold text-center leading-relaxed">
-              Crafted with Excellence <br />
-              <span className="text-amber-600/60">© {brandName} {new Date().getFullYear()}</span>
+          {/* Sidebar Footer */}
+          <div className="border-t border-stone-100 bg-white/65 px-6 py-5">
+            <a
+              href={WHOLESALE_WHATSAPP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setSidebarOpen(false)}
+              className="mb-4 flex items-center justify-center gap-2 rounded-2xl bg-amber-500 px-4 py-3 text-sm font-bold uppercase tracking-wide text-stone-950 shadow-sm transition-all duration-300 hover:bg-amber-400 active:scale-[0.98]"
+            >
+              <span className="material-symbols-outlined text-[20px]">
+                support_agent
+              </span>
+              Bulk Order on WhatsApp
+            </a>
+
+            <p className="text-center text-[10px] font-bold uppercase leading-relaxed tracking-[0.28em] text-stone-400">
+              Crafted with Excellence
+              <br />
+              <span className="text-emerald-700/70">
+                © {brandName} {new Date().getFullYear()}
+              </span>
             </p>
           </div>
         </aside>

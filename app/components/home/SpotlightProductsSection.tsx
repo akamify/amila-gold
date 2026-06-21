@@ -6,7 +6,11 @@ import { useRouter } from "next/navigation";
 import ResilientProductImage from "@/app/components/ResilientProductImage";
 import { useCart } from "@/app/context/CartContext";
 import { useSiteSettings } from "@/app/context/SiteSettingsContext";
-import { createProductHref, getProductImageSources, type Product } from "@/app/data/products";
+import {
+  createProductHref,
+  getProductImageSources,
+  type Product,
+} from "@/app/data/products";
 import { fetchFeaturedProducts } from "@/app/lib/productsClient";
 import { peekCached, putCached } from "@/app/lib/clientCache";
 import { flyImageToCart } from "@/app/lib/flyToCart";
@@ -21,6 +25,18 @@ function discountPct(original: number | undefined, selling: number) {
   if (!original || original <= selling) return 0;
   return Math.min(95, Math.round(((original - selling) / original) * 100));
 }
+
+/**
+ * Mobile/tablet layout is kept exactly like before:
+ * - mobile: 2 columns
+ * - md: 3 columns
+ *
+ * Only desktop lg+ is centered:
+ * - cards do not stay left-clustered when fewer products are available
+ * - existing card/image design is not changed
+ */
+const spotlightGridClass =
+  "grid grid-cols-2 md:grid-cols-3 gap-3 lg:mx-auto lg:w-full lg:max-w-[1396px] lg:grid-cols-[repeat(auto-fit,minmax(230px,250px))] lg:justify-center lg:gap-6 xl:grid-cols-[repeat(auto-fit,minmax(240px,260px))]";
 
 export default function SpotlightProductsSection({
   initialProducts = [],
@@ -51,6 +67,7 @@ export default function SpotlightProductsSection({
   useEffect(() => {
     if (managed) return;
     if (initialProducts.length > 0) return;
+
     const cached = peekCached<Product[]>("products:all").data;
     if (Array.isArray(cached) && cached.length) {
       setProducts(cached);
@@ -79,10 +96,12 @@ export default function SpotlightProductsSection({
             <span className="text-[10px] lg:text-sm font-bold uppercase tracking-[0.2em] text-emerald-700/70">
               Curated Collection
             </span>
+
             <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 tracking-tight">
               Today’s <span className="text-emerald-800">Spotlight</span>
             </h2>
           </div>
+
           <Link
             href="/shop"
             className="hidden md:flex text-sm font-semibold text-emerald-800 hover:underline items-center gap-1"
@@ -96,11 +115,13 @@ export default function SpotlightProductsSection({
 
         {/* Loading State */}
         {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 lg:gap-6">
+          <div className={spotlightGridClass}>
             {Array.from({ length: 5 }).map((_, i) => (
               <div
                 key={i}
-                className={`relative flex flex-col bg-white border border-slate-100 rounded-[1.5rem] lg:rounded-[2rem] p-2 lg:p-3 overflow-hidden ${i === 4 ? "hidden lg:flex" : ""}`}
+                className={`relative flex flex-col bg-white border border-slate-100 rounded-[1.5rem] lg:rounded-[2rem] p-2 lg:p-3 overflow-hidden ${
+                  i === 4 ? "hidden lg:flex" : ""
+                }`}
               >
                 {/* Shimmer sweep */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/70 to-transparent -translate-x-full animate-[spotlightShimmer_1.6s_ease-in-out_infinite] pointer-events-none z-10" />
@@ -112,11 +133,13 @@ export default function SpotlightProductsSection({
                 <div className="flex flex-col flex-grow pt-2 lg:pt-4 px-1 pb-1 gap-2">
                   <div className="h-3.5 lg:h-5 w-4/5 bg-slate-100 rounded-lg" />
                   <div className="h-3 lg:h-4 w-3/5 bg-slate-100 rounded-lg" />
+
                   <div className="mt-auto flex flex-col gap-1.5 lg:gap-2.5">
                     <div className="flex items-center gap-2">
                       <div className="h-4 lg:h-5 w-16 lg:w-20 bg-slate-100 rounded-lg" />
                       <div className="h-3 lg:h-4 w-10 bg-slate-100 rounded-lg" />
                     </div>
+
                     <div className="h-9 lg:h-11 w-full bg-slate-100 rounded-xl lg:rounded-2xl" />
                   </div>
                 </div>
@@ -128,12 +151,13 @@ export default function SpotlightProductsSection({
             Products are being refreshed. Please check again shortly.
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 lg:gap-6">
+          <div className={spotlightGridClass}>
             {spotlight.map((product, index) => {
               const primary =
                 Array.isArray(product.variants) && product.variants.length > 0
                   ? product.variants[0]
                   : undefined;
+
               const displayPrice = Number(product.price ?? primary?.price ?? 0);
               const displayOriginal =
                 product.originalPrice ?? primary?.originalPrice;
@@ -141,6 +165,7 @@ export default function SpotlightProductsSection({
               const inStock = (primary?.stock ?? product.quantity ?? 0) > 0;
               const inCart = isVariantInCart(product.id, weightLabel || "");
               const pct = discountPct(displayOriginal, displayPrice);
+              const imageSources = getProductImageSources(product, weightLabel);
 
               return (
                 <div
@@ -150,14 +175,14 @@ export default function SpotlightProductsSection({
                     index === 4 ? "hidden lg:flex" : ""
                   }`}
                 >
-                  {/* Image Container - Kept Square for Compact Height */}
+                  {/* Image Container - unchanged */}
                   <Link
                     href={createProductHref(product)}
                     className="relative aspect-square rounded-xl lg:rounded-[1.5rem] overflow-hidden bg-slate-50"
                   >
-                    {getProductImageSources(product, weightLabel).length > 0 && (
+                    {imageSources.length > 0 && (
                       <ResilientProductImage
-                        sources={getProductImageSources(product, weightLabel)}
+                        sources={imageSources}
                         alt={product.name}
                         className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                       />
@@ -171,9 +196,9 @@ export default function SpotlightProductsSection({
                     )}
                   </Link>
 
-                  {/* Content - Compact spacing */}
+                  {/* Content */}
                   <div className="flex flex-col flex-grow pt-2 lg:pt-4 px-1 pb-1">
-                    <h3 className="font-bold text-slate-800 text-sm lg:text-lg leading-tight line-clamp-2 mb-1.5 lg:mb-2 group-hover:text-emerald-800 transition-colors">
+                    <h3 className="font-bold text-slate-800 text-sm lg:text-lg leading-tight line-clamp-2 break-words mb-1.5 lg:mb-2 group-hover:text-emerald-800 transition-colors">
                       {product.name}
                     </h3>
 
@@ -182,6 +207,7 @@ export default function SpotlightProductsSection({
                         <span className="text-sm lg:text-lg font-black text-slate-900">
                           {formatMoney(currencySymbol, displayPrice)}
                         </span>
+
                         {displayOriginal && displayOriginal > displayPrice && (
                           <span className="text-[10px] lg:text-xs text-slate-400 line-through decoration-red-400/50">
                             {formatMoney(currencySymbol, displayOriginal)}
@@ -189,54 +215,75 @@ export default function SpotlightProductsSection({
                         )}
                       </div>
 
-                      {/* Add to Cart Button - Slimmer on mobile (h-9) */}
                       <button
                         type="button"
                         onClick={(e) => {
                           e.preventDefault();
+
                           if (inCart) {
                             router.push("/cart");
-                          } else if (inStock) {
-                            let renderedImageUrl = product.image || "";
-                            try {
-                              const card = (e.currentTarget as HTMLElement | null)?.closest?.("[data-product-card]") as HTMLElement | null;
-                              const img = card?.querySelector?.("img") as HTMLImageElement | null;
-                              const fromRect = img?.getBoundingClientRect?.() ?? (e.currentTarget as HTMLElement).getBoundingClientRect();
-                              const imageUrl = String(img?.currentSrc || img?.src || product.image || "").trim();
-                              renderedImageUrl = imageUrl || renderedImageUrl;
-                              if (imageUrl && fromRect) {
-                                flyImageToCart({ imageUrl, fromRect, durationMs: 950 });
-                              }
-                            } catch {
-                              // ignore
-                            }
-                            addItem({
-                              id: product.id,
-                              name: product.name,
-                              price: displayPrice,
-                              color: "",
-                              size: weightLabel || "",
-                              image: renderedImageUrl,
-                              collection: product.collection || "",
-                            });
+                            return;
                           }
+
+                          if (!inStock) return;
+
+                          let renderedImageUrl = product.image || "";
+
+                          try {
+                            const card = (
+                              e.currentTarget as HTMLElement | null
+                            )?.closest?.(
+                              "[data-product-card]",
+                            ) as HTMLElement | null;
+
+                            const img = card?.querySelector?.(
+                              "img",
+                            ) as HTMLImageElement | null;
+
+                            const fromRect =
+                              img?.getBoundingClientRect?.() ??
+                              (
+                                e.currentTarget as HTMLElement
+                              ).getBoundingClientRect();
+
+                            const imageUrl = String(
+                              img?.currentSrc || img?.src || product.image || "",
+                            ).trim();
+
+                            renderedImageUrl = imageUrl || renderedImageUrl;
+
+                            if (imageUrl && fromRect) {
+                              flyImageToCart({
+                                imageUrl,
+                                fromRect,
+                                durationMs: 950,
+                              });
+                            }
+                          } catch {
+                            // ignore animation failure
+                          }
+
+                          addItem({
+                            id: product.id,
+                            name: product.name,
+                            price: displayPrice,
+                            color: "",
+                            size: weightLabel || "",
+                            image: renderedImageUrl,
+                            collection: product.collection || "",
+                          });
                         }}
                         disabled={!inStock && !inCart}
-                        className={`
-    w-full h-9 lg:h-11 rounded-xl lg:rounded-2xl 
-    flex items-center justify-center gap-1.5 lg:gap-2 
-    transition-all duration-500 ease-out font-bold 
-    text-[10px] lg:text-xs uppercase tracking-wider 
-    active:scale-95 transform-gpu
-    ${
-      inCart
-        ? "bg-slate-900 text-white hover:bg-black shadow-lg"
-        : "bg-emerald-800 text-white hover:bg-emerald-700 shadow-md shadow-emerald-900/10 disabled:bg-slate-200 disabled:text-slate-400"
-    }
-  `}
+                        className={`w-full h-9 lg:h-11 rounded-xl lg:rounded-2xl flex items-center justify-center gap-1.5 lg:gap-2 transition-all duration-500 ease-out font-bold text-[10px] lg:text-xs uppercase tracking-wider active:scale-95 transform-gpu ${
+                          inCart
+                            ? "bg-slate-900 text-white hover:bg-black shadow-lg"
+                            : "bg-emerald-800 text-white hover:bg-emerald-700 shadow-md shadow-emerald-900/10 disabled:bg-slate-200 disabled:text-slate-400"
+                        }`}
                       >
                         <span
-                          className={`material-symbols-outlined text-[16px] lg:text-[18px] transition-transform duration-500 ${inCart ? "rotate-[360deg]" : ""}`}
+                          className={`material-symbols-outlined text-[16px] lg:text-[18px] transition-transform duration-500 ${
+                            inCart ? "rotate-[360deg]" : ""
+                          }`}
                         >
                           {inCart ? "arrow_forward" : "shopping_bag"}
                         </span>
