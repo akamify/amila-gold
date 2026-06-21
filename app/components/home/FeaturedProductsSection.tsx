@@ -70,7 +70,13 @@ function FeaturedProductsSkeleton() {
   );
 }
 
-export default function FeaturedProductsSection({ initialProducts = [] }: { initialProducts?: Product[] }) {
+export default function FeaturedProductsSection({
+  initialProducts = [],
+  managed = false,
+}: {
+  initialProducts?: Product[];
+  managed?: boolean;
+}) {
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [loading, setLoading] = useState(initialProducts.length === 0);
   const { settings } = useSiteSettings();
@@ -86,6 +92,17 @@ export default function FeaturedProductsSection({ initialProducts = [] }: { init
   const isGridMode = products.length <= 3;
 
   useEffect(() => {
+    if (initialProducts.length > 0) {
+      setProducts(initialProducts);
+      setLoading(false);
+    } else if (managed) {
+      setProducts([]);
+      setLoading(false);
+    }
+  }, [initialProducts, managed]);
+
+  useEffect(() => {
+    if (managed) return;
     if (initialProducts.length > 0) return;
     window.setTimeout(() => {
       const cached = peekCached<Product[]>("products:all").data;
@@ -104,7 +121,7 @@ export default function FeaturedProductsSection({ initialProducts = [] }: { init
       .catch(() => {
         setLoading(false);
       });
-  }, [initialProducts.length]);
+  }, [initialProducts.length, managed]);
 
   useEffect(() => {
     const el = mobileTrackRef.current;

@@ -15,7 +15,13 @@ const FALLBACK_TESTIMONIALS: TestimonialItem[] = [];
 const TESTIMONIALS_STORAGE_KEY = 'sr_testimonials';
 const TESTIMONIALS_CACHE_TIME = 5 * 60 * 1000; // 5 minutes
 
-function TestimonialsSection({ initialTestimonials = [] }: { initialTestimonials?: PublicTestimonial[] }) {
+function TestimonialsSection({
+  initialTestimonials = [],
+  managed = false,
+}: {
+  initialTestimonials?: PublicTestimonial[];
+  managed?: boolean;
+}) {
   const [testimonials, setTestimonials] = useState<TestimonialItem[]>(
     initialTestimonials.length ? initialTestimonials : FALLBACK_TESTIMONIALS
   );
@@ -49,6 +55,17 @@ function TestimonialsSection({ initialTestimonials = [] }: { initialTestimonials
   };
 
   useEffect(() => {
+    if (initialTestimonials.length > 0) {
+      setTestimonials(initialTestimonials);
+      setIsLoading(false);
+    } else if (managed) {
+      setTestimonials(FALLBACK_TESTIMONIALS);
+      setIsLoading(false);
+    }
+  }, [initialTestimonials, managed]);
+
+  useEffect(() => {
+    if (managed) return;
     // Try to load from cache first for fast initial display
     const cached = getCachedTestimonials();
     if (cached && cached.length > 0) {
@@ -83,7 +100,7 @@ function TestimonialsSection({ initialTestimonials = [] }: { initialTestimonials
       .finally(() => {
         setIsLoading(false);
       });
-  }, []);
+  }, [managed]);
 
   const scrollTrack = (direction: "prev" | "next") => {
     const track = trackRef.current;

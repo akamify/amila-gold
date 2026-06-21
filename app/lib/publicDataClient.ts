@@ -70,7 +70,7 @@ function getPublicBaseCandidates() {
 async function fetchJsonWithRetry<T>(url: string, options: FetchOptions = {}): Promise<T> {
   const retries = Math.max(0, options.retries ?? 1);
   const timeoutMs = Math.max(500, options.timeoutMs ?? 2500);
-  const backoffMs = Math.max(50, options.backoffMs ?? 180);
+  const backoffMs = Math.max(50, options.backoffMs ?? 900);
   const { timeoutMs: _timeoutMs, retries: _retries, backoffMs: _backoffMs, ...fetchOptions } = options;
 
   for (let attempt = 0; attempt <= retries; attempt += 1) {
@@ -187,7 +187,7 @@ export async function fetchPublicProducts(limit = 12): Promise<Product[]> {
         .map(normalizeBackendProduct)
         .filter((item: Product) => Number.isFinite(item.id) && item.id > 0);
     },
-    { timeoutMs: 3000, retries: 1, next: { revalidate: 300, tags: ["products"] } }
+    { timeoutMs: 4500, retries: 1, backoffMs: 900, next: { revalidate: 300, tags: ["products"] } }
   );
 }
 
@@ -198,7 +198,7 @@ export async function fetchPublicBannersData(): Promise<PublicBanner[]> {
       const rows = Array.isArray(asRecord(payload).banners) ? (asRecord(payload).banners as unknown[]) : [];
       return rows.map(mapBanner).filter((item): item is PublicBanner => item !== null);
     },
-    { timeoutMs: 1800, retries: 1, next: { revalidate: 3600, tags: ["banners"] } }
+    { timeoutMs: 4000, retries: 1, backoffMs: 900, next: { revalidate: 3600, tags: ["banners"] } }
   );
 }
 
@@ -209,7 +209,7 @@ export async function fetchPublicTestimonialsData(): Promise<PublicTestimonial[]
       const rows = Array.isArray(asRecord(payload).testimonials) ? (asRecord(payload).testimonials as unknown[]) : [];
       return rows.map(mapTestimonial).filter((item): item is PublicTestimonial => item !== null);
     },
-    { timeoutMs: 1800, retries: 1, next: { revalidate: 3600, tags: ["testimonials"] } }
+    { timeoutMs: 4000, retries: 1, backoffMs: 900, next: { revalidate: 3600, tags: ["testimonials"] } }
   );
 }
 
@@ -218,7 +218,7 @@ export async function fetchPublicHomepageData(): Promise<PublicHomepageData> {
     return await fetchFromFirstAvailable(
       "/admin/homepage/public",
       mapHomepagePayload,
-      { timeoutMs: 3200, retries: 1, next: { revalidate: 300, tags: ["homepage", "products", "banners"] } }
+      { timeoutMs: 4500, retries: 1, backoffMs: 1000, next: { revalidate: 300, tags: ["homepage", "products", "banners"] } }
     );
   } catch (aggregateError) {
     devLog("aggregate homepage endpoint failed, using settled fallbacks", aggregateError);
@@ -231,7 +231,7 @@ export async function fetchPublicHomepageData(): Promise<PublicHomepageData> {
     fetchFromFirstAvailable("/admin/settings/public", (payload) => {
       const settings = asRecord(payload).settings;
       return settings && typeof settings === "object" ? asRecord(settings) : null;
-    }, { timeoutMs: 1800, retries: 1, next: { revalidate: 3600, tags: ["settings"] } }),
+    }, { timeoutMs: 4000, retries: 1, backoffMs: 900, next: { revalidate: 3600, tags: ["settings"] } }),
   ]);
 
   return {

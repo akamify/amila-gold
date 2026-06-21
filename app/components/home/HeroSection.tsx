@@ -17,6 +17,15 @@ type HeroBanner = {
 
 type HeroSectionProps = {
   initialBanners?: HeroBanner[];
+  managed?: boolean;
+};
+
+const FALLBACK_HERO: HeroBanner = {
+  id: "static-amila-hero",
+  title: "Pure Desi Jaggery, Crafted for Modern Homes",
+  subtitle: "Amila Gold",
+  href: "/shop",
+  img: "/fallback_banner.png",
 };
 
 const processRows = (rows: unknown[]): HeroBanner[] =>
@@ -35,26 +44,37 @@ const processRows = (rows: unknown[]): HeroBanner[] =>
     })
     .filter((item): item is HeroBanner => item !== null);
 
-export default function HeroSection({ initialBanners = [] }: HeroSectionProps) {
+export default function HeroSection({ initialBanners = [], managed = false }: HeroSectionProps) {
   const [banners, setBanners] = useState<HeroBanner[]>(() => {
     const cached = peekCached<unknown[]>("banners:public").data;
     if (Array.isArray(cached) && cached.length) {
       return processRows(cached);
     }
-    return initialBanners;
+    return initialBanners.length ? initialBanners : [FALLBACK_HERO];
   });
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
+    if (initialBanners.length > 0) {
+      setBanners(initialBanners);
+      setActiveIndex(0);
+    } else if (managed) {
+      setBanners([FALLBACK_HERO]);
+      setActiveIndex(0);
+    }
+  }, [initialBanners, managed]);
+
+  useEffect(() => {
+    if (managed) return;
     fetchPublicBannersData()
       .then((rows) => {
         putCached("banners:public", 5 * 60 * 1000, rows);
-        setBanners(rows);
+        setBanners(rows.length ? rows : [FALLBACK_HERO]);
       })
       .catch(() => {
-        if (initialBanners.length === 0) setBanners([]);
+        if (initialBanners.length === 0) setBanners([FALLBACK_HERO]);
       });
-  }, [initialBanners.length]);
+  }, [initialBanners.length, managed]);
 
   useEffect(() => {
     if (banners.length <= 1) return;
@@ -72,46 +92,6 @@ export default function HeroSection({ initialBanners = [] }: HeroSectionProps) {
     });
   };
 
-  if (banners.length === 0) return (
-    <div className="relative h-[30vh] sm:h-[70vh] md:h-[80vh] mt-16 md:mt-20 w-full overflow-hidden bg-stone-200">
-      {/* Shimmer sweep */}
-      <div className="absolute inset-0 bg-gradient-to-r from-stone-200 via-stone-100 to-stone-200 bg-[length:200%_100%] animate-[heroShimmer_1.8s_ease-in-out_infinite]" />
-
-      {/* Left-side content skeleton */}
-      <div className="absolute inset-0 flex items-center justify-start pb-10 md:pb-0">
-        <div className="container mx-auto px-6 sm:px-8 md:px-12">
-          <div className="max-w-2xl space-y-3 sm:space-y-4 md:space-y-6">
-            {/* Subtitle bar */}
-            {/* <div className="h-3 sm:h-4 w-28 sm:w-40 rounded-full bg-stone-300/80" /> */}
-            {/* Title bars */}
-            <div className="space-y-2 sm:space-y-3">
-              <div className="h-4 sm:h-10 md:h-14 w-[85%] rounded-xl bg-stone-300/80" />
-              <div className="h-6 sm:h-12 md:h-14 w-[60%] rounded-xl bg-stone-300/60" />
-            </div>
-            {/* CTA button placeholder */}
-            <div className="pt-2 sm:pt-4">
-              <div className="h-9 sm:h-12 md:h-14 w-36 sm:w-44 rounded-full bg-stone-300/70" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom dots navigation placeholder */}
-      <div className="absolute bottom-3 md:bottom-5 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 sm:gap-6 rounded-full bg-stone-300/50 backdrop-blur-sm px-3 py-1.5 sm:px-6 sm:py-3">
-        <div className="w-4 h-4 rounded-full bg-stone-300/70" />
-        <div className="flex gap-2 sm:gap-3">
-          {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className={`h-1.5 rounded-full bg-stone-400/50 ${i === 0 ? "w-6 sm:w-8" : "w-1.5 sm:w-2"}`}
-            />
-          ))}
-        </div>
-        <div className="w-4 h-4 rounded-full bg-stone-300/70" />
-      </div>
-    </div>
-  );
-
   return (
     // Note the mt-16 md:mt-20 exactly offsets the Navbar height to prevent overlap!
     <section className="relative h-[30vh] sm:h-[70vh] md:h-[80vh] mt-16 md:mt-20 w-full overflow-hidden bg-stone-900">
@@ -122,18 +102,22 @@ export default function HeroSection({ initialBanners = [] }: HeroSectionProps) {
             }`}
         >
           {/* Background Image with Ken Burns Effect */}
-          <Image
-            src={slide.img}
-            alt={slide.title || slide.subtitle || "Banner"}
-            fill
-            priority={index === 0}
-            fetchPriority={index === 0 ? "high" : "auto"}
-            loading={index === 0 ? "eager" : "lazy"}
-            sizes="100vw"
-            quality={index === 0 ? 78 : 65}
-            className={`object-cover transition-transform duration-[10000ms] ease-linear ${activeIndex === index ? "scale-110" : "scale-100"
-              }`}
-          />
+          {slide.img ? (
+            <Image
+              src={slide.img}
+              alt={slide.title || slide.subtitle || "Banner"}
+              fill
+              priority={index === 0}
+              fetchPriority={index === 0 ? "high" : "auto"}
+              loading={index === 0 ? "eager" : "lazy"}
+              sizes="100vw"
+              quality={index === 0 ? 78 : 65}
+              className={`object-cover transition-transform duration-[10000ms] ease-linear ${activeIndex === index ? "scale-110" : "scale-100"
+                }`}
+            />
+          ) : (
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(245,158,11,0.38),transparent_32%),linear-gradient(135deg,#1c140b_0%,#4b2e11_48%,#111827_100%)]" />
+          )}
 
           {/* Gradients: Left to right for text readability, and bottom-up for carousel dots */}
           <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
@@ -176,6 +160,7 @@ export default function HeroSection({ initialBanners = [] }: HeroSectionProps) {
       ))}
 
       {/* Modern Navigation Controls (Dots & Arrows) */}
+      {banners.length > 1 ? (
       <div className="absolute bottom-3 md:bottom-5 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 sm:gap-6 rounded-full bg-white/10 backdrop-blur-md border border-white/20 px-2 py-0 sm:px-6 sm:py-3 shadow-2xl">
         <button
           onClick={() => handleSlide("prev")}
@@ -210,6 +195,7 @@ export default function HeroSection({ initialBanners = [] }: HeroSectionProps) {
           <ChevronRight size={20} className="sm:w-6 sm:h-6" />
         </button>
       </div>
+      ) : null}
 
       {/* Decorative side elements for Desktop (Hidden on Mobile) */}
       <div className="absolute right-10 top-1/2 hidden -translate-y-1/2 flex-col gap-6 text-white/40 xl:flex z-20 items-center">

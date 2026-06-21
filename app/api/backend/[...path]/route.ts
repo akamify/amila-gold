@@ -41,7 +41,9 @@ async function proxyRequest(
   // Determine the correct backend path based on route type
   let backendPath: string;
   
-  if (pathString.startsWith('admin/')) {
+  if (pathString === 'health') {
+    backendPath = '/health';
+  } else if (pathString.startsWith('admin/')) {
     // Admin routes: /api/backend/admin/* -> /api/backend/admin/*
     backendPath = `/api/backend/${pathString}`;
   } else if (pathString.startsWith('user/')) {

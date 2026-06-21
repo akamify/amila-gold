@@ -22,7 +22,13 @@ function discountPct(original: number | undefined, selling: number) {
   return Math.min(95, Math.round(((original - selling) / original) * 100));
 }
 
-export default function SpotlightProductsSection({ initialProducts = [] }: { initialProducts?: Product[] }) {
+export default function SpotlightProductsSection({
+  initialProducts = [],
+  managed = false,
+}: {
+  initialProducts?: Product[];
+  managed?: boolean;
+}) {
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [loading, setLoading] = useState(initialProducts.length === 0);
@@ -31,6 +37,17 @@ export default function SpotlightProductsSection({ initialProducts = [] }: { ini
   const currencySymbol = settings.currencySymbol || "₹";
 
   useEffect(() => {
+    if (initialProducts.length > 0) {
+      setProducts(initialProducts);
+      setLoading(false);
+    } else if (managed) {
+      setProducts([]);
+      setLoading(false);
+    }
+  }, [initialProducts, managed]);
+
+  useEffect(() => {
+    if (managed) return;
     if (initialProducts.length > 0) return;
     const cached = peekCached<Product[]>("products:all").data;
     if (Array.isArray(cached) && cached.length) {
@@ -47,7 +64,7 @@ export default function SpotlightProductsSection({ initialProducts = [] }: { ini
       .catch(() => {
         setLoading(false);
       });
-  }, [initialProducts.length]);
+  }, [initialProducts.length, managed]);
 
   const spotlight = useMemo(() => products.slice(0, 5), [products]);
 
