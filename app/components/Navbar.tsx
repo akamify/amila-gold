@@ -109,8 +109,8 @@ export default function Navbar() {
         }`}
       >
         <div className="relative mx-auto flex h-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-10">
-          {/* Left: Menu + Brand */}
-          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+          {/* Left: Mobile menu only, Desktop menu + brand */}
+          <div className="relative z-20 flex min-w-0 items-center gap-2 sm:gap-3">
             <button
               type="button"
               aria-label="Open navigation menu"
@@ -125,28 +125,52 @@ export default function Navbar() {
               </span>
             </button>
 
+            {/* Desktop brand only */}
             <Link
               href="/"
               aria-label={`${brandName} home`}
-              className="group flex min-w-0 items-center gap-2"
+              className="group hidden min-w-0 items-center gap-2 lg:flex"
             >
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-stone-200 transition-all duration-300 group-hover:ring-emerald-200 sm:h-10 sm:w-10 md:h-11 md:w-11">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-stone-200 transition-all duration-300 group-hover:ring-emerald-200">
                 <Image
                   src={brandLogo}
                   alt={`${brandName} logo`}
                   width={44}
                   height={44}
-                  className="h-7 w-7 object-contain sm:h-8 sm:w-8 md:h-9 md:w-9"
+                  className="h-9 w-9 object-contain"
                   unoptimized
                   priority
                 />
               </span>
 
-              <span className="block max-w-[112px] truncate text-base font-bold tracking-[-0.03em] text-black hover:text-emerald-800 transition-all duration-300 sm:max-w-[190px] sm:text-lg md:text-xl">
+              <span className="block max-w-[190px] truncate text-xl font-bold tracking-[-0.03em] text-black transition-all duration-300 group-hover:text-emerald-800">
                 {brandName}
               </span>
             </Link>
           </div>
+
+          {/* Mobile/Tablet centered logo + brand */}
+          <Link
+            href="/"
+            aria-label={`${brandName} home`}
+            className="absolute left-1/2 top-1/2 z-10 flex max-w-[52vw] -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-1.5 text-center lg:hidden"
+          >
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-stone-200 sm:h-9 sm:w-9 md:h-10 md:w-10">
+              <Image
+                src={brandLogo}
+                alt={`${brandName} logo`}
+                width={40}
+                height={40}
+                className="h-6.5 w-6.5 object-contain sm:h-7 sm:w-7 md:h-8 md:w-8"
+                unoptimized
+                priority
+              />
+            </span>
+
+            <span className="block min-w-0 truncate text-base font-bold tracking-[-0.04em] text-black transition-colors duration-300 hover:text-emerald-800 sm:text-lg md:text-xl">
+              {brandName}
+            </span>
+          </Link>
 
           {/* Center: Desktop Links */}
           <div className="pointer-events-none absolute left-1/2 hidden -translate-x-1/2 lg:block">
@@ -172,7 +196,7 @@ export default function Navbar() {
           </div>
 
           {/* Right: Actions */}
-          <div className="flex items-center justify-end gap-1 sm:gap-2">
+          <div className="relative z-20 flex items-center justify-end gap-1 sm:gap-2">
             <a
               href={WHOLESALE_WHATSAPP_URL}
               target="_blank"
@@ -263,7 +287,7 @@ export default function Navbar() {
                 </span>
 
                 <span className="min-w-0">
-                  <span className="block truncate text-black text-xl font-bold tracking-[-0.03em]">
+                  <span className="block truncate text-xl font-bold tracking-[-0.03em] text-black">
                     {brandName}
                   </span>
                   <span className="mt-0.5 block text-xs font-semibold uppercase tracking-[0.18em] text-emerald-800/70">

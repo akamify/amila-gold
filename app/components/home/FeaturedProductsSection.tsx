@@ -40,6 +40,7 @@ function FeaturedCardSkeleton({ className = "" }: { className?: string }) {
 function FeaturedProductsSkeleton() {
   return (
     <>
+      {/* Mobile */}
       <div className="-mx-4 px-4 md:hidden">
         <div className="mb-6 flex items-center justify-between gap-3">
           <div className="h-4 w-36 rounded-lg bg-slate-100" />
@@ -58,6 +59,7 @@ function FeaturedProductsSkeleton() {
         </div>
       </div>
 
+      {/* Desktop */}
       <div className="hidden md:block">
         <div className="mb-6 flex items-center justify-end gap-3">
           <div className="h-12 w-12 rounded-full bg-slate-100" />
@@ -74,54 +76,78 @@ function FeaturedProductsSkeleton() {
   );
 }
 
-function getTrackStep(track: HTMLDivElement, cardSelector: string, gap: number) {
-  const firstCard = track.querySelector<HTMLElement>(cardSelector);
-  return (firstCard?.offsetWidth || track.clientWidth) + gap;
+function getCards(track: HTMLDivElement, selector: string) {
+  return Array.from(track.querySelectorAll<HTMLElement>(selector));
 }
 
 function getMaxScrollLeft(track: HTMLDivElement) {
   return Math.max(0, track.scrollWidth - track.clientWidth);
 }
 
-function scrollTrackSafely({
-  track,
-  cardSelector,
+function getSafeIndex(index: number, total: number) {
+  if (total <= 0) return 0;
+  return Math.max(0, Math.min(index, total - 1));
+}
+
+function getNextCarouselIndex({
+  currentIndex,
   direction,
-  gap,
-  loop = true,
+  total,
+}: {
+  currentIndex: number;
+  direction: "prev" | "next";
+  total: number;
+}) {
+  if (total <= 1) return 0;
+
+  if (direction === "next") {
+    return currentIndex >= total - 1 ? 0 : currentIndex + 1;
+  }
+
+  return currentIndex <= 0 ? total - 1 : currentIndex - 1;
+}
+
+function getClosestCardIndex(track: HTMLDivElement, selector: string) {
+  const cards = getCards(track, selector);
+
+  if (cards.length === 0) return 0;
+
+  let closestIndex = 0;
+  let closestDistance = Number.POSITIVE_INFINITY;
+
+  cards.forEach((card, index) => {
+    const distance = Math.abs(card.offsetLeft - track.scrollLeft);
+
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closestIndex = index;
+    }
+  });
+
+  return getSafeIndex(closestIndex, cards.length);
+}
+
+function scrollTrackToCardIndex({
+  track,
+  selector,
+  index,
 }: {
   track: HTMLDivElement | null;
-  cardSelector: string;
-  direction: "prev" | "next";
-  gap: number;
-  loop?: boolean;
+  selector: string;
+  index: number;
 }) {
   if (!track) return;
 
+  const cards = getCards(track, selector);
+
+  if (cards.length === 0) return;
+
+  const safeIndex = getSafeIndex(index, cards.length);
+  const targetCard = cards[safeIndex];
   const maxLeft = getMaxScrollLeft(track);
 
-  if (maxLeft <= 2) {
-    track.scrollTo({ left: 0, behavior: "smooth" });
-    return;
-  }
-
-  const currentLeft = track.scrollLeft;
-  const step = getTrackStep(track, cardSelector, gap);
-  const edgeBuffer = 12;
-
-  let nextLeft =
-    direction === "next" ? currentLeft + step : currentLeft - step;
-
-  if (direction === "next" && nextLeft >= maxLeft - edgeBuffer) {
-    nextLeft = loop ? 0 : maxLeft;
-  }
-
-  if (direction === "prev" && nextLeft <= edgeBuffer) {
-    nextLeft = loop ? maxLeft : 0;
-  }
-
   track.scrollTo({
-    left: Math.max(0, Math.min(nextLeft, maxLeft)),
+    left: Math.min(targetCard.offsetLeft, maxLeft),
     behavior: "smooth",
   });
 }
@@ -137,6 +163,9 @@ export default function FeaturedProductsSection({
 }) {
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [loading, setLoading] = useState(initialProducts.length === 0);
+  const [mobileReady, setMobileReady] = useState(false);
+  const [mobileActiveIndex, setMobileActiveIndex] = useState(0);
+  const [desktopActiveIndex, setDesktopActiveIndex] = useState(0);
 
   const { settings } = useSiteSettings();
   const currencySymbol = settings.currencySymbol || "₹";
@@ -146,9 +175,9 @@ export default function FeaturedProductsSection({
   const pauseUntilRef = useRef<number>(0);
   const intervalRef = useRef<number | null>(null);
 
-  const [mobileReady, setMobileReady] = useState(false);
-
   const mobileProducts = useMemo(() => products.slice(0, 4), [products]);
+
+  // 1-3 products: clean grid. 4+ products: slider rail.
   const isGridMode = products.length <= 3;
 
   useEffect(() => {
@@ -168,7 +197,7 @@ export default function FeaturedProductsSection({
     if (managed) return;
     if (initialProducts.length > 0) return;
 
-    window.setTimeout(() => {
+    const cacheTimer = window.setTimeout(() => {
       const cached = peekCached<Product[]>("products:all").data;
 
       if (Array.isArray(cached) && cached.length) {
@@ -186,14 +215,26 @@ export default function FeaturedProductsSection({
       .catch(() => {
         setLoading(false);
       });
+
+    return () => {
+      window.clearTimeout(cacheTimer);
+    };
   }, [initialProducts.length, managed]);
 
   useEffect(() => {
+    setMobileActiveIndex(0);
+    setDesktopActiveIndex(0);
+
     const mobileTrack = mobileTrackRef.current;
     const desktopTrack = desktopTrackRef.current;
 
-    if (mobileTrack) mobileTrack.scrollLeft = 0;
-    if (desktopTrack) desktopTrack.scrollLeft = 0;
+    if (mobileTrack) {
+      mobileTrack.scrollTo({ left: 0, behavior: "auto" });
+    }
+
+    if (desktopTrack) {
+      desktopTrack.scrollTo({ left: 0, behavior: "auto" });
+    }
   }, [products.length]);
 
   useEffect(() => {
@@ -201,24 +242,80 @@ export default function FeaturedProductsSection({
 
     if (!track) return;
 
-    const onResize = () => {
-      track.scrollLeft = 0;
+    const handleResize = () => {
+      track.scrollTo({ left: 0, behavior: "auto" });
+      setMobileActiveIndex(0);
       setMobileReady(true);
     };
 
-    onResize();
+    handleResize();
 
-    window.addEventListener("resize", onResize);
+    window.addEventListener("resize", handleResize);
 
     return () => {
-      window.removeEventListener("resize", onResize);
+      window.removeEventListener("resize", handleResize);
     };
   }, []);
 
   useEffect(() => {
     const track = mobileTrackRef.current;
 
+    if (!track) return;
+
+    let frameId = 0;
+
+    const handleScroll = () => {
+      if (frameId) window.cancelAnimationFrame(frameId);
+
+      frameId = window.requestAnimationFrame(() => {
+        const nextIndex = getClosestCardIndex(track, "[data-feature-card]");
+        setMobileActiveIndex(nextIndex);
+      });
+    };
+
+    track.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      if (frameId) window.cancelAnimationFrame(frameId);
+      track.removeEventListener("scroll", handleScroll);
+    };
+  }, [mobileProducts.length]);
+
+  useEffect(() => {
+    const track = desktopTrackRef.current;
+
+    if (!track || isGridMode) return;
+
+    let frameId = 0;
+
+    const handleScroll = () => {
+      if (frameId) window.cancelAnimationFrame(frameId);
+
+      frameId = window.requestAnimationFrame(() => {
+        const nextIndex = getClosestCardIndex(
+          track,
+          "[data-feature-desktop-card]",
+        );
+        setDesktopActiveIndex(nextIndex);
+      });
+    };
+
+    track.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      if (frameId) window.cancelAnimationFrame(frameId);
+      track.removeEventListener("scroll", handleScroll);
+    };
+  }, [products.length, isGridMode]);
+
+  useEffect(() => {
+    const track = mobileTrackRef.current;
+
     if (!track || !mobileReady || mobileProducts.length < 2) return;
+
+    const pauseAutoScroll = () => {
+      pauseUntilRef.current = performance.now() + 3000;
+    };
 
     const startInterval = () => {
       if (intervalRef.current) {
@@ -228,22 +325,26 @@ export default function FeaturedProductsSection({
       intervalRef.current = window.setInterval(() => {
         if (performance.now() < pauseUntilRef.current) return;
 
-        scrollTrackSafely({
-          track,
-          cardSelector: "[data-feature-card]",
-          direction: "next",
-          gap: 16,
-          loop: true,
+        setMobileActiveIndex((currentIndex) => {
+          const nextIndex = getNextCarouselIndex({
+            currentIndex,
+            direction: "next",
+            total: mobileProducts.length,
+          });
+
+          scrollTrackToCardIndex({
+            track,
+            selector: "[data-feature-card]",
+            index: nextIndex,
+          });
+
+          return nextIndex;
         });
       }, 3500);
     };
 
-    const onUserInteraction = () => {
-      pauseUntilRef.current = performance.now() + 3000;
-    };
-
-    track.addEventListener("touchstart", onUserInteraction, { passive: true });
-    track.addEventListener("pointerdown", onUserInteraction, { passive: true });
+    track.addEventListener("touchstart", pauseAutoScroll, { passive: true });
+    track.addEventListener("pointerdown", pauseAutoScroll, { passive: true });
 
     startInterval();
 
@@ -252,36 +353,53 @@ export default function FeaturedProductsSection({
         window.clearInterval(intervalRef.current);
       }
 
-      track.removeEventListener("touchstart", onUserInteraction);
-      track.removeEventListener("pointerdown", onUserInteraction);
+      track.removeEventListener("touchstart", pauseAutoScroll);
+      track.removeEventListener("pointerdown", pauseAutoScroll);
     };
   }, [mobileReady, mobileProducts.length]);
 
   const scrollMobileTrack = (direction: "prev" | "next") => {
     pauseUntilRef.current = performance.now() + 3000;
 
-    scrollTrackSafely({
-      track: mobileTrackRef.current,
-      cardSelector: "[data-feature-card]",
-      direction,
-      gap: 16,
-      loop: true,
+    setMobileActiveIndex((currentIndex) => {
+      const nextIndex = getNextCarouselIndex({
+        currentIndex,
+        direction,
+        total: mobileProducts.length,
+      });
+
+      scrollTrackToCardIndex({
+        track: mobileTrackRef.current,
+        selector: "[data-feature-card]",
+        index: nextIndex,
+      });
+
+      return nextIndex;
     });
   };
 
   const scrollDesktopTrack = (direction: "prev" | "next") => {
-    scrollTrackSafely({
-      track: desktopTrackRef.current,
-      cardSelector: "[data-feature-desktop-card]",
-      direction,
-      gap: 40,
-      loop: true,
+    setDesktopActiveIndex((currentIndex) => {
+      const nextIndex = getNextCarouselIndex({
+        currentIndex,
+        direction,
+        total: products.length,
+      });
+
+      scrollTrackToCardIndex({
+        track: desktopTrackRef.current,
+        selector: "[data-feature-desktop-card]",
+        index: nextIndex,
+      });
+
+      return nextIndex;
     });
   };
 
   return (
     <section className="overflow-hidden bg-[#fcfcfd] py-6 lg:py-24">
       <div className="container mx-auto px-4 lg:px-8">
+        {/* Header */}
         <div className="mb-12 flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div className="max-w-xl">
             <h2 className="mb-4 text-3xl font-bold tracking-tight text-slate-900 md:text-5xl">
@@ -309,6 +427,7 @@ export default function FeaturedProductsSection({
           </div>
         ) : (
           <>
+            {/* Mobile Carousel */}
             <div className="-mx-4 px-4 md:hidden">
               <div className="mb-6 flex items-center justify-between gap-3">
                 <Link
@@ -323,7 +442,7 @@ export default function FeaturedProductsSection({
                     <button
                       type="button"
                       onClick={() => scrollMobileTrack("prev")}
-                      className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-900 transition-all hover:border-primary hover:text-primary"
+                      className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-900 transition-all hover:border-primary hover:text-primary active:scale-95"
                       aria-label="Scroll featured products left"
                     >
                       <span className="material-symbols-outlined">west</span>
@@ -332,7 +451,7 @@ export default function FeaturedProductsSection({
                     <button
                       type="button"
                       onClick={() => scrollMobileTrack("next")}
-                      className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-900 transition-all hover:border-primary hover:text-primary"
+                      className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-900 transition-all hover:border-primary hover:text-primary active:scale-95"
                       aria-label="Scroll featured products right"
                     >
                       <span className="material-symbols-outlined">east</span>
@@ -353,7 +472,7 @@ export default function FeaturedProductsSection({
                   <div
                     key={product.id}
                     data-feature-card
-                    className={`snap-center shrink-0 ${
+                    className={`shrink-0 snap-center ${
                       mobileProducts.length === 1
                         ? "w-full max-w-[350px]"
                         : "w-[85vw]"
@@ -365,13 +484,14 @@ export default function FeaturedProductsSection({
               </div>
             </div>
 
+            {/* Desktop/Tablet Layout */}
             <div className="hidden md:block">
               {!isGridMode ? (
                 <div className="mb-6 flex items-center justify-end gap-3">
                   <button
                     type="button"
                     onClick={() => scrollDesktopTrack("prev")}
-                    className="flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-900 transition-all hover:border-primary hover:text-primary"
+                    className="flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-900 transition-all hover:border-primary hover:text-primary active:scale-95"
                     aria-label="Scroll featured products left"
                   >
                     <span className="material-symbols-outlined">west</span>
@@ -380,7 +500,7 @@ export default function FeaturedProductsSection({
                   <button
                     type="button"
                     onClick={() => scrollDesktopTrack("next")}
-                    className="flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-900 transition-all hover:border-primary hover:text-primary"
+                    className="flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-900 transition-all hover:border-primary hover:text-primary active:scale-95"
                     aria-label="Scroll featured products right"
                   >
                     <span className="material-symbols-outlined">east</span>
@@ -431,6 +551,7 @@ export default function FeaturedProductsSection({
   );
 }
 
+/** Reusable Product Card Component */
 function ProductCard({
   product,
   currency,
@@ -443,12 +564,15 @@ function ProductCard({
   const oldPrice = product.originalPrice ?? primary?.originalPrice;
   const isSale = Boolean(oldPrice && oldPrice > price);
   const imageSources = getProductImageSources(product);
+  const productHref = createProductHref(product);
 
   return (
     <div className="group relative flex h-full w-full flex-col rounded-3xl border border-slate-100 bg-white p-3 transition-all duration-500 hover:shadow-2xl hover:shadow-slate-200/60">
+      {/* Image Container */}
       <Link
-        href={createProductHref(product)}
+        href={productHref}
         className="relative block aspect-[10/11] overflow-hidden rounded-2xl bg-slate-50"
+        aria-label={`Open ${product.name}`}
       >
         {isSale ? (
           <div className="absolute top-4 left-4 z-10 rounded-full bg-black px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white">
@@ -462,18 +586,21 @@ function ProductCard({
             alt={product.name}
             className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-105"
           />
-        ) : null}
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-slate-100 text-slate-300">
+            <span className="material-symbols-outlined text-4xl">image</span>
+          </div>
+        )}
 
-        <div className="absolute inset-0 flex items-end bg-black/5 p-4 opacity-0 transition-opacity group-hover:opacity-100">
-          <button
-            type="button"
-            className="w-full translate-y-4 rounded-xl bg-white/90 py-3 text-sm font-bold text-slate-900 shadow-xl backdrop-blur-md transition-transform duration-500 group-hover:translate-y-0"
-          >
+        {/* Quick View Overlay - span, not button, because parent is Link */}
+        <div className="pointer-events-none absolute inset-0 flex items-end bg-black/5 p-4 opacity-0 transition-opacity group-hover:opacity-100">
+          <span className="w-full translate-y-4 rounded-xl bg-white/90 py-3 text-center text-sm font-bold text-slate-900 shadow-xl backdrop-blur-md transition-transform duration-500 group-hover:translate-y-0">
             Quick View
-          </button>
+          </span>
         </div>
       </Link>
 
+      {/* Content */}
       <div className="flex flex-grow flex-col px-3 pt-6 pb-4">
         <div className="mb-2 flex items-start justify-between gap-4">
           <h3 className="line-clamp-1 text-xl font-bold text-slate-900 transition-colors group-hover:text-primary">
@@ -501,8 +628,8 @@ function ProductCard({
 
         <div className="mt-auto">
           <Link
-            href={createProductHref(product)}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 py-4 text-xs font-bold uppercase tracking-[0.2em] text-white transition-all duration-300 hover:bg-primary"
+            href={productHref}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 py-4 text-xs font-bold uppercase tracking-[0.2em] text-white transition-all duration-300 hover:bg-primary active:scale-[0.98]"
           >
             <span>Book Now</span>
             <span className="material-symbols-outlined text-sm">
