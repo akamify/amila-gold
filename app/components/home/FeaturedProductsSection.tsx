@@ -73,9 +73,11 @@ function FeaturedProductsSkeleton() {
 export default function FeaturedProductsSection({
   initialProducts = [],
   managed = false,
+  loading: externalLoading,
 }: {
   initialProducts?: Product[];
   managed?: boolean;
+  loading?: boolean;
 }) {
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [loading, setLoading] = useState(initialProducts.length === 0);
@@ -97,9 +99,9 @@ export default function FeaturedProductsSection({
       setLoading(false);
     } else if (managed) {
       setProducts([]);
-      setLoading(false);
+      setLoading(Boolean(externalLoading));
     }
-  }, [initialProducts, managed]);
+  }, [initialProducts, managed, externalLoading]);
 
   useEffect(() => {
     if (managed) return;
@@ -351,7 +353,7 @@ function ProductCard({ product, currency }: { product: Product; currency: string
           <ResilientProductImage
             sources={getProductImageSources(product)}
             alt={product.name}
-            className="object-cover transition-transform duration-1000 group-hover:scale-110"
+            className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-105"
           />
         )}
 

@@ -18,8 +18,8 @@ interface CartContextType {
   items: CartItem[];
   addItem: (item: Omit<CartItem, 'qty'> & { qty?: number }) => void;
   isVariantInCart: (id: number, size: string, color?: string) => boolean;
-  removeItem: (id: number, size: string, color?: string) => void;
-  updateQty: (id: number, size: string, delta: number, color?: string) => void;
+  removeItem: (id: number, size: string, color?: string) => Promise<boolean>;
+  updateQty: (id: number, size: string, delta: number, color?: string) => Promise<boolean>;
   clearCart: () => Promise<void>;
   refreshCart: () => Promise<void>;
   isHydrating: boolean;
@@ -200,58 +200,57 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return items.some((item) => isSameVariant(item, id, size, color));
   };
 
-  const removeItem = (id: number, size: string, color = '') => {
-    if (id <= 0) return;
-
-    if (typeof window !== 'undefined') {
-      const confirmed = window.confirm('Remove this item from your cart?');
-      if (!confirmed) return;
-    }
+  const removeItem = async (id: number, size: string, color = '') => {
+    if (id <= 0) return false;
 
     setIsSyncing(true);
     setSyncError('');
 
-    updateCartItem(id, size, 0, color)
-      .then((serverItems) => {
-        if (Array.isArray(serverItems)) {
-          setItems(normalizeServerItems(serverItems));
-          return;
-        }
-
+    try {
+      const serverItems = await updateCartItem(id, size, 0, color);
+      if (Array.isArray(serverItems)) {
+        setItems(normalizeServerItems(serverItems));
+      } else {
         setItems((prev) => prev.filter((item) => !isSameVariant(item, id, size, color)));
-      })
-      .catch(() => {
-        setSyncError('Could not remove item from cart.');
-      })
-      .finally(() => {
-        setIsSyncing(false);
-      });
+      }
+      return true;
+    } catch {
+      setSyncError('Could not remove item from cart.');
+      return false;
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
-  const updateQty = (id: number, size: string, delta: number, color = '') => {
-    if (id <= 0 || delta === 0) return;
+  const updateQty = async (id: number, size: string, delta: number, color = '') => {
+    if (id <= 0 || delta === 0) return false;
 
     const current = items.find((item) => isSameVariant(item, id, size, color));
-    if (!current) return;
+    if (!current) return false;
 
     const nextQty = Math.max(1, current.qty + delta);
-    if (nextQty === current.qty) return;
+    if (nextQty === current.qty) return false;
+    const previousItems = items;
 
     setIsSyncing(true);
     setSyncError('');
+    setItems((prev) =>
+      prev.map((item) => (isSameVariant(item, id, size, color) ? { ...item, qty: nextQty } : item))
+    );
 
-    updateCartItem(id, size, nextQty, color)
-      .then((serverItems) => {
-        if (Array.isArray(serverItems)) {
-          setItems(normalizeServerItems(serverItems));
-        }
-      })
-      .catch((error) => {
-        setSyncError(readErrorMessage(error, 'Could not update quantity.'));
-      })
-      .finally(() => {
-        setIsSyncing(false);
-      });
+    try {
+      const serverItems = await updateCartItem(id, size, nextQty, color);
+      if (Array.isArray(serverItems)) {
+        setItems(normalizeServerItems(serverItems));
+      }
+      return true;
+    } catch (error) {
+      setItems(previousItems);
+      setSyncError(readErrorMessage(error, 'Could not update quantity.'));
+      return false;
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const clearCart = async () => {

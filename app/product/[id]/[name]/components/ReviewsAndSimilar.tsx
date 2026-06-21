@@ -265,7 +265,7 @@ export default function ReviewsAndSimilar({ product }: { product?: Product | nul
                       <ResilientProductImage
                         sources={imageSources}
                         alt={item.name}
-                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-on-surface-variant/40 bg-surface-container">

@@ -7,6 +7,7 @@ import { useSiteSettings } from "@/app/context/SiteSettingsContext";
 import { fetchBackendProductById, matchVariantByCartSize } from "@/app/lib/backendProducts";
 import { createProductHref } from "@/app/data/products";
 import ResilientProductImage from "@/app/components/ResilientProductImage";
+import ConfirmModal from "@/app/components/ConfirmModal";
 
 const SHIPPING = 0;
 
@@ -101,8 +102,15 @@ export default function CartPage() {
   const [imageSourcesByItem, setImageSourcesByItem] = React.useState<Record<string, string[]>>({});
   const [isStockLoading, setIsStockLoading] = React.useState(false);
   const [stockError, setStockError] = React.useState("");
+  const [pendingItemKey, setPendingItemKey] = React.useState("");
+  const [removeTarget, setRemoveTarget] = React.useState<{ id: number; size: string; color: string; name: string } | null>(null);
 
-  const loadStock = React.useCallback(async () => {
+  const itemIdentityKey = React.useMemo(
+    () => items.map((item) => `${item.id}|${item.size}|${item.color}`).join("::"),
+    [items]
+  );
+
+  const loadStock = async () => {
     if (!items.length) {
       setStockByItem({});
       setProductHrefByItem({});
@@ -154,11 +162,30 @@ export default function CartPage() {
     } finally {
       setIsStockLoading(false);
     }
-  }, [items]);
+  };
 
   React.useEffect(() => {
     loadStock();
-  }, [loadStock]);
+  }, [itemIdentityKey]);
+
+  const handleQuantityChange = async (item: { id: number; size: string; color: string; qty: number }, delta: number, maxStock: number) => {
+    const key = `${item.id}|${item.size}|${item.color}`;
+    if (pendingItemKey === key) return;
+    const nextQty = item.qty + delta;
+    if (nextQty < 1 || (maxStock > 0 && nextQty > maxStock)) return;
+    setPendingItemKey(key);
+    await updateQty(item.id, item.size, delta, item.color);
+    setPendingItemKey("");
+  };
+
+  const confirmRemove = async () => {
+    if (!removeTarget) return;
+    const key = `${removeTarget.id}|${removeTarget.size}|${removeTarget.color}`;
+    setPendingItemKey(key);
+    const removed = await removeItem(removeTarget.id, removeTarget.size, removeTarget.color);
+    setPendingItemKey("");
+    if (removed) setRemoveTarget(null);
+  };
 
   const hasOutOfStockItems = !isStockLoading && !stockError && items.some((item) => {
     const key = `${item.id}|${item.size}|${item.color}`;
@@ -227,12 +254,13 @@ export default function CartPage() {
               const isOutOfStock = stockKnown && available <= 0;
               const exceedsStock = stockKnown && available > 0 && item.qty > available;
               const productHref = productHrefByItem[key] || createProductHref({ id: item.id, name: item.name }, item.size);
+              const isItemPending = pendingItemKey === key;
               const imageContent = (
                 <>
                   <ResilientProductImage
                     sources={imageSourcesByItem[key] || [item.image]}
                     alt={item.name}
-                    className={`h-full w-full object-cover transition-transform duration-700 ${isOutOfStock ? "grayscale opacity-55" : "group-hover:scale-110"
+                    className={`h-full w-full object-cover transition-transform duration-700 ${isOutOfStock ? "grayscale opacity-55" : "group-hover:scale-105"
                       }`}
                   />
                   {isOutOfStock ? (
@@ -252,13 +280,13 @@ export default function CartPage() {
                 >
                   {/* Product Image */}
                   {isOutOfStock ? (
-                    <div className="w-[30vw] h-[16vh] lg:w-[15vw] lg:h-[30vh] rounded-[0.5rem] overflow-hidden bg-surface-variant/10 shrink-0 relative">
+                    <div className="w-28 sm:w-40 lg:w-[15vw] lg:max-w-[220px] aspect-square rounded-[0.5rem] overflow-hidden bg-surface-variant/10 shrink-0 relative">
                       {imageContent}
                     </div>
                   ) : (
                     <Link
                       href={productHref}
-                      className="w-[30vw] h-[16vh] lg:w-[15vw] lg:h-[30vh] rounded-[0.5rem] overflow-hidden bg-surface-variant/10 shrink-0 relative block"
+                      className="w-28 sm:w-40 lg:w-[15vw] lg:max-w-[220px] aspect-square rounded-[0.5rem] overflow-hidden bg-surface-variant/10 shrink-0 relative block"
                       aria-label={`Open ${item.name} ${item.size}`}
                     >
                       {imageContent}
@@ -288,8 +316,11 @@ export default function CartPage() {
                         </div>
                       </div>
                       <button
-                        onClick={() => removeItem(item.id, item.size, item.color)}
-                        className="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant/40 hover:bg-error/10 hover:text-error transition-all"
+                        onClick={() => setRemoveTarget({ id: item.id, size: item.size, color: item.color, name: item.name })}
+                        disabled={isItemPending}
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant/40 hover:bg-error/10 hover:text-error transition-all disabled:opacity-40"
+                        aria-label={`Remove ${item.name} from cart`}
+                        type="button"
                       >
                         <span className="material-symbols-outlined text-xl leading-none">delete_sweep</span>
                       </button>
@@ -299,9 +330,10 @@ export default function CartPage() {
                       {/* Quantity Controls */}
                       <div className="flex items-center bg-surface-variant/20 rounded-2xl p-1 border border-outline-variant/10">
                         <button
-                          onClick={() => updateQty(item.id, item.size, -1, item.color)}
+                          onClick={() => handleQuantityChange(item, -1, available)}
                           className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-white hover:shadow-sm text-primary transition-all disabled:opacity-30"
-                          disabled={item.qty <= 1 || isOutOfStock || isStockLoading || Boolean(stockError)}
+                          disabled={item.qty <= 1 || isOutOfStock || isItemPending || Boolean(stockError)}
+                          type="button"
                         >
                           <span className="material-symbols-outlined text-base">remove</span>
                         </button>
@@ -309,9 +341,10 @@ export default function CartPage() {
                           {item.qty}
                         </span>
                         <button
-                          onClick={() => updateQty(item.id, item.size, 1, item.color)}
+                          onClick={() => handleQuantityChange(item, 1, available)}
                           className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-white hover:shadow-sm text-primary transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                          disabled={!stockKnown || isOutOfStock || item.qty >= available}
+                          disabled={!stockKnown || isOutOfStock || isItemPending || item.qty >= available}
+                          type="button"
                         >
                           <span className="material-symbols-outlined text-base">add</span>
                         </button>
@@ -387,6 +420,19 @@ export default function CartPage() {
           </div>
         </aside>
       </div>
+      <ConfirmModal
+        open={Boolean(removeTarget)}
+        title="Remove item from cart?"
+        message="Are you sure you want to remove this product from your cart?"
+        cancelLabel="Cancel"
+        confirmLabel="Remove"
+        tone="danger"
+        loading={Boolean(removeTarget && pendingItemKey === `${removeTarget.id}|${removeTarget.size}|${removeTarget.color}`)}
+        onClose={() => {
+          if (!pendingItemKey) setRemoveTarget(null);
+        }}
+        onConfirm={confirmRemove}
+      />
     </main>
   );
 }

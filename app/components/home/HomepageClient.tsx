@@ -58,6 +58,7 @@ function warmBackend() {
 
 export default function HomepageClient() {
   const [homepageData, setHomepageData] = useState<PublicHomepageData>(EMPTY_HOME_DATA);
+  const [isPublicDataLoading, setIsPublicDataLoading] = useState(true);
   const hasDataRef = useRef(false);
   const requestInFlightRef = useRef(false);
 
@@ -82,6 +83,7 @@ export default function HomepageClient() {
     const fetchFresh = async (label: string) => {
       if (requestInFlightRef.current) return;
       requestInFlightRef.current = true;
+      if (!hasDataRef.current) setIsPublicDataLoading(true);
       devLog("fresh fetch started", { label });
 
       try {
@@ -97,6 +99,7 @@ export default function HomepageClient() {
         devLog("fresh fetch failed", { label, error });
       } finally {
         requestInFlightRef.current = false;
+        if (active) setIsPublicDataLoading(false);
       }
     };
 
@@ -126,8 +129,8 @@ export default function HomepageClient() {
   return (
     <main>
       <HeroSection initialBanners={homepageData.banners} managed />
-      <SpotlightProducts initialProducts={homepageData.featuredProducts} managed />
-      <FeaturedProducts initialProducts={homepageData.featuredProducts} managed />
+      <SpotlightProducts initialProducts={homepageData.featuredProducts} managed loading={isPublicDataLoading && homepageData.featuredProducts.length === 0} />
+      <FeaturedProducts initialProducts={homepageData.featuredProducts} managed loading={isPublicDataLoading && homepageData.featuredProducts.length === 0} />
       <HeritageSection />
       <SlowCraftSection />
       <TestimonialsSection initialTestimonials={homepageData.testimonials} managed />

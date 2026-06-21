@@ -27,6 +27,8 @@ function TestimonialsSection({
   );
   const [isLoading, setIsLoading] = useState(initialTestimonials.length === 0);
   const trackRef = useRef<HTMLDivElement | null>(null);
+  const [canScrollPrev, setCanScrollPrev] = useState(false);
+  const [canScrollNext, setCanScrollNext] = useState(false);
 
   // Load testimonials from localStorage (fast initial load)
   const getCachedTestimonials = (): TestimonialItem[] | null => {
@@ -102,17 +104,43 @@ function TestimonialsSection({
       });
   }, [managed]);
 
+  const updateScrollControls = () => {
+    const track = trackRef.current;
+    if (!track) return;
+    const maxScroll = Math.max(0, track.scrollWidth - track.clientWidth - 2);
+    setCanScrollPrev(track.scrollLeft > 2);
+    setCanScrollNext(track.scrollLeft < maxScroll);
+  };
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    updateScrollControls();
+    const onScroll = () => updateScrollControls();
+    const onResize = () => updateScrollControls();
+    track.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onResize);
+    return () => {
+      track.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
+    };
+  }, [testimonials.length, isLoading]);
+
   const scrollTrack = (direction: "prev" | "next") => {
     const track = trackRef.current;
     if (!track) return;
     const card = track.querySelector<HTMLElement>("[data-testimonial-card]");
     const cardWidth = card?.offsetWidth ?? 0;
     const step = cardWidth + 24;
-    track.scrollBy({
-      left: direction === "next" ? step : -step,
-      behavior: "smooth",
-    });
+    const maxScroll = Math.max(0, track.scrollWidth - track.clientWidth);
+    const nextLeft = direction === "next"
+      ? Math.min(track.scrollLeft + step, maxScroll)
+      : Math.max(track.scrollLeft - step, 0);
+    track.scrollTo({ left: nextLeft, behavior: "smooth" });
+    window.setTimeout(updateScrollControls, 350);
   };
+
+  const controlsVisible = canScrollPrev || canScrollNext;
 
   return (
     <section className="py-10 lg:py-32 bg-surface overflow-hidden">
@@ -126,11 +154,13 @@ function TestimonialsSection({
             </h2>
           </div>
 
+          {controlsVisible ? (
           <div className="hidden md:flex gap-3 justify-end">
             <button
               onClick={() => scrollTrack("prev")}
-              className="w-12 h-12 rounded-full border border-primary/20 flex items-center justify-center text-primary hover:bg-primary/5 transition-all"
-              aria-label="Previous Testimonial"
+              disabled={!canScrollPrev}
+              className="w-12 h-12 rounded-full border border-primary/20 flex items-center justify-center text-primary hover:bg-primary/5 transition-all disabled:opacity-35 disabled:cursor-not-allowed"
+              aria-label="Previous testimonial"
               type="button"
             >
               <svg
@@ -149,8 +179,9 @@ function TestimonialsSection({
 
             <button
               onClick={() => scrollTrack("next")}
-              className="w-12 h-12 rounded-full border border-primary/20 flex items-center justify-center text-primary hover:bg-primary/5 transition-all"
-              aria-label="Next Testimonial"
+              disabled={!canScrollNext}
+              className="w-12 h-12 rounded-full border border-primary/20 flex items-center justify-center text-primary hover:bg-primary/5 transition-all disabled:opacity-35 disabled:cursor-not-allowed"
+              aria-label="Next testimonial"
               type="button"
             >
               <svg
@@ -167,13 +198,16 @@ function TestimonialsSection({
               </svg>
             </button>
           </div>
+          ) : null}
         </div>
 
+        {controlsVisible ? (
         <div className="flex md:hidden justify-end gap-3 mb-5">
           <button
             onClick={() => scrollTrack("prev")}
-            className="w-10 h-10 rounded-full border border-primary/20 flex items-center justify-center text-primary hover:bg-primary/5 transition-all"
-            aria-label="Previous Testimonial"
+            disabled={!canScrollPrev}
+            className="w-10 h-10 rounded-full border border-primary/20 flex items-center justify-center text-primary hover:bg-primary/5 transition-all disabled:opacity-35 disabled:cursor-not-allowed"
+            aria-label="Previous testimonial"
             type="button"
           >
             <svg
@@ -192,8 +226,9 @@ function TestimonialsSection({
 
           <button
             onClick={() => scrollTrack("next")}
-            className="w-10 h-10 rounded-full border border-primary/20 flex items-center justify-center text-primary hover:bg-primary/5 transition-all"
-            aria-label="Next Testimonial"
+            disabled={!canScrollNext}
+            className="w-10 h-10 rounded-full border border-primary/20 flex items-center justify-center text-primary hover:bg-primary/5 transition-all disabled:opacity-35 disabled:cursor-not-allowed"
+            aria-label="Next testimonial"
             type="button"
           >
             <svg
@@ -210,6 +245,7 @@ function TestimonialsSection({
             </svg>
           </button>
         </div>
+        ) : null}
 
         <div className="relative overflow-hidden">
           {isLoading ? (

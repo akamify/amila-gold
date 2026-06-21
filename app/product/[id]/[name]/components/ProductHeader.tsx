@@ -93,16 +93,6 @@ export default function ProductHeader({
     return uniq;
   }, [product?.image, product?.images, selectedVariant]);
 
-  const infiniteImages = useMemo(() => {
-    if (galleryImages.length <= 1) return galleryImages;
-
-    return [
-      galleryImages[galleryImages.length - 1],
-      ...galleryImages,
-      galleryImages[0],
-    ];
-  }, [galleryImages]);
-
   // Calculate available stock for selected variant/size
   const availableStock = useMemo(() => {
     if (!product) return 0;
@@ -145,21 +135,11 @@ export default function ProductHeader({
   const [resolvedMainImage, setResolvedMainImage] = useState<string>(galleryImages[0] || initialImage);
   const mobileCarouselRef = useRef<HTMLDivElement | null>(null);
   const mainImageContainerRef = useRef<HTMLDivElement | null>(null);
-  const isAdjustingRef = useRef(false);
-  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // If the variant image changes, update the main view
-    if (selectedVariant?.image) {
-      setActiveImage(selectedVariant.image);
-    }
-  }, [selectedVariant]);
-
-  useEffect(() => {
-    if (!galleryImages.length) return;
-    if (activeImage && galleryImages.includes(activeImage)) return;
-    setActiveImage(galleryImages[0]);
-  }, [galleryImages, activeImage]);
+    setActiveImage(galleryImages[0] || initialImage || "");
+    if (mobileCarouselRef.current) mobileCarouselRef.current.scrollLeft = 0;
+  }, [productId, selectedSize, galleryImages, initialImage]);
 
   useEffect(() => {
     setResolvedMainImage(activeImage || initialImage);
@@ -172,18 +152,6 @@ export default function ProductHeader({
     ].map((source) => String(source || '').trim()).filter(Boolean))),
     [activeImage, product, selectedSize]
   );
-
-  useEffect(() => {
-    const el = mobileCarouselRef.current;
-
-    if (!el) return;
-
-    if (infiniteImages.length <= 1) return;
-
-    const width = el.clientWidth;
-
-    el.scrollLeft = width;
-  }, [infiniteImages.length]);
 
   useEffect(() => {
     if (!onStickyInfoChange) return;

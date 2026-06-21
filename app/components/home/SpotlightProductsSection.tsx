@@ -25,9 +25,11 @@ function discountPct(original: number | undefined, selling: number) {
 export default function SpotlightProductsSection({
   initialProducts = [],
   managed = false,
+  loading: externalLoading,
 }: {
   initialProducts?: Product[];
   managed?: boolean;
+  loading?: boolean;
 }) {
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>(initialProducts);
@@ -42,9 +44,9 @@ export default function SpotlightProductsSection({
       setLoading(false);
     } else if (managed) {
       setProducts([]);
-      setLoading(false);
+      setLoading(Boolean(externalLoading));
     }
-  }, [initialProducts, managed]);
+  }, [initialProducts, managed, externalLoading]);
 
   useEffect(() => {
     if (managed) return;
@@ -157,7 +159,7 @@ export default function SpotlightProductsSection({
                       <ResilientProductImage
                         sources={getProductImageSources(product, weightLabel)}
                         alt={product.name}
-                        className="object-cover transition-transform duration-700 group-hover:scale-105"
+                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                       />
                     )}
 

@@ -516,9 +516,16 @@ export default function CheckoutPage() {
           {isPageLoading ? (
             <CheckoutAddressSkeleton />
           ) : !isAuthenticated ? (
-            <div className="flex items-center flex-col bg-surface-container-low border border-outline-variant/20 rounded-3xl p-8 text-center">
-              <p className="text-on-surface-variant mb-4">Please login to continue</p>
-              <Link href={`/user/auth?returnTo=${encodeURIComponent(LOGIN_RETURN_TO)}`} className="inline-block bg-primary text-on-primary px-8 py-3 rounded-full text-sm font-bold hover:opacity-90 transition-opacity">
+            <div className="flex min-h-[360px] flex-col items-center justify-center rounded-3xl border border-outline-variant/20 bg-surface-container-low p-8 text-center sm:min-h-[420px]">
+              <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <span className="material-symbols-outlined text-3xl">login</span>
+              </div>
+              <h2 className="font-headline text-2xl font-bold text-primary">Login to continue</h2>
+              <p className="mt-3 mb-7 max-w-sm text-sm leading-relaxed text-on-surface-variant">
+                Please login to select your delivery address and complete checkout securely.
+              </p>
+              <Link href={`/user/auth?returnTo=${encodeURIComponent(LOGIN_RETURN_TO)}`} className="inline-flex items-center justify-center gap-2 bg-primary text-on-primary px-9 py-3.5 rounded-full text-sm font-bold hover:opacity-90 transition-opacity">
+                <span className="material-symbols-outlined text-lg">lock_open</span>
                 Login
               </Link>
             </div>
