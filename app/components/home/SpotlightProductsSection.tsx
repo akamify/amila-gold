@@ -27,16 +27,20 @@ function discountPct(original: number | undefined, selling: number) {
 }
 
 /**
- * Mobile/tablet layout is kept exactly like before:
- * - mobile: 2 columns
- * - md: 3 columns
+ * Mobile:
+ * - 2 columns
+ * - maximum 5 products
+ * - odd last product spans full row but remains vertical
  *
- * Only desktop lg+ is centered:
- * - cards do not stay left-clustered when fewer products are available
- * - existing card/image design is not changed
+ * Tablet:
+ * - 3 columns
+ *
+ * Desktop:
+ * - centered auto-fit grid
+ * - existing image design unchanged
  */
 const spotlightGridClass =
-  "grid grid-cols-2 md:grid-cols-3 gap-3 lg:mx-auto lg:w-full lg:max-w-[1396px] lg:grid-cols-[repeat(auto-fit,minmax(230px,250px))] lg:justify-center lg:gap-6 xl:grid-cols-[repeat(auto-fit,minmax(240px,260px))]";
+  "grid grid-cols-2 gap-3 md:grid-cols-3 lg:mx-auto lg:w-full lg:max-w-[1396px] lg:grid-cols-[repeat(auto-fit,minmax(230px,250px))] lg:justify-center lg:gap-6 xl:grid-cols-[repeat(auto-fit,minmax(240px,260px))]";
 
 export default function SpotlightProductsSection({
   initialProducts = [],
@@ -50,15 +54,20 @@ export default function SpotlightProductsSection({
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [loading, setLoading] = useState(initialProducts.length === 0);
+
   const { addItem, isVariantInCart } = useCart();
   const { settings } = useSiteSettings();
+
   const currencySymbol = settings.currencySymbol || "₹";
 
   useEffect(() => {
     if (initialProducts.length > 0) {
       setProducts(initialProducts);
       setLoading(false);
-    } else if (managed) {
+      return;
+    }
+
+    if (managed) {
       setProducts([]);
       setLoading(Boolean(externalLoading));
     }
@@ -69,6 +78,7 @@ export default function SpotlightProductsSection({
     if (initialProducts.length > 0) return;
 
     const cached = peekCached<Product[]>("products:all").data;
+
     if (Array.isArray(cached) && cached.length) {
       setProducts(cached);
       setLoading(false);
@@ -88,23 +98,23 @@ export default function SpotlightProductsSection({
   const spotlight = useMemo(() => products.slice(0, 5), [products]);
 
   return (
-    <section className="pt-10 pb-6 lg:py-20 bg-[#F9F9F7]">
+    <section className="bg-[#F9F9F7] pt-10 pb-6 lg:py-20">
       <div className="container mx-auto px-3 lg:px-6">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 lg:mb-10 gap-3">
+        <div className="mb-6 flex flex-col justify-between gap-3 md:flex-row md:items-end lg:mb-10">
           <div className="space-y-1 lg:space-y-2">
-            <span className="text-[10px] lg:text-sm font-bold uppercase tracking-[0.2em] text-emerald-700/70">
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-700/70 lg:text-sm">
               Curated Collection
             </span>
 
-            <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 tracking-tight">
+            <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 md:text-5xl">
               Today’s <span className="text-emerald-800">Spotlight</span>
             </h2>
           </div>
 
           <Link
             href="/shop"
-            className="hidden md:flex text-sm font-semibold text-emerald-800 hover:underline items-center gap-1"
+            className="hidden items-center gap-1 text-sm font-semibold text-emerald-800 hover:underline md:flex"
           >
             View all products
             <span className="material-symbols-outlined text-sm">
@@ -116,38 +126,39 @@ export default function SpotlightProductsSection({
         {/* Loading State */}
         {loading ? (
           <div className={spotlightGridClass}>
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div
-                key={i}
-                className={`relative flex flex-col bg-white border border-slate-100 rounded-[1.5rem] lg:rounded-[2rem] p-2 lg:p-3 overflow-hidden ${
-                  i === 4 ? "hidden lg:flex" : ""
-                }`}
-              >
-                {/* Shimmer sweep */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/70 to-transparent -translate-x-full animate-[spotlightShimmer_1.6s_ease-in-out_infinite] pointer-events-none z-10" />
+            {Array.from({ length: 5 }).map((_, index) => {
+              const isOddLastMobileCard = index === 4;
 
-                {/* Square image placeholder */}
-                <div className="aspect-square rounded-xl lg:rounded-[1.5rem] bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100" />
+              return (
+                <div
+                  key={index}
+                  className={`relative flex flex-col overflow-hidden rounded-[1.5rem] border border-slate-100 bg-white p-3 lg:rounded-[2rem] lg:p-4 ${
+                    isOddLastMobileCard ? "col-span-2 md:col-span-1" : ""
+                  }`}
+                >
+                  <div className="pointer-events-none absolute inset-0 z-10 -translate-x-full animate-[spotlightShimmer_1.6s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-white/70 to-transparent" />
 
-                {/* Content area */}
-                <div className="flex flex-col flex-grow pt-2 lg:pt-4 px-1 pb-1 gap-2">
-                  <div className="h-3.5 lg:h-5 w-4/5 bg-slate-100 rounded-lg" />
-                  <div className="h-3 lg:h-4 w-3/5 bg-slate-100 rounded-lg" />
+                  <div className="aspect-square rounded-xl bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100 lg:rounded-[1.5rem]" />
 
-                  <div className="mt-auto flex flex-col gap-1.5 lg:gap-2.5">
-                    <div className="flex items-center gap-2">
-                      <div className="h-4 lg:h-5 w-16 lg:w-20 bg-slate-100 rounded-lg" />
-                      <div className="h-3 lg:h-4 w-10 bg-slate-100 rounded-lg" />
+                  <div className="flex flex-grow flex-col gap-2.5 px-2 pt-3 pb-1 lg:px-2.5 lg:pt-4">
+                    <div className="h-3.5 w-4/5 rounded-lg bg-slate-100 lg:h-5" />
+                    <div className="h-3 w-3/5 rounded-lg bg-slate-100 lg:h-4" />
+
+                    <div className="mt-auto flex flex-col gap-2 lg:gap-2.5">
+                      <div className="flex items-center gap-2">
+                        <div className="h-4 w-16 rounded-lg bg-slate-100 lg:h-5 lg:w-20" />
+                        <div className="h-3 w-10 rounded-lg bg-slate-100 lg:h-4" />
+                      </div>
+
+                      <div className="h-10 w-full rounded-xl bg-slate-100 lg:h-11 lg:rounded-2xl" />
                     </div>
-
-                    <div className="h-9 lg:h-11 w-full bg-slate-100 rounded-xl lg:rounded-2xl" />
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : spotlight.length === 0 ? (
-          <div className="text-center py-10 lg:py-20 bg-white rounded-3xl text-slate-500 font-medium text-sm lg:text-base">
+          <div className="rounded-3xl bg-white py-10 text-center text-sm font-medium text-slate-500 lg:py-20 lg:text-base">
             Products are being refreshed. Please check again shortly.
           </div>
         ) : (
@@ -167,18 +178,21 @@ export default function SpotlightProductsSection({
               const pct = discountPct(displayOriginal, displayPrice);
               const imageSources = getProductImageSources(product, weightLabel);
 
+              const isOddLastMobileCard =
+                spotlight.length % 2 === 1 && index === spotlight.length - 1;
+
               return (
                 <div
                   key={product.id}
                   data-product-card
-                  className={`group relative flex flex-col bg-white border border-slate-100 rounded-[1.5rem] lg:rounded-[2rem] p-2 lg:p-3 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.06)] hover:-translate-y-1 ${
-                    index === 4 ? "hidden lg:flex" : ""
+                  className={`group relative flex flex-col rounded-[1.5rem] border border-slate-100 bg-white p-3 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_40px_rgba(0,0,0,0.06)] lg:rounded-[2rem] lg:p-4 ${
+                    isOddLastMobileCard ? "col-span-2 md:col-span-1 py-7 px-5" : ""
                   }`}
                 >
-                  {/* Image Container - unchanged */}
+                  {/* Image Container - original image behavior kept */}
                   <Link
                     href={createProductHref(product)}
-                    className="relative aspect-square rounded-xl lg:rounded-[1.5rem] overflow-hidden bg-slate-50"
+                    className="relative aspect-square overflow-hidden rounded-xl bg-slate-50 lg:rounded-[1.5rem]"
                   >
                     {imageSources.length > 0 && (
                       <ResilientProductImage
@@ -188,28 +202,27 @@ export default function SpotlightProductsSection({
                       />
                     )}
 
-                    {/* Discount Badge */}
                     {pct > 0 && (
-                      <div className="absolute top-2 left-2 lg:top-3 lg:left-3 bg-emerald-600 backdrop-blur-md text-white px-2 py-0.5 lg:px-3 lg:py-1 rounded-full text-[9px] lg:text-[10px] font-black uppercase tracking-tighter">
+                      <div className="absolute top-2 left-2 rounded-full bg-emerald-600 px-2 py-0.5 text-[9px] font-black uppercase tracking-tighter text-white backdrop-blur-md lg:top-3 lg:left-3 lg:px-3 lg:py-1 lg:text-[10px]">
                         -{pct}%
                       </div>
                     )}
                   </Link>
 
                   {/* Content */}
-                  <div className="flex flex-col flex-grow pt-2 lg:pt-4 px-1 pb-1">
-                    <h3 className="font-bold text-slate-800 text-sm lg:text-lg leading-tight line-clamp-2 break-words mb-1.5 lg:mb-2 group-hover:text-emerald-800 transition-colors">
+                  <div className="flex flex-grow flex-col px-2 pt-3 pb-1 lg:px-2.5 lg:pt-4">
+                    <h3 className="mb-2 line-clamp-2 break-words text-sm font-bold leading-snug text-slate-800 transition-colors group-hover:text-emerald-800 lg:mb-3 lg:text-lg">
                       {product.name}
                     </h3>
 
                     <div className="mt-auto">
-                      <div className="flex items-baseline flex-wrap gap-x-1.5 gap-y-0.5 mb-2 lg:mb-4">
-                        <span className="text-sm lg:text-lg font-black text-slate-900">
+                      <div className="mb-3 flex flex-wrap items-baseline gap-x-1.5 gap-y-1 lg:mb-5">
+                        <span className="text-sm font-black text-slate-900 lg:text-lg">
                           {formatMoney(currencySymbol, displayPrice)}
                         </span>
 
                         {displayOriginal && displayOriginal > displayPrice && (
-                          <span className="text-[10px] lg:text-xs text-slate-400 line-through decoration-red-400/50">
+                          <span className="text-[10px] text-slate-400 line-through decoration-red-400/50 lg:text-xs">
                             {formatMoney(currencySymbol, displayOriginal)}
                           </span>
                         )}
@@ -217,8 +230,8 @@ export default function SpotlightProductsSection({
 
                       <button
                         type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
+                        onClick={(event) => {
+                          event.preventDefault();
 
                           if (inCart) {
                             router.push("/cart");
@@ -231,7 +244,7 @@ export default function SpotlightProductsSection({
 
                           try {
                             const card = (
-                              e.currentTarget as HTMLElement | null
+                              event.currentTarget as HTMLElement | null
                             )?.closest?.(
                               "[data-product-card]",
                             ) as HTMLElement | null;
@@ -243,11 +256,14 @@ export default function SpotlightProductsSection({
                             const fromRect =
                               img?.getBoundingClientRect?.() ??
                               (
-                                e.currentTarget as HTMLElement
+                                event.currentTarget as HTMLElement
                               ).getBoundingClientRect();
 
                             const imageUrl = String(
-                              img?.currentSrc || img?.src || product.image || "",
+                              img?.currentSrc ||
+                                img?.src ||
+                                product.image ||
+                                "",
                             ).trim();
 
                             renderedImageUrl = imageUrl || renderedImageUrl;
@@ -260,7 +276,7 @@ export default function SpotlightProductsSection({
                               });
                             }
                           } catch {
-                            // ignore animation failure
+                            // Ignore animation failure.
                           }
 
                           addItem({
@@ -274,14 +290,14 @@ export default function SpotlightProductsSection({
                           });
                         }}
                         disabled={!inStock && !inCart}
-                        className={`w-full h-9 lg:h-11 rounded-xl lg:rounded-2xl flex items-center justify-center gap-1.5 lg:gap-2 transition-all duration-500 ease-out font-bold text-[10px] lg:text-xs uppercase tracking-wider active:scale-95 transform-gpu ${
+                        className={`flex h-10 w-full transform-gpu items-center justify-center gap-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all duration-500 ease-out active:scale-95 lg:h-11 lg:gap-2 lg:rounded-2xl lg:text-xs ${
                           inCart
-                            ? "bg-slate-900 text-white hover:bg-black shadow-lg"
-                            : "bg-emerald-800 text-white hover:bg-emerald-700 shadow-md shadow-emerald-900/10 disabled:bg-slate-200 disabled:text-slate-400"
+                            ? "bg-slate-900 text-white shadow-lg hover:bg-black"
+                            : "bg-emerald-800 text-white shadow-md shadow-emerald-900/10 hover:bg-emerald-700 disabled:bg-slate-200 disabled:text-slate-400"
                         }`}
                       >
                         <span
-                          className={`material-symbols-outlined text-[16px] lg:text-[18px] transition-transform duration-500 ${
+                          className={`material-symbols-outlined text-[16px] transition-transform duration-500 lg:text-[18px] ${
                             inCart ? "rotate-[360deg]" : ""
                           }`}
                         >
