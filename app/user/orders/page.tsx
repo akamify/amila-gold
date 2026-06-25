@@ -82,15 +82,11 @@ export default function OrdersPage() {
   if (!isAuthenticated) return null;
 
   return (
-    <div className="flex-grow">
+    <div className="flex-grow mt-15">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-12">
         <div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-headline tracking-tighter text-primary italic">Order History</h1>
           <p className="text-on-surface-variant mt-2 font-body text-sm">Tracking your journey through the harvest.</p>
-        </div>
-        <div className="flex items-center gap-2 text-sm text-secondary font-bold uppercase tracking-widest cursor-pointer hover:bg-secondary/10 px-3 py-1.5 rounded-lg transition-colors">
-          <span>All Seasons</span>
-          <span className="material-symbols-outlined text-lg">expand_more</span>
         </div>
       </div>
 

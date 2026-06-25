@@ -202,7 +202,7 @@ export function ProductPageSkeleton() {
 
 export function OrderListSkeleton() {
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 mt-15">
       {[1, 2, 3].map((i) => (
         <div key={i} className="bg-surface-container-low rounded-2xl p-6 space-y-4 border border-outline-variant/20">
           <div className="flex justify-between items-start">

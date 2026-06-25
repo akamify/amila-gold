@@ -54,7 +54,7 @@ export default function WishlistPage() {
   };
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-12 mt-15">
       <header>
         <h1 className="text-4xl md:text-5xl font-headline tracking-tighter text-primary mb-4 italic">The Curated Harvest</h1>
         <p className="text-on-surface-variant max-w-xl font-body leading-relaxed text-sm lg:text-base">
