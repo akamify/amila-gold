@@ -51,6 +51,7 @@ export type VariantRow = {
   price: string;
   discountedPrice: string;
   stock: number;
+  stockLocked?: boolean;
   images: File[];
   existingImages: string[];
 };
@@ -66,6 +67,7 @@ export const createEmptyVariant = (): VariantRow => ({
   price: '',
   discountedPrice: '',
   stock: 0,
+  stockLocked: false,
   images: [],
   existingImages: [],
 });

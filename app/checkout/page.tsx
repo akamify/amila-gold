@@ -12,6 +12,7 @@ import {
   updateUserAddress,
   createBackendOrder,
   verifyBackendPayment,
+  sendOtp,
   type UserAddress,
   type UserAddressInput,
 } from "@/app/lib/apiClient";
@@ -21,6 +22,7 @@ import AddressModal from "@/app/components/address/AddressModal";
 import ResilientProductImage from "@/app/components/ResilientProductImage";
 import { fetchBackendProductById, matchVariantByCartSize } from "@/app/lib/backendProducts";
 import { createProductHref, getProductImageSources } from "@/app/data/products";
+import CheckoutEmailOtpModal from "./components/CheckoutEmailOtpModal";
 
 declare global {
   interface Window {
@@ -30,7 +32,6 @@ declare global {
 
 const SHIPPING = 0;
 const SELECTED_ADDRESS_STORAGE_KEY = "checkout:selected-address-id";
-const LOGIN_RETURN_TO = "/checkout";
 const checkoutItemKey = (id: number, size: string) => `${id}-${String(size || "").trim().toLowerCase()}`;
 const COD_CHARGE = (() => {
   const parsed = Number(String(process.env.NEXT_PUBLIC_COD_CHARGE || "").trim());
@@ -120,7 +121,7 @@ export default function CheckoutPage() {
   const isBuyNow = searchParams?.get('buyNow') === 'true';
 
   const { items, itemCount, clearCart, isHydrating } = useCart();
-  const { isAuthenticated, user, isLoading: isAuthLoading, setReturnUrl } = useAuth();
+  const { isAuthenticated, user, isLoading: isAuthLoading, completeEmailOtpLogin } = useAuth();
   const { settings, isLoading: isSettingsLoading } = useSiteSettings();
   const currencySymbol = settings.currencySymbol || "Rs.";
 
@@ -136,6 +137,14 @@ export default function CheckoutPage() {
   const [isLoadingAddresses, setIsLoadingAddresses] = useState(true);
   const [addressError, setAddressError] = useState("");
   const [newAddress, setNewAddress] = useState<UserAddressInput>(createEmptyAddress());
+  const [guestEmail, setGuestEmail] = useState("");
+  const [guestAddressReady, setGuestAddressReady] = useState(false);
+  const [otpEmail, setOtpEmail] = useState("");
+  const [checkoutOtp, setCheckoutOtp] = useState("");
+  const [otpError, setOtpError] = useState("");
+  const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
+  const [isOtpBusy, setIsOtpBusy] = useState(false);
+  const [checkoutNotice, setCheckoutNotice] = useState("");
   const [hasStockConflict, setHasStockConflict] = useState(false);
   const [stockConflictMessage, setStockConflictMessage] = useState("");
   const [codUnavailableNames, setCodUnavailableNames] = useState<string[]>([]);
@@ -286,6 +295,20 @@ export default function CheckoutPage() {
     persistSelectedAddressId(validSaved);
   };
 
+  const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+
+  const validateAddressFields = (address: UserAddressInput) => {
+    if (!address.FullName || !address.phone1 || !address.address || !address.city || !address.pinCode) {
+      return "Please fill all required address fields.";
+    }
+    return "";
+  };
+
+  const validateGuestCheckout = () => {
+    if (!isValidEmail(guestEmail)) return "Please enter a valid email address.";
+    return validateAddressFields(newAddress);
+  };
+
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "https://checkout.razorpay.com/v1/checkout.js";
@@ -343,8 +366,19 @@ export default function CheckoutPage() {
   };
 
   const handleAddressSubmit = async () => {
-    if (!newAddress.FullName || !newAddress.phone1 || !newAddress.address || !newAddress.city || !newAddress.pinCode) {
-      setAddressError("Please fill all required fields.");
+    const validationMessage = validateAddressFields(newAddress);
+    if (validationMessage) {
+      setAddressError(validationMessage);
+      return;
+    }
+    if (!isAuthenticated) {
+      if (!isValidEmail(guestEmail)) {
+        setAddressError("Please enter a valid email address.");
+        return;
+      }
+      setAddressError("");
+      setGuestAddressReady(true);
+      setCheckoutNotice("Address ready. Verify your email to continue checkout.");
       return;
     }
     try {
@@ -369,12 +403,59 @@ export default function CheckoutPage() {
     }
   };
 
-  const handlePayment = async () => {
-    if (!checkoutItemCount || isProcessing) return;
-    if (!isAuthenticated) {
+  const startGuestEmailVerification = async () => {
+    const validationMessage = validateGuestCheckout();
+    if (validationMessage) {
+      setAddressError(validationMessage);
+      setPaymentError(validationMessage);
+      return;
+    }
+
+    const normalizedEmail = guestEmail.trim().toLowerCase();
+    setIsOtpBusy(true);
+    setPaymentError("");
+    setOtpError("");
+    setCheckoutNotice("");
+    try {
+      await sendOtp(normalizedEmail);
+      setOtpEmail(normalizedEmail);
+      setCheckoutOtp("");
+      setIsOtpModalOpen(true);
+      setGuestAddressReady(true);
+    } catch (err) {
+      setPaymentError(err instanceof Error ? err.message : "Failed to send OTP. Please try again.");
+    } finally {
+      setIsOtpBusy(false);
+    }
+  };
+
+  const verifyGuestOtpAndCreateSession = async () => {
+    if (checkoutOtp.length !== 6 || !otpEmail) return;
+    setIsOtpBusy(true);
+    setOtpError("");
+    try {
+      await completeEmailOtpLogin(otpEmail, checkoutOtp);
+      const created = await createUserAddress(newAddress);
+      setAddresses([created]);
+      setSelectedAddressId(created.address_id);
+      persistSelectedAddressId(created.address_id);
+      setGuestEmail(otpEmail);
+      setGuestAddressReady(true);
+      setIsOtpModalOpen(false);
+      setCheckoutOtp("");
+      setCheckoutNotice("Email verified. Click place order to continue.");
       setPaymentError("");
-      setReturnUrl(LOGIN_RETURN_TO);
-      router.push(`/user/auth?returnTo=${encodeURIComponent(LOGIN_RETURN_TO)}`);
+    } catch (err) {
+      setOtpError(err instanceof Error ? err.message : "OTP verification failed.");
+    } finally {
+      setIsOtpBusy(false);
+    }
+  };
+
+  const handlePayment = async () => {
+    if (!checkoutItemCount || isProcessing || isOtpBusy) return;
+    if (!isAuthenticated) {
+      await startGuestEmailVerification();
       return;
     }
     if (hasStockConflict) {
@@ -516,18 +597,44 @@ export default function CheckoutPage() {
           {isPageLoading ? (
             <CheckoutAddressSkeleton />
           ) : !isAuthenticated ? (
-            <div className="flex min-h-[360px] flex-col items-center justify-center rounded-3xl border border-outline-variant/20 bg-surface-container-low p-8 text-center sm:min-h-[420px]">
-              <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <span className="material-symbols-outlined text-3xl">login</span>
+            <div className="rounded-3xl border border-outline-variant/20 bg-surface-container-low p-5 sm:p-6">
+              <div className="mb-5 rounded-2xl border border-primary/10 bg-white p-4">
+                <label className="flex flex-col gap-2">
+                  <span className="font-headline text-xs font-bold uppercase tracking-[0.18em] text-primary/70">
+                    Email for OTP verification
+                  </span>
+                  <input
+                    type="email"
+                    value={guestEmail}
+                    onChange={(event) => {
+                      setGuestEmail(event.target.value);
+                      setCheckoutNotice("");
+                    }}
+                    placeholder="you@example.com"
+                    className="rounded-xl border border-outline-variant/30 bg-surface px-4 py-3 text-sm outline-none transition focus:border-primary"
+                  />
+                </label>
+                <p className="mt-2 text-xs text-on-surface-variant">
+                  No password needed. We will verify this email before placing your order.
+                </p>
               </div>
-              <h2 className="font-headline text-2xl font-bold text-primary">Login to continue</h2>
-              <p className="mt-3 mb-7 max-w-sm text-sm leading-relaxed text-on-surface-variant">
-                Please login to select your delivery address and complete checkout securely.
-              </p>
-              <Link href={`/user/auth?returnTo=${encodeURIComponent(LOGIN_RETURN_TO)}`} className="inline-flex items-center justify-center gap-2 bg-primary text-on-primary px-9 py-3.5 rounded-full text-sm font-bold hover:opacity-90 transition-opacity">
-                <span className="material-symbols-outlined text-lg">lock_open</span>
-                Login
-              </Link>
+              <AddressForm
+                value={newAddress}
+                busy={isOtpBusy}
+                onChange={(next) => {
+                  setNewAddress(next);
+                  setGuestAddressReady(false);
+                  setCheckoutNotice("");
+                }}
+                onSubmit={handleAddressSubmit}
+                submitLabel={guestAddressReady ? "Address ready" : "Use this address"}
+                error={addressError}
+              />
+              {checkoutNotice ? (
+                <p className="mt-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+                  {checkoutNotice}
+                </p>
+              ) : null}
             </div>
           ) : isLoadingAddresses ? (
             <CheckoutAddressSkeleton />
@@ -692,18 +799,22 @@ export default function CheckoutPage() {
                 onClick={handlePayment}
                 disabled={
                   isProcessing ||
+                  isOtpBusy ||
+                  hasStockConflict ||
                   (isAuthenticated && (!selectedAddressId || hasStockConflict))
                 }
                 className="mt-6 w-full bg-primary text-on-primary py-4 rounded-full font-headline text-lg font-bold tracking-wide hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-xl"
               >
                 <span className="material-symbols-outlined">
-                  {isAuthenticated ? "credit_card" : "login"}
+                  {isAuthenticated ? "credit_card" : "mark_email_unread"}
                 </span>
                 <span>
                   {isProcessing
                     ? "Processing..."
+                    : isOtpBusy && !isAuthenticated
+                      ? "Sending OTP..."
                     : !isAuthenticated
-                      ? "Login to Checkout"
+                      ? "Verify Email"
                       : paymentMethod === "COD"
                         ? "Place COD Order"
                         : `Pay ${currencySymbol}${total.toFixed(2)}`}
@@ -712,7 +823,7 @@ export default function CheckoutPage() {
 
               <p className="text-center text-on-surface-variant text-xs font-body mt-3">
                 {!isAuthenticated
-                  ? "Login securely to select an address and complete your order."
+                  ? "Verify your email with OTP to create a secure session before ordering."
                   : paymentMethod === "COD"
                     ? "Cash on Delivery selected"
                     : "Secure checkout via Razorpay"}
@@ -724,6 +835,22 @@ export default function CheckoutPage() {
         </aside>
 
       </div>
+      {isOtpModalOpen ? (
+        <CheckoutEmailOtpModal
+          email={otpEmail}
+          otp={checkoutOtp}
+          busy={isOtpBusy}
+          error={otpError}
+          onOtpChange={setCheckoutOtp}
+          onVerify={verifyGuestOtpAndCreateSession}
+          onResend={startGuestEmailVerification}
+          onClose={() => {
+            if (isOtpBusy) return;
+            setIsOtpModalOpen(false);
+            setOtpError("");
+          }}
+        />
+      ) : null}
     </main>
   );
 }

@@ -227,6 +227,7 @@ export default function ProductEditor({
               price: String(v.price || ''),
               discountedPrice: String(v.originalPrice || v.selling_price || ''),
               stock: Number(v.stock || 0),
+              stockLocked: Number(v.stock || 0) <= 0,
               images: [],
               existingImages: Array.isArray(v.images) && v.images.length
                 ? (v.images as unknown[]).map((img) => String(img || '')).filter(Boolean)
@@ -944,12 +945,33 @@ export default function ProductEditor({
                       </div>
 
                       <div className="mt-4">
-                        <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">
-                          Stock Quantity
-                        </label>
+                        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                          <label className="block text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">
+                            Stock Quantity
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const next = [...variants];
+                              const current = next[variantIndex];
+                              next[variantIndex] = current.stockLocked
+                                ? { ...current, stockLocked: false }
+                                : { ...current, stock: 0, stockLocked: true };
+                              setVariants(next);
+                            }}
+                            className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                              variant.stockLocked
+                                ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 hover:bg-emerald-100'
+                                : 'bg-rose-50 text-rose-700 ring-1 ring-rose-200 hover:bg-rose-100'
+                            }`}
+                          >
+                            {variant.stockLocked ? 'Edit stock' : 'Mark as out of stock'}
+                          </button>
+                        </div>
                         <input
                           type="number"
                           value={variant.stock}
+                          disabled={variant.stockLocked}
                           onChange={(e) => {
                             const next = [...variants];
                             next[variantIndex] = {
@@ -959,8 +981,13 @@ export default function ProductEditor({
                             setVariants(next);
                           }}
                           placeholder="Available stock"
-                          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none transition focus:border-slate-400 focus:bg-white"
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none transition focus:border-slate-400 focus:bg-white disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
                         />
+                        {variant.stockLocked ? (
+                          <p className="mt-2 text-xs font-medium text-rose-600">
+                            This variant is marked out of stock and will save with stock 0.
+                          </p>
+                        ) : null}
                       </div>
 
                       <div className="mt-4 space-y-2">

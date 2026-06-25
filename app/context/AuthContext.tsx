@@ -40,6 +40,7 @@ interface AuthContextType {
   setReturnUrl: (url: string) => void;
   sendLoginOtp: (email: string) => Promise<void>;
   verifyLoginOtp: (otp: string) => Promise<void>;
+  completeEmailOtpLogin: (email: string, otp: string) => Promise<UserSession>;
   logout: () => void;
   resetLogin: () => void;
 }
@@ -130,6 +131,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [loginEmail]);
 
+  const completeEmailOtpLogin = useCallback(async (email: string, otp: string) => {
+    setError(null);
+    setIsLoading(true);
+    try {
+      const result = await verifyOtp(email, otp);
+      const session: UserSession = {
+        token: result.token,
+        email: result.email,
+      };
+      setUserSession(session);
+      setUser(session);
+      setLoginStep('email');
+      setLoginEmail('');
+      clearPersistedReturnUrl();
+      setReturnUrlState(DEFAULT_RETURN_URL);
+      return session;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Invalid OTP';
+      setError(message);
+      throw new Error(message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   const logout = useCallback(() => {
     clearUserSession();
     clearPersistedReturnUrl();
@@ -158,6 +184,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setReturnUrl,
     sendLoginOtp,
     verifyLoginOtp,
+    completeEmailOtpLogin,
     logout,
     resetLogin,
   };
