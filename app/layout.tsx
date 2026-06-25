@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Manrope, Newsreader } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import ClientWrapper from "./components/ClientWrapper";
 import MetaPixel from "./components/MetaPixel";
@@ -16,8 +17,11 @@ const newsreader = Newsreader({
 });
 
 export const metadata: Metadata = {
-  title: "Amila Gold | Pure Desi Jaggery",
-  description: "The gold standard of ancient agrarian wisdom. Pure, unrefined jaggery harvested with integrity and refined for the modern palate.",
+  title: {
+    default: "Amila Gold",
+    template: "%s",
+  },
+  description: "Pure organic jaggery and traditional desi gud from Amila Gold.",
 };
 
 export default function RootLayout({
@@ -36,6 +40,18 @@ export default function RootLayout({
         suppressHydrationWarning
         className={`${manrope.variable} ${newsreader.variable} font-body bg-surface text-on-surface antialiased selection:bg-secondary-container selection:text-on-secondary-container`}
       >
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-L5ZZPBMBN6"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){window.dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-L5ZZPBMBN6');
+          `}
+        </Script>
         {/* Google Tag Manager (noscript) */}
         <noscript>
           <iframe

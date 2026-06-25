@@ -4,13 +4,34 @@ import React, { useRef, useState, useEffect } from "react";
 
 export default function HeritageSection() {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const videoWrapperRef = useRef<HTMLDivElement>(null);
   const [isMuted, setIsMuted] = useState(true);
+  const [shouldLoadVideo, setShouldLoadVideo] = useState(false);
 
   useEffect(() => {
+    const wrapper = videoWrapperRef.current;
+    if (!wrapper || shouldLoadVideo) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+        setShouldLoadVideo(true);
+        observer.disconnect();
+      },
+      { rootMargin: "200px 0px" }
+    );
+
+    observer.observe(wrapper);
+    return () => observer.disconnect();
+  }, [shouldLoadVideo]);
+
+  useEffect(() => {
+    if (!shouldLoadVideo) return;
     const video = videoRef.current;
     if (!video) return;
 
     video.muted = true;
+    video.load();
     const playPromise = video.play();
 
     if (playPromise !== undefined) {
@@ -34,7 +55,7 @@ export default function HeritageSection() {
     return () => {
       video.removeEventListener("timeupdate", handleIteration);
     };
-  }, []);
+  }, [shouldLoadVideo]);
 
   const toggleMute = () => {
     if (videoRef.current) {
@@ -98,20 +119,21 @@ export default function HeritageSection() {
               
               {/* 2. ULTIMATE HEIGHT FIX: Desktop (lg:) par ratio ko seedhe SQUARE (`aspect-square`) kar diya hai.
                      Mobile par yeh `4/5` portrait hi rahegi, par desktop par height kaafi kam ho jayegi aur video ab hide nahi hogi. */}
-              <div className="relative aspect-[3/4] lg:aspect-[3/4] w-full rounded-xl overflow-hidden shadow-xl bg-slate-100 transform-gpu will-change-transform border-4 border-white">
+              <div ref={videoWrapperRef} className="relative aspect-[3/4] lg:aspect-[3/4] w-full rounded-xl overflow-hidden shadow-xl bg-slate-100 transform-gpu will-change-transform border-4 border-white">
                 
                 <video
                   ref={videoRef}
-                  autoPlay
+                  autoPlay={shouldLoadVideo}
                   muted
                   loop
-                  preload="metadata"
+                  preload="none"
                   playsInline
                   poster="https://lh3.googleusercontent.com/aida-public/AB6AXuD-2z1dIigqEBYNJuzA_d5P4XiqmlBm3djIsa_mIZxua1FX5wTpi_-_qbCaM85WuFX_NHUr56w868SFwcrRuinbc8xFDx7vB70lXBFpimL4GcJ3Hr2O-GvfuaoDbXzQLU4CrjDAtartUEP19NKHCbYgguWYHs9Y30jspsFgnwvgPah3TisIMry62W8JoUZhTILGObXhlsgDMUQ-sc43-dogRjNw8fiItJnfyUIDrHEo-qJSp9IJbWcRX8vUQNfC28mO9gM9fslOEvo"
                   // 3. Object-cover ensure karta hai ki video stretch na ho aur cut bhi minimize ho height kam karne par.
                   className="w-full h-full object-cover"
                 >
-                  <source src="jaggery.mp4" type="video/mp4" />
+                  {/* TODO: Compress /public/jaggery.mp4 from ~85MB to under 1.5MB using FFmpeg, HandBrake, or Cloudinary. */}
+                  {shouldLoadVideo ? <source src="/jaggery.mp4" type="video/mp4" /> : null}
                   Your browser does not support the video tag.
                 </video>
 
