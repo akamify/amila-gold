@@ -71,7 +71,10 @@ async function fetchJsonWithRetry<T>(url: string, options: FetchOptions = {}): P
   const retries = Math.max(0, options.retries ?? 1);
   const timeoutMs = Math.max(500, options.timeoutMs ?? 2500);
   const backoffMs = Math.max(50, options.backoffMs ?? 900);
-  const { timeoutMs: _timeoutMs, retries: _retries, backoffMs: _backoffMs, ...fetchOptions } = options;
+  const fetchOptions = { ...options };
+  delete fetchOptions.timeoutMs;
+  delete fetchOptions.retries;
+  delete fetchOptions.backoffMs;
 
   for (let attempt = 0; attempt <= retries; attempt += 1) {
     const controller = new AbortController();
@@ -209,7 +212,7 @@ export async function fetchPublicTestimonialsData(): Promise<PublicTestimonial[]
       const rows = Array.isArray(asRecord(payload).testimonials) ? (asRecord(payload).testimonials as unknown[]) : [];
       return rows.map(mapTestimonial).filter((item): item is PublicTestimonial => item !== null);
     },
-    { timeoutMs: 4000, retries: 1, backoffMs: 900, next: { revalidate: 3600, tags: ["testimonials"] } }
+    { timeoutMs: 4000, retries: 1, backoffMs: 900, cache: "no-store", next: { revalidate: 0, tags: ["testimonials"] } }
   );
 }
 
@@ -218,7 +221,7 @@ export async function fetchPublicHomepageData(): Promise<PublicHomepageData> {
     return await fetchFromFirstAvailable(
       "/admin/homepage/public",
       mapHomepagePayload,
-      { timeoutMs: 4500, retries: 1, backoffMs: 1000, next: { revalidate: 300, tags: ["homepage", "products", "banners"] } }
+      { timeoutMs: 4500, retries: 1, backoffMs: 1000, cache: "no-store", next: { revalidate: 0, tags: ["homepage", "products", "banners", "testimonials"] } }
     );
   } catch (aggregateError) {
     devLog("aggregate homepage endpoint failed, using settled fallbacks", aggregateError);

@@ -26,6 +26,10 @@ function isPublicCacheableGet(method: string, pathString: string) {
 
 function withPublicCacheHeaders(response: NextResponse, method: string, pathString: string) {
   if (!isPublicCacheableGet(method, pathString)) return response;
+  if (pathString === 'admin/homepage/public' || pathString === 'admin/testimonials/public') {
+    response.headers.set('Cache-Control', 'no-store, max-age=0');
+    return response;
+  }
   response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=86400');
   return response;
 }

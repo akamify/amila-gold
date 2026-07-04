@@ -25,6 +25,15 @@ const emptyForm: FormState = {
   isActive: true,
 };
 
+const HOMEPAGE_PUBLIC_CACHE_KEY = 'amila_homepage_public_cache_v1';
+const TESTIMONIALS_STORAGE_KEY = 'sr_testimonials';
+
+function clearPublicTestimonialCaches() {
+  if (typeof window === 'undefined') return;
+  window.localStorage.removeItem(HOMEPAGE_PUBLIC_CACHE_KEY);
+  window.localStorage.removeItem(TESTIMONIALS_STORAGE_KEY);
+}
+
 export default function AdminTestimonialsPage() {
   const [items, setItems] = useState<AdminTestimonial[]>([]);
   const [loading, setLoading] = useState(true);
@@ -97,6 +106,7 @@ export default function AdminTestimonialsPage() {
         await createAdminTestimonial(payload);
         setMessage('Testimonial created successfully.');
       }
+      clearPublicTestimonialCaches();
       await load();
       resetForm();
     } catch (err) {
@@ -113,6 +123,7 @@ export default function AdminTestimonialsPage() {
       setDeletingId(id);
       setError('');
       await deleteAdminTestimonial(id);
+      clearPublicTestimonialCaches();
       setMessage('Testimonial removed.');
       if (editingId === id) resetForm();
       await load();
