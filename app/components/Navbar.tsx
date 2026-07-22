@@ -255,7 +255,7 @@ export default function Navbar() {
 
         <aside
           data-lenis-prevent
-          className={`absolute left-0 top-0 flex h-full w-[88vw] max-w-[410px] flex-col overflow-hidden rounded-r-[2rem] bg-[#FFFCF6] shadow-2xl transition-transform duration-500 ease-out ${
+          className={`absolute left-0 top-0 flex h-full w-[88vw] max-w-[410px] flex-col overflow-hidden rounded-r-[4px] bg-[#FFFCF6] shadow-2xl transition-transform duration-500 ease-out ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
