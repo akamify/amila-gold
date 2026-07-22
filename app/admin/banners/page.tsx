@@ -3,14 +3,12 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   AlertCircle,
-  ArrowUpRight,
   CheckCircle2,
   Edit3,
   Eye,
   EyeOff,
   FileImage,
   ImageIcon,
-  Link2,
   Loader2,
   MonitorPlay,
   Plus,
@@ -28,9 +26,6 @@ import {
 } from "@/app/lib/apiClient";
 
 type BannerFormState = {
-  title: string;
-  subtitle: string;
-  targetUrl: string;
   imageUrl: string;
   order: string;
   isActive: boolean;
@@ -38,9 +33,6 @@ type BannerFormState = {
 };
 
 const initialForm: BannerFormState = {
-  title: "",
-  subtitle: "",
-  targetUrl: "",
   imageUrl: "",
   order: "0",
   isActive: true,
@@ -78,9 +70,8 @@ function BannerSkeleton() {
             <div className="h-28 animate-pulse rounded-[10px] bg-slate-100" />
 
             <div className="grid gap-2">
-              <div className="h-4 w-3/5 animate-pulse rounded bg-slate-100" />
+              <div className="h-4 w-2/5 animate-pulse rounded bg-slate-100" />
               <div className="h-3 w-4/5 animate-pulse rounded bg-slate-100" />
-              <div className="h-3 w-2/5 animate-pulse rounded bg-slate-100" />
             </div>
 
             <div className="hidden h-10 animate-pulse rounded bg-slate-100 lg:block" />
@@ -202,10 +193,6 @@ export default function AdminBannersPage() {
   };
 
   const validateForm = () => {
-    if (!form.targetUrl.trim()) {
-      return "Target URL is required.";
-    }
-
     if (!form.imageFile && !form.imageUrl.trim() && !editingItem?.imageUrl) {
       return "Banner image is required.";
     }
@@ -229,9 +216,6 @@ export default function AdminBannersPage() {
       setMessage("");
 
       const payload = {
-        title: form.title.trim(),
-        subtitle: form.subtitle.trim(),
-        targetUrl: form.targetUrl.trim(),
         imageUrl: form.imageUrl.trim() || undefined,
         order: Number(form.order || 0),
         isActive: form.isActive,
@@ -261,9 +245,6 @@ export default function AdminBannersPage() {
     setError("");
     setMessage("");
     setForm({
-      title: item.title || "",
-      subtitle: item.subtitle || "",
-      targetUrl: item.targetUrl || "",
       imageUrl: item.imageUrl || "",
       order: String(item.order ?? 0),
       isActive: item.isActive !== false,
@@ -316,8 +297,7 @@ export default function AdminBannersPage() {
             </h1>
 
             <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-slate-500">
-              Create, update, preview and control homepage banners from one clean
-              admin workspace.
+              Upload and control homepage banner images from one clean admin workspace.
             </p>
           </div>
 
@@ -396,8 +376,7 @@ export default function AdminBannersPage() {
               Banner List
             </h2>
             <p className="mt-1 text-xs font-medium text-slate-500">
-              Clean list view with full image visibility, status, order and quick
-              actions.
+              Clean list view with full image visibility, status, order and quick actions.
             </p>
           </div>
 
@@ -409,7 +388,7 @@ export default function AdminBannersPage() {
 
         <div className="hidden border-b border-slate-200 bg-white px-5 py-3 text-[10px] font-black uppercase tracking-[0.12em] text-slate-400 lg:grid lg:grid-cols-[220px_minmax(0,1fr)_150px_210px]">
           <div>Preview</div>
-          <div>Banner Details</div>
+          <div>Image Details</div>
           <div>Status</div>
           <div className="text-right">Actions</div>
         </div>
@@ -461,7 +440,7 @@ export default function AdminBannersPage() {
                       {item.imageUrl ? (
                         <img
                           src={item.imageUrl}
-                          alt={item.title || "Banner preview"}
+                          alt="Banner image preview"
                           className="h-full w-full object-contain p-1"
                         />
                       ) : (
@@ -482,7 +461,7 @@ export default function AdminBannersPage() {
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="truncate text-base font-black tracking-[-0.02em] text-slate-950">
-                          {item.title || "Untitled Banner"}
+                          Banner Image
                         </h3>
 
                         <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.08em] text-slate-500">
@@ -490,21 +469,9 @@ export default function AdminBannersPage() {
                         </span>
                       </div>
 
-                      <p className="mt-2 line-clamp-2 text-sm font-medium leading-6 text-slate-500">
-                        {item.subtitle || "No subtitle added"}
+                      <p className="mt-2 truncate rounded-[10px] bg-slate-100 px-3 py-2 text-xs font-bold text-slate-600">
+                        {item.imageUrl || "No image URL"}
                       </p>
-
-                      <div className="mt-3 flex min-w-0 items-center gap-2 rounded-[10px] bg-slate-100 px-3 py-2">
-                        <Link2
-                          size={14}
-                          strokeWidth={2.6}
-                          className="shrink-0 text-slate-400"
-                        />
-
-                        <p className="min-w-0 truncate text-xs font-bold text-slate-600">
-                          {item.targetUrl || "No target URL"}
-                        </p>
-                      </div>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2 lg:block">
@@ -573,7 +540,7 @@ export default function AdminBannersPage() {
                 </p>
 
                 <h2 className="mt-1 text-xl font-black tracking-[-0.03em] text-slate-950">
-                  {editingId ? "Edit homepage banner" : "New homepage banner"}
+                  {editingId ? "Edit banner image" : "New banner image"}
                 </h2>
               </div>
 
@@ -594,55 +561,37 @@ export default function AdminBannersPage() {
                   <div className="grid gap-4">
                     <label className="grid gap-2">
                       <span className="text-xs font-black text-slate-500">
-                        Banner Title
+                        External Image URL
                       </span>
 
                       <input
-                        value={form.title}
+                        value={form.imageUrl}
                         onChange={(event) =>
                           setForm((current) => ({
                             ...current,
-                            title: event.target.value,
+                            imageUrl: event.target.value,
                           }))
                         }
-                        placeholder="Summer Collection 2026"
+                        placeholder="https://images.com/banner.jpg"
                         className="h-11 rounded-[12px] border border-slate-300 bg-white px-4 text-sm font-bold text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-slate-950 focus:ring-4 focus:ring-slate-950/5"
                       />
                     </label>
 
                     <label className="grid gap-2">
                       <span className="text-xs font-black text-slate-500">
-                        Subtitle / Description
+                        Display Order
                       </span>
 
                       <input
-                        value={form.subtitle}
+                        type="number"
+                        value={form.order}
                         onChange={(event) =>
                           setForm((current) => ({
                             ...current,
-                            subtitle: event.target.value,
+                            order: event.target.value,
                           }))
                         }
-                        placeholder="Up to 50% off on all items"
-                        className="h-11 rounded-[12px] border border-slate-300 bg-white px-4 text-sm font-bold text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-slate-950 focus:ring-4 focus:ring-slate-950/5"
-                      />
-                    </label>
-
-                    <label className="grid gap-2">
-                      <span className="text-xs font-black text-slate-500">
-                        Redirect Link <span className="text-red-500">*</span>
-                      </span>
-
-                      <input
-                        value={form.targetUrl}
-                        onChange={(event) =>
-                          setForm((current) => ({
-                            ...current,
-                            targetUrl: event.target.value,
-                          }))
-                        }
-                        placeholder="/collections/new-arrivals"
-                        className="h-11 rounded-[12px] border border-slate-300 bg-white px-4 text-sm font-bold text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-slate-950 focus:ring-4 focus:ring-slate-950/5"
+                        className="h-11 rounded-[12px] border border-slate-300 bg-white px-4 text-sm font-black text-slate-950 outline-none transition focus:border-slate-950 focus:ring-4 focus:ring-slate-950/5"
                       />
                     </label>
                   </div>
@@ -673,47 +622,9 @@ export default function AdminBannersPage() {
                     </div>
 
                     <p className="text-xs font-medium leading-5 text-slate-400">
-                      Image will fit inside preview without cropping.
+                      Recommended banner ratio: 1600×666 px. Image will fit without cropping.
                     </p>
                   </div>
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  <label className="grid gap-2">
-                    <span className="text-xs font-black text-slate-500">
-                      External Image URL
-                    </span>
-
-                    <input
-                      value={form.imageUrl}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          imageUrl: event.target.value,
-                        }))
-                      }
-                      placeholder="https://images.com/banner.jpg"
-                      className="h-11 rounded-[12px] border border-slate-300 bg-white px-4 text-sm font-bold text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-slate-950 focus:ring-4 focus:ring-slate-950/5"
-                    />
-                  </label>
-
-                  <label className="grid gap-2">
-                    <span className="text-xs font-black text-slate-500">
-                      Display Order
-                    </span>
-
-                    <input
-                      type="number"
-                      value={form.order}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          order: event.target.value,
-                        }))
-                      }
-                      className="h-11 rounded-[12px] border border-slate-300 bg-white px-4 text-sm font-black text-slate-950 outline-none transition focus:border-slate-950 focus:ring-4 focus:ring-slate-950/5"
-                    />
-                  </label>
                 </div>
 
                 <label className="grid gap-2">
@@ -743,7 +654,7 @@ export default function AdminBannersPage() {
                     </p>
 
                     <p className="mt-1 text-xs font-medium text-slate-400">
-                      Image file only
+                      Image file only · Best size 1600×666 px
                     </p>
                   </div>
                 </label>
@@ -839,7 +750,7 @@ export default function AdminBannersPage() {
                 </p>
 
                 <h2 className="mt-1 truncate text-xl font-black tracking-[-0.03em] text-slate-950">
-                  {viewItem.title || "Untitled Banner"}
+                  Banner Image
                 </h2>
               </div>
 
@@ -860,7 +771,7 @@ export default function AdminBannersPage() {
                     {viewItem.imageUrl ? (
                       <img
                         src={viewItem.imageUrl}
-                        alt={viewItem.title || "Banner preview"}
+                        alt="Banner image preview"
                         className="max-h-full max-w-full object-contain p-3"
                       />
                     ) : (
@@ -880,15 +791,6 @@ export default function AdminBannersPage() {
                 </div>
 
                 <aside className="grid gap-3 self-start">
-                  <div className="rounded-[14px] border border-slate-200 bg-slate-50 p-4">
-                    <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">
-                      Subtitle
-                    </p>
-                    <p className="mt-2 text-sm font-bold leading-6 text-slate-700">
-                      {viewItem.subtitle || "No subtitle added"}
-                    </p>
-                  </div>
-
                   <div className="rounded-[14px] border border-slate-200 bg-white p-4">
                     <div className="grid gap-3">
                       <div className="flex items-center justify-between gap-4">
@@ -909,29 +811,17 @@ export default function AdminBannersPage() {
 
                       <div className="grid gap-2">
                         <span className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">
-                          Target URL
+                          Image URL
                         </span>
 
                         <p className="break-all rounded-[10px] bg-slate-100 px-3 py-2 text-xs font-bold text-slate-600">
-                          {viewItem.targetUrl || "No target URL"}
+                          {viewItem.imageUrl || "No image URL"}
                         </p>
                       </div>
                     </div>
                   </div>
 
                   <div className="flex flex-wrap gap-2">
-                    {viewItem.targetUrl ? (
-                      <a
-                        href={viewItem.targetUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-[12px] border border-slate-200 bg-white px-4 text-xs font-black text-slate-700 transition hover:border-slate-950 hover:bg-slate-950 hover:text-white active:scale-[0.98]"
-                      >
-                        Open Link
-                        <ArrowUpRight size={14} strokeWidth={2.7} />
-                      </a>
-                    ) : null}
-
                     <button
                       type="button"
                       onClick={() => {
@@ -975,7 +865,7 @@ export default function AdminBannersPage() {
                 <p className="mt-1 text-sm font-medium leading-6 text-slate-500">
                   This will permanently remove{" "}
                   <b className="text-slate-800">
-                    {deleteTarget.title || "this banner"}
+                    this banner image
                   </b>
                   . This action cannot be undone.
                 </p>

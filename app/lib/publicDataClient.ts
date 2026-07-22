@@ -4,9 +4,6 @@ import type { Product } from "@/app/data/products";
 
 export type PublicBanner = {
   id: string;
-  title: string;
-  subtitle: string;
-  href: string;
   img: string;
 };
 
@@ -107,13 +104,9 @@ function buildUrl(base: string, path: string) {
 function mapBanner(value: unknown): PublicBanner | null {
   const row = asRecord(value);
   const image = String(row.imageUrl || row.img || "").trim();
-  const href = String(row.targetUrl || row.href || "/shop").trim();
   if (!image) return null;
   return {
     id: String(row.id || row._id || image),
-    title: String(row.title || ""),
-    subtitle: String(row.subtitle || ""),
-    href: href || "/shop",
     img: image,
   };
 }

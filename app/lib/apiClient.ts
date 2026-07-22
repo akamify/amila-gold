@@ -1638,9 +1638,9 @@ export async function fetchPublicBanners(): Promise<AdminBanner[]> {
 }
 
 export async function createAdminBanner(payload: {
-    title: string;
-    subtitle: string;
-    targetUrl: string;
+    title?: string;
+    subtitle?: string;
+    targetUrl?: string;
     order?: number;
     isActive?: boolean;
     width?: number;
@@ -1651,7 +1651,7 @@ export async function createAdminBanner(payload: {
     const form = new FormData();
     form.append('title', payload.title || '');
     form.append('subtitle', payload.subtitle || '');
-    form.append('targetUrl', payload.targetUrl || '');
+    form.append('targetUrl', payload.targetUrl || '/shop');
     form.append('order', String(payload.order ?? 0));
     form.append('isActive', String(payload.isActive !== false));
     form.append('width', String(payload.width ?? 1200));

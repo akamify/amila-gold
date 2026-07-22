@@ -1,17 +1,13 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, ShoppingBag } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { peekCached, putCached } from "@/app/lib/clientCache";
 import { fetchPublicBannersData } from "@/app/lib/publicDataClient";
 
 type HeroBanner = {
   id: string;
-  title: string;
-  subtitle: string;
-  href: string;
   img: string;
 };
 
@@ -22,9 +18,6 @@ type HeroSectionProps = {
 
 const FALLBACK_HERO: HeroBanner = {
   id: "static-amila-hero",
-  title: "Pure Desi Jaggery, Crafted for Modern Homes",
-  subtitle: "Amila Gold",
-  href: "/shop",
   img: "/fallback_banner.png",
 };
 
@@ -42,9 +35,6 @@ const processRows = (rows: unknown[]): HeroBanner[] =>
 
       return {
         id: String(row.id || row._id || image),
-        title: String(row.title || ""),
-        subtitle: String(row.subtitle || ""),
-        href: String(row.targetUrl || row.href || "/shop"),
         img: image,
       };
     })
@@ -124,7 +114,7 @@ export default function HeroSection({
   };
 
   return (
-    <section className="relative mt-16 h-[30vh] w-full overflow-hidden bg-stone-900 sm:h-[70vh] md:mt-20 md:h-[80vh]">
+    <section className="relative mt-16 aspect-[1600/666] w-full overflow-hidden bg-stone-900 md:mt-20">
       {banners.map((slide, index) => {
         const isActive = activeIndex === index;
 
@@ -138,75 +128,20 @@ export default function HeroSection({
             {slide.img ? (
               <Image
                 src={slide.img}
-                alt={slide.title || slide.subtitle || "Banner"}
+                alt="Homepage banner"
                 fill
                 priority={index === 0}
                 fetchPriority={index === 0 ? "high" : "auto"}
                 loading={index === 0 ? "eager" : "lazy"}
                 sizes="100vw"
                 quality={index === 0 ? 78 : 65}
-                className={`object-cover transition-transform duration-[10000ms] ease-linear ${
+                className={`object-contain transition-transform duration-[10000ms] ease-linear ${
                   isActive ? "scale-110" : "scale-100"
                 }`}
               />
             ) : (
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(245,158,11,0.38),transparent_32%),linear-gradient(135deg,#1c140b_0%,#4b2e11_48%,#111827_100%)]" />
             )}
-
-            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-
-            <div className="absolute inset-0 flex items-center justify-start pb-0">
-              <div className="container mx-auto px-6 sm:px-8 md:px-12">
-                <div className="flex min-h-[140px] max-w-2xl flex-col gap-3 sm:min-h-[200px] sm:gap-4 md:min-h-[240px] md:gap-6">
-                  {slide.subtitle ? (
-                    <span
-                      className={`inline-block transform text-[10px] font-bold uppercase tracking-[0.25em] text-amber-400 transition-all delay-300 duration-700 sm:text-xs md:text-sm ${
-                        isActive
-                          ? "translate-y-0 opacity-100"
-                          : "translate-y-4 opacity-0"
-                      }`}
-                    >
-                      {slide.subtitle}
-                    </span>
-                  ) : null}
-
-                  {slide.title ? (
-                    <h1
-                      className={`text-2xl font-black leading-[1.05] text-white drop-shadow-xl transition-all delay-500 duration-1000 sm:text-6xl sm:leading-[1.1] md:text-7xl lg:text-6xl ${
-                        isActive
-                          ? "translate-y-0 opacity-100"
-                          : "translate-y-8 opacity-0"
-                      }`}
-                    >
-                      {slide.title}
-                    </h1>
-                  ) : null}
-
-                  <div
-                    className={`mt-auto pt-4 transition-all delay-700 duration-700 sm:pt-6 ${
-                      isActive
-                        ? "translate-y-0 opacity-100"
-                        : "translate-y-4 opacity-0"
-                    }`}
-                  >
-                    <Link
-                      href={slide.href}
-                      className="group relative inline-flex items-center gap-3 overflow-hidden rounded-full bg-amber-500 px-4 py-2 font-bold text-stone-900 shadow-[0_4px_20px_rgba(245,158,11,0.3)] transition-all hover:bg-amber-400 hover:shadow-[0_4px_25px_rgba(245,158,11,0.5)] active:scale-95 md:px-8 md:py-4"
-                    >
-                      <ShoppingBag
-                        size={18}
-                        className="md:h-5 md:w-5"
-                        strokeWidth={2.5}
-                      />
-                      <span className="text-xs uppercase tracking-wide sm:text-sm">
-                        Shop Collection
-                      </span>
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         );
       })}
@@ -249,14 +184,6 @@ export default function HeroSection({
           </button>
         </div>
       ) : null}
-
-      <div className="absolute right-10 top-1/2 z-20 hidden -translate-y-1/2 flex-col items-center gap-6 text-white/40 xl:flex">
-        <span className="h-24 w-px bg-gradient-to-b from-transparent via-white/50 to-transparent" />
-        <p className="vertical-text rotate-180 font-headline text-[11px] font-semibold uppercase tracking-[0.4em]">
-          Premium Agrarian
-        </p>
-        <span className="h-24 w-px bg-gradient-to-b from-white/50 via-white/50 to-transparent" />
-      </div>
     </section>
   );
 }
