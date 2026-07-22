@@ -1,3 +1,4 @@
+import SymbolIcon from "@/app/components/icons/SymbolIcon";
 export default function Comp1() {
   return (
     <>
@@ -15,42 +16,42 @@ export default function Comp1() {
             className="text-[#ebe7e7] px-6 py-4 flex items-center gap-4 opacity-60 hover:bg-[#b90c1b] hover:opacity-100 transition-all duration-150 text-sm tracking-widest font-['Space_Grotesk']"
             href="/"
           >
-            <span className="material-symbols-outlined">dashboard</span>
+            <SymbolIcon name={"dashboard"} />
             Dashboard
           </a>
           <a
             className="text-[#ebe7e7] px-6 py-4 flex items-center gap-4 opacity-60 hover:bg-[#b90c1b] hover:opacity-100 transition-all duration-150 text-sm tracking-widest font-['Space_Grotesk']"
             href="/"
           >
-            <span className="material-symbols-outlined">inventory_2</span>
+            <SymbolIcon name={"inventory_2"} />
             Products
           </a>
           <a
             className="text-[#ebe7e7] px-6 py-4 flex items-center gap-4 opacity-60 hover:bg-[#b90c1b] hover:opacity-100 transition-all duration-150 text-sm tracking-widest font-['Space_Grotesk']"
             href="/"
           >
-            <span className="material-symbols-outlined">shopping_cart</span>
+            <SymbolIcon name={"shopping_cart"} />
             Orders
           </a>
           <a
             className="bg-[#b90c1b] text-white font-bold px-6 py-4 flex items-center gap-4 translate-x-1 text-sm tracking-widest font-['Space_Grotesk']"
             href="/"
           >
-            <span className="material-symbols-outlined">group</span>
+            <SymbolIcon name={"group"} />
             Customers
           </a>
           <a
             className="text-[#ebe7e7] px-6 py-4 flex items-center gap-4 opacity-60 hover:bg-[#b90c1b] hover:opacity-100 transition-all duration-150 text-sm tracking-widest font-['Space_Grotesk']"
             href="/"
           >
-            <span className="material-symbols-outlined">analytics</span>
+            <SymbolIcon name={"analytics"} />
             Analytics
           </a>
           <a
             className="text-[#ebe7e7] px-6 py-4 flex items-center gap-4 opacity-60 hover:bg-[#b90c1b] hover:opacity-100 transition-all duration-150 text-sm tracking-widest font-['Space_Grotesk']"
             href="/"
           >
-            <span className="material-symbols-outlined">settings</span>
+            <SymbolIcon name={"settings"} />
             Settings
           </a>
         </nav>

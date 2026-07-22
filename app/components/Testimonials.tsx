@@ -1,4 +1,5 @@
 "use client";
+import SymbolIcon from "@/app/components/icons/SymbolIcon";
 
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -291,9 +292,7 @@ function TestimonialsSection({
           ) : testimonials.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-[18px] border border-primary/10 bg-surface-container-low px-5 py-12 text-center md:py-16">
               <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-surface-container-highest">
-                <span className="material-symbols-outlined text-3xl text-on-surface-variant/40">
-                  chat_bubble_outline
-                </span>
+                <SymbolIcon name={"chat_bubble_outline"} className="text-3xl text-on-surface-variant/40" />
               </div>
 
               <h3 className="font-headline mb-2 text-2xl text-primary md:text-3xl">

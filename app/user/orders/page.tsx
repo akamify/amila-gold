@@ -1,4 +1,5 @@
 "use client";
+import SymbolIcon from "@/app/components/icons/SymbolIcon";
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRequireAuth } from "@/app/context/AuthContext";
@@ -118,7 +119,7 @@ export default function OrdersPage() {
                   <p className="text-[9px] md:text-[10px] uppercase tracking-widest text-on-surface-variant mb-1 font-bold">Status</p>
                   <div className={`flex items-center gap-2 ${order.statusColor}`}>
                     {order.statusBg && <span className={`w-2 h-2 rounded-full ${order.statusBg}`}></span>}
-                    {order.icon && <span className="material-symbols-outlined text-[16px] md:text-[20px]">{order.icon}</span>}
+                    {order.icon && <SymbolIcon name={order.icon} className="text-[16px] md:text-[20px]" />}
                     <p className="font-bold text-sm md:text-base">{order.status}</p>
                   </div>
                 </div>
@@ -148,7 +149,7 @@ export default function OrdersPage() {
 
       {/* Empty State Message */}
       <div className="mt-20 py-16 border-t border-outline-variant/20 flex flex-col items-center text-center">
-        <span className="material-symbols-outlined text-4xl text-outline mb-4 opacity-50">history</span>
+        <SymbolIcon name={"history"} className="text-4xl text-outline mb-4 opacity-50" />
         <p className="font-headline text-2xl text-primary italic font-bold">Looking for older harvests?</p>
         <p className="text-on-surface-variant max-w-sm mt-3 text-sm leading-relaxed">
           Orders older than one year are archived. Please contact our heritage concierge for historical records.

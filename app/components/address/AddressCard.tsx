@@ -1,4 +1,5 @@
 'use client';
+import SymbolIcon from "@/app/components/icons/SymbolIcon";
 
 import type { UserAddress } from '@/app/lib/apiClient';
 
@@ -19,7 +20,7 @@ export default function AddressCard({ address, selected, onSelect, onEdit }: Add
                     <p className="font-brand text-2xl leading-none">{address.FullName}</p>
                     <p className="mt-2 font-headline text-xs opacity-60">{address.addressType || 'Home'}</p>
                 </div>
-                {selected && <span className="material-symbols-outlined text-[#b90c1b]">check_circle</span>}
+                {selected && <SymbolIcon name={"check_circle"} className="text-[#b90c1b]" />}
             </div>
 
             <p className="mt-3 font-headline text-sm opacity-70 leading-relaxed">

@@ -1,4 +1,5 @@
 "use client";
+import SymbolIcon from "@/app/components/icons/SymbolIcon";
 import React from "react";
 import Link from "next/link";
 import { useCart } from "@/app/context/CartContext";
@@ -77,7 +78,7 @@ export default function WishlistPage() {
                 onClick={() => removeItem(item.id)}
                 className="absolute top-4 right-4 bg-surface/80 backdrop-blur-md p-2 rounded-full text-secondary transition-all hover:bg-surface hover:text-primary active:scale-90 shadow-sm z-10"
               >
-                <span className="material-symbols-outlined text-[20px] icon-filled">favorite</span>
+                <SymbolIcon name={"favorite"} className="text-[20px]" />
               </button>
 
               {item.collection ? (
@@ -114,9 +115,7 @@ export default function WishlistPage() {
               className={`w-full py-3.5 rounded-full font-label text-xs tracking-widest font-bold uppercase flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg ${isVariantInCart(item.id, "Default", "") ? "bg-secondary text-white shadow-secondary/20 disabled:opacity-75" : "bg-primary text-on-primary hover:bg-primary-container shadow-primary/20"
                 }`}
             >
-              <span className="material-symbols-outlined text-[18px]">
-                {isVariantInCart(item.id, "Default", "") ? "done" : "shopping_cart"}
-              </span>
+              <SymbolIcon name={isVariantInCart(item.id, "Default", "") ? "done" : "shopping_cart"} className="text-[18px]" />
               {isVariantInCart(item.id, "Default", "") ? "Added to Cart" : "Add to Cart"}
             </button>
           </div>

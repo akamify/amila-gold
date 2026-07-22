@@ -1,4 +1,5 @@
 "use client";
+import SymbolIcon from "@/app/components/icons/SymbolIcon";
 import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useCart } from "@/app/context/CartContext";
@@ -157,7 +158,7 @@ export default function ShopPageClient() {
           onClick={() => setShowMobileFilter(true)}
           className="flex-1 flex items-center justify-center gap-3 px-6 py-4 bg-white rounded-2xl shadow-sm border border-outline-variant hover:border-secondary transition-all active:scale-95"
         >
-          <span className="material-symbols-outlined text-xl">tune</span>
+          <SymbolIcon name={"tune"} className="text-xl" />
           <span className="font-bold text-sm uppercase tracking-widest">Filter & Sort</span>
           {activeFilterCount > 0 && (
             <span className="min-w-7 h-7 px-2 rounded-full bg-secondary text-white text-[11px] font-black flex items-center justify-center">
@@ -182,7 +183,7 @@ export default function ShopPageClient() {
                     {CATEGORIES.map((cat) => (
                       <label key={cat} className="flex items-center gap-4 group cursor-pointer">
                         <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all duration-300 ${checkedCategories.includes(cat) ? 'bg-secondary border-secondary' : 'border-outline-variant group-hover:border-secondary'}`}>
-                          {checkedCategories.includes(cat) && <span className="material-symbols-outlined text-white text-lg">check</span>}
+                          {checkedCategories.includes(cat) && <SymbolIcon name={"check"} className="text-white text-lg" />}
                         </div>
                         <input type="checkbox" className="hidden" checked={checkedCategories.includes(cat)} onChange={() => toggleCat(cat)} readOnly />
                         <span className={`font-medium transition-colors ${checkedCategories.includes(cat) ? 'text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}`}>{cat}</span>
@@ -241,7 +242,7 @@ export default function ShopPageClient() {
             <ProductGridSkeleton count={9} />
           ) : filteredProducts.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-40 animate-pulse">
-              <span className="material-symbols-outlined text-9xl text-outline-variant mb-6">eco</span>
+              <SymbolIcon name={"eco"} className="text-9xl text-outline-variant mb-6" />
               <h3 className="text-3xl font-bold text-primary tracking-tight">No harvest found</h3>
               <button onClick={clearAllFilters} className="mt-8 text-secondary font-bold uppercase tracking-widest border-b-2 border-secondary">Reset Filters</button>
             </div>
@@ -311,9 +312,7 @@ export default function ShopPageClient() {
                                 href="/cart"
                                 className="w-full py-3 sm:py-5 rounded-2xl bg-secondary text-white font-bold text-[10px] sm:text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-2 sm:gap-3 shadow-lg shadow-secondary/30 hover:scale-[1.02] active:scale-95 transition-all"
                               >
-                                <span className="material-symbols-outlined text-base sm:text-lg">
-                                  shopping_cart_checkout
-                                </span>
+                                <SymbolIcon name={"shopping_cart_checkout"} className="text-base sm:text-lg" />
 
                                 {inStock ? "Go to Cart" : "Review Cart"}
                               </Link>
@@ -324,9 +323,7 @@ export default function ShopPageClient() {
                                 disabled={!inStock}
                                 className="w-full py-2 sm:py-5 rounded-2xl bg-white border-2 border-primary text-primary font-bold text-[9px] sm:text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-2 sm:gap-3 hover:bg-primary hover:text-white transition-all duration-300 active:scale-95 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-primary"
                               >
-                                <span className="material-symbols-outlined text-sm sm:text-lg">
-                                  add_shopping_cart
-                                </span>
+                                <SymbolIcon name={"add_shopping_cart"} className="text-sm sm:text-lg" />
 
                                 {inStock ? "Add to Cart" : "Out of Stock"}
                               </button>
@@ -344,7 +341,7 @@ export default function ShopPageClient() {
               {totalPages > 1 && (
                 <div className="mt-32 flex items-center justify-center gap-4">
                   <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="w-16 h-16 rounded-full border-2 border-outline-variant flex items-center justify-center text-primary hover:border-secondary hover:text-secondary transition-all disabled:opacity-20 group">
-                    <span className="material-symbols-outlined group-hover:-translate-x-1 transition-transform">west</span>
+                    <SymbolIcon name={"west"} className="group-hover:-translate-x-1 transition-transform" />
                   </button>
                   <div className="flex gap-4">
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
@@ -354,7 +351,7 @@ export default function ShopPageClient() {
                     ))}
                   </div>
                   <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="w-16 h-16 rounded-full border-2 border-outline-variant flex items-center justify-center text-primary hover:border-secondary hover:text-secondary transition-all disabled:opacity-20 group">
-                    <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">east</span>
+                    <SymbolIcon name={"east"} className="group-hover:translate-x-1 transition-transform" />
                   </button>
                 </div>
               )}
@@ -371,7 +368,7 @@ export default function ShopPageClient() {
           <div className="flex justify-between items-center mb-10">
             <h3 className="text-3xl font-bold text-primary tracking-tighter">Refine Selection</h3>
             <button onClick={closeMobileFilter} className="w-12 h-12 bg-surface-variant/20 rounded-full flex items-center justify-center">
-              <span className="material-symbols-outlined">close</span>
+              <SymbolIcon name={"close"} />
             </button>
           </div>
           <div
@@ -386,7 +383,7 @@ export default function ShopPageClient() {
                   <p className="text-[10px] uppercase tracking-[0.28em] text-on-surface-variant font-black mb-2">Sort By</p>
                   <h4 className="text-xl font-bold text-primary">Choose your flow</h4>
                 </div>
-                <span className="material-symbols-outlined text-secondary">swap_vert</span>
+                <SymbolIcon name={"swap_vert"} className="text-secondary" />
               </div>
               <div className="grid grid-cols-1 gap-3">
                 {sortOptions.map((option) => (
@@ -420,7 +417,7 @@ export default function ShopPageClient() {
                 {CATEGORIES.map((cat) => (
                   <label key={cat} className="flex items-center gap-4 group cursor-pointer rounded-2xl border border-outline-variant/20 bg-white px-4 py-4">
                     <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all duration-300 ${checkedCategories.includes(cat) ? 'bg-secondary border-secondary' : 'border-outline-variant group-hover:border-secondary'}`}>
-                      {checkedCategories.includes(cat) && <span className="material-symbols-outlined text-white text-lg">check</span>}
+                      {checkedCategories.includes(cat) && <SymbolIcon name={"check"} className="text-white text-lg" />}
                     </div>
                     <input type="checkbox" className="hidden" checked={checkedCategories.includes(cat)} onChange={() => toggleCat(cat)} readOnly />
                     <span className={`font-medium transition-colors ${checkedCategories.includes(cat) ? 'text-primary font-bold' : 'text-on-surface-variant group-hover:text-primary'}`}>{cat}</span>

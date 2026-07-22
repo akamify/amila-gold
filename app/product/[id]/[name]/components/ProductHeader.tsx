@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 "use client";
+import SymbolIcon from "@/app/components/icons/SymbolIcon";
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion"; // Added AnimatePresence
@@ -475,7 +476,7 @@ export default function ProductHeader({
             { icon: 'local_shipping', text: 'Fast Del.' }
           ].map((item, index) => (
             <div key={index} className="flex flex-col items-center p-4 bg-surface-container-lowest rounded-2xl border border-outline-variant/5 text-center transition-all hover:bg-white shadow-sm">
-              <span className="material-symbols-outlined text-secondary mb-1 text-xl">{item.icon}</span>
+              <SymbolIcon name={item.icon} className="text-secondary mb-1 text-xl" />
               <span className="text-[9px] font-black uppercase tracking-tighter text-on-surface-variant">{item.text}</span>
             </div>
           ))}
@@ -520,7 +521,7 @@ export default function ProductHeader({
                 className="inline-flex right-2 items-center gap-2 rounded-full border border-outline-variant/40 bg-surface-container-low p-3 text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant transition-colors hover:border-primary hover:text-primary"
                 aria-label="Share this product"
               >
-                <span className="material-symbols-outlined">share</span>
+                <SymbolIcon name={"share"} />
                 {/* <span className="hidden sm:inline">Share</span> */}
               </button>
             </div>
@@ -575,7 +576,7 @@ export default function ProductHeader({
               {/* Qty */}
               <div className="flex items-center justify-between bg-surface-container-low rounded-xl px-2 py-2 border border-outline-variant/20">
                 <button onClick={() => setQty((q) => Math.max(1, q - 1))} className="w-10 h-10 flex items-center justify-center hover:text-primary transition-colors">
-                  <span className="material-symbols-outlined">remove</span>
+                  <SymbolIcon name={"remove"} />
                 </button>
                 <span className="px-4 font-headline font-bold text-xl">{qty}</span>
                 <button
@@ -583,7 +584,7 @@ export default function ProductHeader({
                   disabled={isOutOfStock || (availableStock > 0 && qty >= availableStock)}
                   className="w-10 h-10 flex items-center justify-center hover:text-primary transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                 >
-                  <span className="material-symbols-outlined">add</span>
+                  <SymbolIcon name={"add"} />
                 </button>
               </div>
 
@@ -597,9 +598,7 @@ export default function ProductHeader({
                   : 'bg-secondary text-on-secondary shadow-secondary/20 hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed'
                   }`}
               >
-                <span className="material-symbols-outlined text-xl">
-                  {inCart ? "done_all" : "shopping_cart"}
-                </span>
+                <SymbolIcon name={inCart ? "done_all" : "shopping_cart"} className="text-xl" />
                 {inCart ? "Go to Cart" : isOutOfStock ? "Out of Stock" : "Add to Cart"}
               </button>
             </div>
@@ -612,7 +611,7 @@ export default function ProductHeader({
               ref={(el) => assignRef(buyNowButtonRef, el)}
               className="w-full py-4 rounded-xl font-black text-xs uppercase tracking-[0.2em] transition-all active:scale-95 shadow-xl bg-primary text-on-primary shadow-primary/20 hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
             >
-              <span className="material-symbols-outlined text-xl">bolt</span>
+              <SymbolIcon name={"bolt"} className="text-xl" />
               {isOutOfStock ? "Out of Stock" : "Buy Now"}
             </button>
 
@@ -622,9 +621,7 @@ export default function ProductHeader({
               disabled={!product || productId <= 0}
               className="w-full py-2 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant/60 hover:text-secondary transition-colors"
             >
-              <span className={`material-symbols-outlined text-lg ${inWishlist ? 'icon-filled text-secondary' : ''}`}>
-                favorite
-              </span>
+              <SymbolIcon name={"favorite"} className={`text-lg ${inWishlist ? ' text-secondary' : ''}`} />
               {inWishlist ? 'Remove from Wishlist' : 'Save for later'}
             </button>
           </div>

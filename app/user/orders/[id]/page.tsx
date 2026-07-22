@@ -1,4 +1,5 @@
 "use client";
+import SymbolIcon from "@/app/components/icons/SymbolIcon";
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -151,7 +152,7 @@ export default function OrderDetailsPage() {
           <div>
             <nav className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-on-surface-variant/60 mb-4 font-bold">
               <Link href="/user/orders" className="hover:text-primary transition-colors">Orders</Link>
-              <span className="material-symbols-outlined text-[10px]">chevron_right</span>
+              <SymbolIcon name={"chevron_right"} className="text-[10px]" />
               <span className="text-secondary tracking-widest">Order {orderId}</span>
             </nav>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-headline italic tracking-tighter text-primary">Order Details</h1>
@@ -178,7 +179,7 @@ export default function OrderDetailsPage() {
                   return (
                     <div key={st} className={`text-center z-10 w-20 flex flex-col items-center ${!isActive ? "opacity-40" : ""}`}>
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-3 ring-4 ring-surface shadow-md ${isActive ? activeClasses : "bg-outline-variant text-on-surface-variant"}`}>
-                        <span className="material-symbols-outlined text-lg">{getStatusIcon(st)}</span>
+                        <SymbolIcon name={getStatusIcon(st)} className="text-lg" />
                       </div>
                       <p className={`text-[9px] uppercase tracking-tighter font-bold ${isCancelled && isActive ? "text-error" : isActive ? "text-primary" : ""}`}>
                         {st.replace(/_/g, " ")}
@@ -262,7 +263,7 @@ export default function OrderDetailsPage() {
             {/* Price Summary */}
             <div className="bg-primary text-on-primary rounded-xl p-8 shadow-2xl shadow-primary/30 relative overflow-hidden">
               <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
-                <span className="material-symbols-outlined text-8xl" style={{ fontVariationSettings: "'FILL' 1" }}>psychiatry</span>
+                <SymbolIcon name={"psychiatry"} className="text-8xl" />
               </div>
 
               <p className="text-[10px] uppercase tracking-[0.2em] text-on-primary-container/80 mb-8 font-bold">Order Summary</p>
@@ -299,9 +300,7 @@ export default function OrderDetailsPage() {
                 onClick={() => setShowHelpModal(true)}
                 className="inline-flex items-center justify-center gap-2 text-[10px] font-bold text-secondary uppercase tracking-widest border-b-2 border-secondary pb-1 hover:text-primary hover:border-primary transition-colors"
               >
-                <span className="material-symbols-outlined text-sm">
-                  headset_mic
-                </span>
+                <SymbolIcon name={"headset_mic"} className="text-sm" />
 
                 Need Help
               </button>
@@ -324,9 +323,7 @@ export default function OrderDetailsPage() {
                 onClick={() => setShowHelpModal(false)}
                 className="text-on-surface-variant hover:text-primary transition-colors"
               >
-                <span className="material-symbols-outlined">
-                  close
-                </span>
+                <SymbolIcon name={"close"} />
               </button>
             </div>
 
@@ -375,9 +372,7 @@ export default function OrderDetailsPage() {
                 onClick={() => setShowActionModal(false)}
                 className="text-on-surface-variant hover:text-primary transition-colors"
               >
-                <span className="material-symbols-outlined">
-                  close
-                </span>
+                <SymbolIcon name={"close"} />
               </button>
             </div>
 

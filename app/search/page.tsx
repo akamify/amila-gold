@@ -1,4 +1,5 @@
 "use client";
+import SymbolIcon from "@/app/components/icons/SymbolIcon";
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -173,14 +174,14 @@ export default function SearchPage() {
               className="w-full bg-surface-container-low border border-outline-variant/30 rounded-2xl px-6 py-4 text-sm focus:ring-4 focus:ring-secondary/10 font-body outline-none transition-all placeholder:text-on-surface-variant/50"
               placeholder="Search jaggery, herbs..."
             />
-            <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-secondary group-focus-within:scale-110 transition-transform">search</span>
+            <SymbolIcon name={"search"} className="absolute right-4 top-1/2 -translate-y-1/2 text-secondary group-focus-within:scale-110 transition-transform" />
           </div>
         </div>
       </motion.header>
 
       <div className="lg:hidden mb-10 flex items-center gap-4">
         <button onClick={() => setShowMobileFilter(true)} className="flex-1 flex items-center justify-center gap-3 px-6 py-4 bg-white rounded-2xl shadow-sm border border-outline-variant hover:border-secondary transition-all active:scale-95">
-          <span className="material-symbols-outlined text-xl">tune</span>
+          <SymbolIcon name={"tune"} className="text-xl" />
           <span className="font-bold text-sm uppercase tracking-widest">Filter & Sort</span>
           {activeFilterCount > 0 && (
             <span className="min-w-7 h-7 px-2 rounded-full bg-secondary text-white text-[11px] font-black flex items-center justify-center">
@@ -224,7 +225,7 @@ export default function SearchPage() {
                     {CATEGORIES.map((cat) => (
                       <label key={cat} className="flex items-center gap-4 group cursor-pointer">
                         <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all duration-300 ${checkedCategories.includes(cat) ? "bg-secondary border-secondary" : "border-outline-variant group-hover:border-secondary"}`}>
-                          {checkedCategories.includes(cat) && <span className="material-symbols-outlined text-white text-lg">check</span>}
+                          {checkedCategories.includes(cat) && <SymbolIcon name={"check"} className="text-white text-lg" />}
                         </div>
                         <input type="checkbox" className="hidden" checked={checkedCategories.includes(cat)} onChange={() => toggleCat(cat)} readOnly />
                         <span className={`font-medium transition-colors ${checkedCategories.includes(cat) ? "text-primary font-bold" : "text-on-surface-variant hover:text-primary"}`}>{cat}</span>
@@ -258,7 +259,7 @@ export default function SearchPage() {
             </section>
 
             <div className="p-8 rounded-[2rem] bg-gradient-to-br from-secondary/10 to-transparent border border-secondary/20 group hover:bg-secondary/20 transition-all duration-500">
-              <span className="material-symbols-outlined text-secondary text-4xl mb-4 icon-filled group-hover:rotate-12 transition-transform">verified_user</span>
+              <SymbolIcon name={"verified_user"} className="text-secondary text-4xl mb-4 group-hover:rotate-12 transition-transform" />
               <h5 className="font-headline text-lg font-bold text-primary">Agrarian Grade</h5>
               <p className="text-xs font-body text-on-surface-variant mt-2 leading-relaxed italic opacity-80">"Purity tested in small batches for uncompromised quality."</p>
             </div>
@@ -286,7 +287,7 @@ export default function SearchPage() {
               <ProductGridSkeleton key="skeleton" count={9} />
             ) : filteredProducts.length === 0 ? (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-32 text-center bg-surface-container-lowest rounded-[3rem] border border-dashed border-outline-variant">
-                <span className="material-symbols-outlined text-7xl text-outline mb-6 opacity-30">search_off</span>
+                <SymbolIcon name={"search_off"} className="text-7xl text-outline mb-6 opacity-30" />
                 <h3 className="font-headline text-2xl text-primary font-bold">Nothing matches your search</h3>
                 <p className="text-on-surface-variant mt-2 mb-8">Try adjusting your filters or keywords.</p>
                 <button onClick={clearAllFilters} className="px-8 py-3 bg-secondary text-on-secondary rounded-full font-label text-xs uppercase tracking-widest">Clear Filters</button>
@@ -345,13 +346,11 @@ export default function SearchPage() {
                                     : "bg-white/90 text-primary hover:bg-primary hover:text-white"
                                   } disabled:opacity-50 disabled:cursor-not-allowed`}
                               >
-                                <span className="material-symbols-outlined text-2xl">
-                                  {inCart
+                                <SymbolIcon name={inCart
                                     ? "shopping_bag"
                                     : inStock
                                       ? "add_shopping_cart"
-                                      : "block"}
-                                </span>
+                                      : "block"} className="text-2xl" />
                               </motion.button>
                             </div>
                           </div>
@@ -398,13 +397,11 @@ export default function SearchPage() {
                                   : "bg-primary text-white"
                                 } disabled:opacity-50`}
                             >
-                              <span className="material-symbols-outlined text-sm">
-                                {inCart
+                              <SymbolIcon name={inCart
                                   ? "shopping_bag"
                                   : inStock
                                     ? "add_shopping_cart"
-                                    : "block"}
-                              </span>
+                                    : "block"} className="text-sm" />
 
                               {inCart ? (inStock ? "Go to Cart" : "Review Cart") : inStock ? "Add to Cart" : "Out of Stock"}
                             </button>
@@ -416,9 +413,7 @@ export default function SearchPage() {
                               animate={{ opacity: 1, x: 0 }}
                               className="hidden sm:flex items-center gap-1 text-[10px] text-secondary font-black uppercase tracking-widest mt-2"
                             >
-                              <span className="material-symbols-outlined text-xs">
-                                check_circle
-                              </span>
+                              <SymbolIcon name={"check_circle"} className="text-xs" />
 
                               In Cart
                             </motion.div>
@@ -434,13 +429,13 @@ export default function SearchPage() {
 
           {totalPages > 1 && (
             <div className="mt-20 flex items-center justify-center gap-4">
-              <button disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)} className="w-14 h-14 rounded-2xl border border-outline-variant flex items-center justify-center hover:bg-primary hover:text-white transition-all disabled:opacity-20"><span className="material-symbols-outlined">west</span></button>
+              <button disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)} className="w-14 h-14 rounded-2xl border border-outline-variant flex items-center justify-center hover:bg-primary hover:text-white transition-all disabled:opacity-20"><SymbolIcon name={"west"} /></button>
               <div className="flex bg-surface-container-low p-2 rounded-2xl border border-outline-variant/50">
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
                   <button key={n} onClick={() => setCurrentPage(n)} className={`w-10 h-10 rounded-xl font-bold text-xs transition-all ${currentPage === n ? "bg-primary text-white shadow-lg" : "text-on-surface-variant hover:text-primary"}`}>{n}</button>
                 ))}
               </div>
-              <button disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)} className="w-14 h-14 rounded-2xl border border-outline-variant flex items-center justify-center hover:bg-primary hover:text-white transition-all disabled:opacity-20"><span className="material-symbols-outlined">east</span></button>
+              <button disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)} className="w-14 h-14 rounded-2xl border border-outline-variant flex items-center justify-center hover:bg-primary hover:text-white transition-all disabled:opacity-20"><SymbolIcon name={"east"} /></button>
             </div>
           )}
         </div>
@@ -454,7 +449,7 @@ export default function SearchPage() {
               <div className="w-12 h-1.5 bg-outline-variant/50 rounded-full mx-auto mb-8" />
               <div className="flex justify-between items-center mb-8">
                 <h2 className="font-headline text-3xl font-bold text-primary">Refine</h2>
-                <button onClick={closeMobileFilter} className="w-12 h-12 rounded-[2rem] bg-surface-container flex items-center justify-center"><span className="material-symbols-outlined">close</span></button>
+                <button onClick={closeMobileFilter} className="w-12 h-12 rounded-[2rem] bg-surface-container flex items-center justify-center"><SymbolIcon name={"close"} /></button>
               </div>
               <div
                 className="h-[calc(100%-128px)] overflow-y-auto overscroll-contain touch-pan-y space-y-8 pb-28 pr-1"
@@ -468,7 +463,7 @@ export default function SearchPage() {
                       <p className="text-[10px] uppercase tracking-[0.28em] text-on-surface-variant font-black mb-2">Sort By</p>
                       <h4 className="text-xl font-bold text-primary">Shape your results</h4>
                     </div>
-                    <span className="material-symbols-outlined text-secondary">swap_vert</span>
+                    <SymbolIcon name={"swap_vert"} className="text-secondary" />
                   </div>
                   <div className="grid grid-cols-1 gap-3">
                     {sortOptions.map((option) => (
@@ -489,7 +484,7 @@ export default function SearchPage() {
                       <p className="text-[10px] uppercase tracking-[0.28em] text-on-surface-variant font-black mb-2">Search Query</p>
                       <h4 className="text-xl font-bold text-primary">Fine tune keyword</h4>
                     </div>
-                    <span className="material-symbols-outlined text-secondary">search</span>
+                    <SymbolIcon name={"search"} className="text-secondary" />
                   </div>
                   <input
                     type="text"
@@ -512,7 +507,7 @@ export default function SearchPage() {
                     {CATEGORIES.map((cat) => (
                       <label key={cat} className="flex items-center gap-4 group cursor-pointer rounded-2xl border border-outline-variant/20 bg-white px-4 py-4">
                         <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all duration-300 ${checkedCategories.includes(cat) ? "bg-secondary border-secondary" : "border-outline-variant group-hover:border-secondary"}`}>
-                          {checkedCategories.includes(cat) && <span className="material-symbols-outlined text-white text-lg">check</span>}
+                          {checkedCategories.includes(cat) && <SymbolIcon name={"check"} className="text-white text-lg" />}
                         </div>
                         <input type="checkbox" className="hidden" checked={checkedCategories.includes(cat)} onChange={() => toggleCat(cat)} readOnly />
                         <span className={`font-medium transition-colors ${checkedCategories.includes(cat) ? "text-primary font-bold" : "text-on-surface-variant group-hover:text-primary"}`}>{cat}</span>

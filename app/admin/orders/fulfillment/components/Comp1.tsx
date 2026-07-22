@@ -1,21 +1,18 @@
+import SymbolIcon from "@/app/components/icons/SymbolIcon";
 export default function Comp1() {
   return (
     <>
       <main className="ml-64 min-h-screen">
         <header className="flex items-center justify-between px-8 h-16 bg-[#ffffff] dark:bg-[#1c1b1b] border-b border-[#e5bdb9]/20 shadow-[0_12px_40px_rgba(28,27,27,0.06)] sticky top-0 z-10 font-['Space_Grotesk'] font-bold">
           <div className="flex items-center gap-4">
-            <span className="material-symbols-outlined text-primary cursor-pointer">
-              arrow_back
-            </span>
+            <SymbolIcon name={"arrow_back"} className="text-primary cursor-pointer" />
             <h2 className="tracking-widest text-sm">
               Order / #SR-92841
             </h2>
           </div>
           <div className="flex items-center gap-6">
             <div className="relative flex items-center">
-              <span className="material-symbols-outlined absolute left-3 text-secondary">
-                search
-              </span>
+              <SymbolIcon name={"search"} className="absolute left-3 text-secondary" />
               <input
                 className="pl-10 pr-4 py-1.5 bg-surface-container-low border-none focus:ring-1 focus:ring-primary text-sm w-64"
                 placeholder="Search orders..."
@@ -23,12 +20,8 @@ export default function Comp1() {
               />
             </div>
             <div className="flex items-center gap-4">
-              <span className="material-symbols-outlined text-on-surface hover:text-primary cursor-pointer">
-                notifications
-              </span>
-              <span className="material-symbols-outlined text-on-surface hover:text-primary cursor-pointer">
-                account_circle
-              </span>
+              <SymbolIcon name={"notifications"} className="text-on-surface hover:text-primary cursor-pointer" />
+              <SymbolIcon name={"account_circle"} className="text-on-surface hover:text-primary cursor-pointer" />
             </div>
           </div>
         </header>
@@ -207,9 +200,7 @@ export default function Comp1() {
                 <div className="relative space-y-8 before:content-[''] before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-surface-container-high">
                   <div className="relative pl-10">
                     <div className="absolute left-0 top-1 w-6 h-6 bg-primary flex items-center justify-center text-on-primary">
-                      <span className="material-symbols-outlined text-[14px]">
-                        check
-                      </span>
+                      <SymbolIcon name={"check"} className="text-[14px]" />
                     </div>
                     <div className="space-y-1">
                       <p className="font-bold text-sm tracking-tight">
@@ -225,9 +216,7 @@ export default function Comp1() {
                   </div>
                   <div className="relative pl-10">
                     <div className="absolute left-0 top-1 w-6 h-6 bg-primary flex items-center justify-center text-on-primary">
-                      <span className="material-symbols-outlined text-[14px]">
-                        payments
-                      </span>
+                      <SymbolIcon name={"payments"} className="text-[14px]" />
                     </div>
                     <div className="space-y-1">
                       <p className="font-bold text-sm tracking-tight">
@@ -243,9 +232,7 @@ export default function Comp1() {
                   </div>
                   <div className="relative pl-10">
                     <div className="absolute left-0 top-1 w-6 h-6 bg-surface-container-high flex items-center justify-center text-on-surface">
-                      <span className="material-symbols-outlined text-[14px]">
-                        inventory_2
-                      </span>
+                      <SymbolIcon name={"inventory_2"} className="text-[14px]" />
                     </div>
                     <div className="space-y-1 opacity-50">
                       <p className="font-bold text-sm tracking-tight">
@@ -267,9 +254,7 @@ export default function Comp1() {
                   <h3 className="font-bebas text-2xl tracking-wide">
                     Customer
                   </h3>
-                  <span className="material-symbols-outlined text-secondary hover:text-primary cursor-pointer">
-                    edit
-                  </span>
+                  <SymbolIcon name={"edit"} className="text-secondary hover:text-primary cursor-pointer" />
                 </div>
                 <div className="flex items-center gap-4 mb-6">
                   <div className="w-12 h-12 bg-on-surface text-surface flex items-center justify-center font-bold text-xl">
@@ -335,9 +320,7 @@ export default function Comp1() {
                         <option>DHL Express Worldwide</option>
                         <option>UPS Ground</option>
                       </select>
-                      <span className="material-symbols-outlined absolute right-2 top-2 pointer-events-none text-secondary">
-                        expand_more
-                      </span>
+                      <SymbolIcon name={"expand_more"} className="absolute right-2 top-2 pointer-events-none text-secondary" />
                     </div>
                   </div>
                   <div className="space-y-1">
@@ -351,9 +334,7 @@ export default function Comp1() {
                         value="SR-TRK-771928"
                       />
                       <button className="bg-on-surface text-surface px-4 py-2 hover:bg-primary transition-colors">
-                        <span className="material-symbols-outlined text-sm">
-                          content_copy
-                        </span>
+                        <SymbolIcon name={"content_copy"} className="text-sm" />
                       </button>
                     </div>
                   </div>

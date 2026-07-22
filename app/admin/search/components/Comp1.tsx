@@ -1,3 +1,4 @@
+import SymbolIcon from "@/app/components/icons/SymbolIcon";
 export default function Comp1() {
   return (
     <>
@@ -14,9 +15,7 @@ export default function Comp1() {
           </div>
           <div className="flex items-center gap-6">
             <button className="hover:bg-[#f6f3f2] dark:hover:bg-[#2c2b2b] p-2 transition-colors duration-200">
-              <span className="material-symbols-outlined text-on-surface">
-                close
-              </span>
+              <SymbolIcon name={"close"} className="text-on-surface" />
             </button>
           </div>
         </div>
@@ -24,9 +23,7 @@ export default function Comp1() {
           <div className="max-w-5xl mx-auto px-8 py-16">
             <div className="relative mb-20">
               <div className="absolute left-0 top-1/2 -translate-y-1/2">
-                <span className="material-symbols-outlined text-4xl text-primary">
-                  search
-                </span>
+                <SymbolIcon name={"search"} className="text-4xl text-primary" />
               </div>
               <input
                 className="w-full bg-transparent border-none border-b-2 border-on-surface/10 focus:border-primary focus:ring-0 text-5xl font-impact tracking-wider placeholder:text-surface-dim pt-4 pb-6 pl-16 transition-all"
@@ -51,12 +48,7 @@ export default function Comp1() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <button className="flex flex-col items-start p-6 bg-surface-container-lowest border border-transparent hover:border-primary transition-all group">
-                  <span
-                    className="material-symbols-outlined text-primary mb-4"
-                    data-icon="add_box"
-                  >
-                    add_box
-                  </span>
+                  <SymbolIcon name={"add_box"} className="text-primary mb-4" />
                   <span className="font-headline font-bold text-sm tracking-widest mb-1">
                     Create New Product
                   </span>
@@ -65,12 +57,7 @@ export default function Comp1() {
                   </span>
                 </button>
                 <button className="flex flex-col items-start p-6 bg-surface-container-lowest border border-transparent hover:border-primary transition-all group">
-                  <span
-                    className="material-symbols-outlined text-primary mb-4"
-                    data-icon="local_shipping"
-                  >
-                    local_shipping
-                  </span>
+                  <SymbolIcon name={"local_shipping"} className="text-primary mb-4" />
                   <span className="font-headline font-bold text-sm tracking-widest mb-1">
                     Update Order Status
                   </span>
@@ -79,12 +66,7 @@ export default function Comp1() {
                   </span>
                 </button>
                 <button className="flex flex-col items-start p-6 bg-surface-container-lowest border border-transparent hover:border-primary transition-all group">
-                  <span
-                    className="material-symbols-outlined text-primary mb-4"
-                    data-icon="mail"
-                  >
-                    mail
-                  </span>
+                  <SymbolIcon name={"mail"} className="text-primary mb-4" />
                   <span className="font-headline font-bold text-sm tracking-widest mb-1">
                     Email Customer
                   </span>
@@ -93,12 +75,7 @@ export default function Comp1() {
                   </span>
                 </button>
                 <button className="flex flex-col items-start p-6 bg-surface-container-lowest border border-transparent hover:border-primary transition-all group">
-                  <span
-                    className="material-symbols-outlined text-primary mb-4"
-                    data-icon="monitoring"
-                  >
-                    monitoring
-                  </span>
+                  <SymbolIcon name={"monitoring"} className="text-primary mb-4" />
                   <span className="font-headline font-bold text-sm tracking-widest mb-1">
                     Run Sales Report
                   </span>
@@ -111,12 +88,7 @@ export default function Comp1() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
               <div>
                 <div className="flex items-center gap-3 mb-6">
-                  <span
-                    className="material-symbols-outlined text-sm"
-                    data-icon="receipt_long"
-                  >
-                    receipt_long
-                  </span>
+                  <SymbolIcon name={"receipt_long"} className="text-sm" />
                   <h3 className="font-headline font-bold text-sm tracking-widest text-secondary">
                     Orders
                   </h3>
@@ -152,12 +124,7 @@ export default function Comp1() {
               </div>
               <div>
                 <div className="flex items-center gap-3 mb-6">
-                  <span
-                    className="material-symbols-outlined text-sm"
-                    data-icon="shopping_bag"
-                  >
-                    shopping_bag
-                  </span>
+                  <SymbolIcon name={"shopping_bag"} className="text-sm" />
                   <h3 className="font-headline font-bold text-sm tracking-widest text-secondary">
                     Products
                   </h3>
@@ -201,12 +168,7 @@ export default function Comp1() {
               </div>
               <div>
                 <div className="flex items-center gap-3 mb-6">
-                  <span
-                    className="material-symbols-outlined text-sm"
-                    data-icon="group"
-                  >
-                    group
-                  </span>
+                  <SymbolIcon name={"group"} className="text-sm" />
                   <h3 className="font-headline font-bold text-sm tracking-widest text-secondary">
                     Customers
                   </h3>
@@ -214,12 +176,7 @@ export default function Comp1() {
                 <div className="space-y-4">
                   <div className="p-4 bg-white hover:bg-surface-container-high transition-colors cursor-pointer flex items-center gap-4">
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <span
-                        className="material-symbols-outlined text-primary text-lg"
-                        data-icon="person"
-                      >
-                        person
-                      </span>
+                      <SymbolIcon name={"person"} className="text-primary text-lg" />
                     </div>
                     <div>
                       <p className="font-bold text-sm">
@@ -232,12 +189,7 @@ export default function Comp1() {
                   </div>
                   <div className="p-4 bg-white hover:bg-surface-container-high transition-colors cursor-pointer flex items-center gap-4">
                     <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
-                      <span
-                        className="material-symbols-outlined text-secondary text-lg"
-                        data-icon="person"
-                      >
-                        person
-                      </span>
+                      <SymbolIcon name={"person"} className="text-secondary text-lg" />
                     </div>
                     <div>
                       <p className="font-bold text-sm">James Chen</p>

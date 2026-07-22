@@ -1,4 +1,5 @@
 "use client";
+import SymbolIcon from "@/app/components/icons/SymbolIcon";
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
@@ -203,9 +204,7 @@ export default function Navbar() {
               rel="noopener noreferrer"
               className="hidden items-center gap-2 rounded-full bg-amber-50 px-4 py-2 text-sm font-semibold tracking-[-0.01em] text-amber-900 ring-1 ring-amber-200 transition-all duration-300 hover:bg-amber-100 hover:ring-amber-300 xl:flex"
             >
-              <span className="material-symbols-outlined text-[18px]">
-                local_shipping
-              </span>
+              <SymbolIcon name={"local_shipping"} className="text-[18px]" />
               Wholesale
             </a>
 
@@ -214,9 +213,7 @@ export default function Navbar() {
               aria-label="Search products"
               className="flex h-10 w-10 items-center justify-center rounded-full text-stone-900 transition-all duration-300 hover:bg-stone-100 hover:text-emerald-800 active:scale-95 sm:h-11 sm:w-11"
             >
-              <span className="material-symbols-outlined text-[24px]">
-                search
-              </span>
+              <SymbolIcon name={"search"} className="text-[24px]" />
             </Link>
 
             <Link
@@ -229,9 +226,7 @@ export default function Navbar() {
               className="relative flex h-10 w-10 items-center justify-center rounded-full text-stone-900 transition-all duration-300 hover:bg-stone-100 hover:text-emerald-800 active:scale-95 sm:h-11 sm:w-11"
               data-cart-target
             >
-              <span className="material-symbols-outlined text-[24px]">
-                shopping_bag
-              </span>
+              <SymbolIcon name={"shopping_bag"} className="text-[24px]" />
 
               {stableCartCount > 0 && (
                 <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-black leading-none text-stone-950 shadow-sm ring-2 ring-white">
@@ -302,33 +297,27 @@ export default function Navbar() {
                 onClick={() => setSidebarOpen(false)}
                 className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-stone-500 shadow-sm ring-1 ring-stone-200 transition-all duration-300 hover:text-stone-950 active:scale-95"
               >
-                <span className="material-symbols-outlined">close</span>
+                <SymbolIcon name={"close"} />
               </button>
             </div>
 
             <div className="relative mt-6 grid grid-cols-3 gap-2">
               <div className="rounded-2xl bg-white/75 px-2 py-3 text-center shadow-sm ring-1 ring-white/80">
-                <span className="material-symbols-outlined text-[20px] text-emerald-800">
-                  eco
-                </span>
+                <SymbolIcon name={"eco"} className="text-[20px] text-emerald-800" />
                 <span className="mt-1 block text-[10px] font-bold uppercase tracking-wide text-stone-600">
                   Natural
                 </span>
               </div>
 
               <div className="rounded-2xl bg-white/75 px-2 py-3 text-center shadow-sm ring-1 ring-white/80">
-                <span className="material-symbols-outlined text-[20px] text-emerald-800">
-                  verified
-                </span>
+                <SymbolIcon name={"verified"} className="text-[20px] text-emerald-800" />
                 <span className="mt-1 block text-[10px] font-bold uppercase tracking-wide text-stone-600">
                   Trusted
                 </span>
               </div>
 
               <div className="rounded-2xl bg-white/75 px-2 py-3 text-center shadow-sm ring-1 ring-white/80">
-                <span className="material-symbols-outlined text-[20px] text-emerald-800">
-                  local_shipping
-                </span>
+                <SymbolIcon name={"local_shipping"} className="text-[20px] text-emerald-800" />
                 <span className="mt-1 block text-[10px] font-bold uppercase tracking-wide text-stone-600">
                   Wholesale
                 </span>
@@ -362,18 +351,14 @@ export default function Navbar() {
                           : "bg-white text-stone-500 group-hover:bg-amber-100 group-hover:text-amber-700"
                       }`}
                     >
-                      <span className="material-symbols-outlined text-[22px]">
-                        {link.icon}
-                      </span>
+                      <SymbolIcon name={link.icon} className="text-[22px]" />
                     </span>
 
                     <span className="text-[17px] font-semibold tracking-[-0.01em]">
                       {link.label}
                     </span>
 
-                    <span className="material-symbols-outlined ml-auto text-stone-300 transition-all duration-300 group-hover:translate-x-1 group-hover:text-amber-600">
-                      {link.external ? "open_in_new" : "chevron_right"}
-                    </span>
+                    <SymbolIcon name={link.external ? "open_in_new" : "chevron_right"} className="ml-auto text-stone-300 transition-all duration-300 group-hover:translate-x-1 group-hover:text-amber-600" />
                   </>
                 );
 
@@ -413,9 +398,7 @@ export default function Navbar() {
               className="flex items-center gap-4 rounded-3xl bg-stone-950 px-4 py-4 text-white shadow-lg shadow-stone-950/10 transition-all duration-300 hover:bg-emerald-900"
             >
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/10">
-                <span className="material-symbols-outlined text-amber-300">
-                  {isAuthenticated ? "person" : "login"}
-                </span>
+                <SymbolIcon name={isAuthenticated ? "person" : "login"} className="text-amber-300" />
               </span>
 
               <span className="min-w-0">
@@ -429,9 +412,7 @@ export default function Navbar() {
                 </span>
               </span>
 
-              <span className="material-symbols-outlined ml-auto text-white/50">
-                chevron_right
-              </span>
+              <SymbolIcon name={"chevron_right"} className="ml-auto text-white/50" />
             </Link>
 
             {isAuthenticated && (
@@ -440,7 +421,7 @@ export default function Navbar() {
                 onClick={handleLogout}
                 className="mt-2 flex w-full items-center gap-4 rounded-3xl px-4 py-3 text-left font-semibold text-stone-500 transition-all duration-300 hover:bg-red-50 hover:text-red-600"
               >
-                <span className="material-symbols-outlined">logout</span>
+                <SymbolIcon name={"logout"} />
                 Logout
               </button>
             )}
@@ -455,9 +436,7 @@ export default function Navbar() {
               onClick={() => setSidebarOpen(false)}
               className="mb-4 flex items-center justify-center gap-2 rounded-2xl bg-amber-500 px-4 py-3 text-sm font-bold uppercase tracking-wide text-stone-950 shadow-sm transition-all duration-300 hover:bg-amber-400 active:scale-[0.98]"
             >
-              <span className="material-symbols-outlined text-[20px]">
-                support_agent
-              </span>
+              <SymbolIcon name={"support_agent"} className="text-[20px]" />
               Bulk Order on WhatsApp
             </a>
 

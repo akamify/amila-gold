@@ -1,3 +1,4 @@
+import SymbolIcon from "@/app/components/icons/SymbolIcon";
 export default function Comp3() {
   return (
     <>
@@ -13,9 +14,7 @@ export default function Comp3() {
           </div>
           <div className="flex gap-4">
             <button className="bg-on-surface text-white px-8 py-3 font-display text-xl tracking-widest hover:bg-primary transition-colors flex items-center gap-2">
-              <span className="material-symbols-outlined text-base">
-                download
-              </span>
+              <SymbolIcon name={"download"} className="text-base" />
               Export CSV
             </button>
           </div>
@@ -28,9 +27,7 @@ export default function Comp3() {
             </p>
             <p className="text-display text-4xl">1,284</p>
             <div className="flex items-center gap-1 mt-2 text-primary">
-              <span className="material-symbols-outlined text-xs">
-                trending_up
-              </span>
+              <SymbolIcon name={"trending_up"} className="text-xs" />
               <span className="text-[10px] font-bold">+12% vs LY</span>
             </div>
           </div>
@@ -58,9 +55,7 @@ export default function Comp3() {
             </p>
             <p className="text-display text-4xl">2.4%</p>
             <div className="flex items-center gap-1 mt-2 text-secondary">
-              <span className="material-symbols-outlined text-xs">
-                check_circle
-              </span>
+              <SymbolIcon name={"check_circle"} className="text-xs" />
               <span className="text-[10px] font-bold tracking-tighter">
                 Within Target
               </span>
@@ -105,7 +100,7 @@ export default function Comp3() {
               </select>
             </div>
             <button className="ml-auto flex items-center gap-2 text-[10px] font-bold tracking-[0.2em] opacity-60 hover:opacity-100 transition-opacity">
-              <span className="material-symbols-outlined text-sm">tune</span>
+              <SymbolIcon name={"tune"} className="text-sm" />
               Advanced Filters
             </button>
           </div>
@@ -177,9 +172,7 @@ export default function Comp3() {
                 </td>
                 <td className="p-4 text-right">
                   <button className="opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span className="material-symbols-outlined text-lg">
-                      chevron_right
-                    </span>
+                    <SymbolIcon name={"chevron_right"} className="text-lg" />
                   </button>
                 </td>
               </tr>
@@ -224,9 +217,7 @@ export default function Comp3() {
                 </td>
                 <td className="p-4 text-right">
                   <button className="opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span className="material-symbols-outlined text-lg">
-                      chevron_right
-                    </span>
+                    <SymbolIcon name={"chevron_right"} className="text-lg" />
                   </button>
                 </td>
               </tr>
@@ -271,9 +262,7 @@ export default function Comp3() {
                 </td>
                 <td className="p-4 text-right">
                   <button className="opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span className="material-symbols-outlined text-lg">
-                      chevron_right
-                    </span>
+                    <SymbolIcon name={"chevron_right"} className="text-lg" />
                   </button>
                 </td>
               </tr>
@@ -318,9 +307,7 @@ export default function Comp3() {
                 </td>
                 <td className="p-4 text-right">
                   <button className="opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span className="material-symbols-outlined text-lg">
-                      chevron_right
-                    </span>
+                    <SymbolIcon name={"chevron_right"} className="text-lg" />
                   </button>
                 </td>
               </tr>
@@ -334,7 +321,7 @@ export default function Comp3() {
           </div>
           <div className="flex items-center gap-1">
             <button className="w-10 h-10 border border-outline-variant/30 flex items-center justify-center hover:bg-on-surface hover:text-white transition-colors">
-              <span className="material-symbols-outlined text-sm">west</span>
+              <SymbolIcon name={"west"} className="text-sm" />
             </button>
             <button className="px-4 h-10 bg-on-surface text-white font-['Space_Grotesk'] text-xs font-bold">
               01
@@ -350,7 +337,7 @@ export default function Comp3() {
               128
             </button>
             <button className="w-10 h-10 border border-outline-variant/30 flex items-center justify-center hover:bg-on-surface hover:text-white transition-colors">
-              <span className="material-symbols-outlined text-sm">east</span>
+              <SymbolIcon name={"east"} className="text-sm" />
             </button>
           </div>
         </div>

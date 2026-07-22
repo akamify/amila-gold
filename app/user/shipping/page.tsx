@@ -1,4 +1,5 @@
 "use client";
+import SymbolIcon from "@/app/components/icons/SymbolIcon";
 import React, { useEffect, useState } from "react";
 import { useRequireAuth } from "@/app/context/AuthContext";
 import {
@@ -131,7 +132,7 @@ export default function ShippingAddressesPage() {
         <div className="max-w-xl">
           <nav className="flex items-center gap-2 mb-4 text-[10px] sm:text-xs font-bold tracking-[0.2em] text-secondary uppercase">
             <span>Account</span>
-            <span className="material-symbols-outlined text-[10px] sm:text-xs">chevron_right</span>
+            <SymbolIcon name={"chevron_right"} className="text-[10px] sm:text-xs" />
             <span className="text-outline">Addresses</span>
           </nav>
           <h1 className="font-headline text-5xl md:text-6xl text-primary font-medium tracking-tight">Shipping Addresses</h1>
@@ -145,7 +146,7 @@ export default function ShippingAddressesPage() {
           disabled={saving}
           className="flex items-center justify-center gap-2 px-6 py-4 border-2 border-secondary text-secondary rounded-full font-bold text-xs md:text-sm tracking-widest uppercase hover:bg-secondary/5 transition-all disabled:opacity-60"
         >
-          <span className="material-symbols-outlined text-lg">add</span>
+          <SymbolIcon name={"add"} className="text-lg" />
           {saving ? "Adding..." : "Add New Address"}
         </button>
       </div>

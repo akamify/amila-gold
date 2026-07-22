@@ -1,22 +1,13 @@
+import SymbolIcon from "@/app/components/icons/SymbolIcon";
 export default function Comp2() {
   return (
     <>
       <main className="ml-64 pt-24 px-10 pb-12 min-h-screen">
         <div className="flex items-center gap-2 mb-8 text-[10px] font-bold tracking-widest opacity-40">
           <span>Admin</span>
-          <span
-            className="material-symbols-outlined text-[10px]"
-            data-icon="chevron_right"
-          >
-            chevron_right
-          </span>
+          <SymbolIcon name={"chevron_right"} className="text-[10px]" />
           <span>Customers</span>
-          <span
-            className="material-symbols-outlined text-[10px]"
-            data-icon="chevron_right"
-          >
-            chevron_right
-          </span>
+          <SymbolIcon name={"chevron_right"} className="text-[10px]" />
           <span className="text-on-surface opacity-100">
             Profile: Elena Vance
           </span>
@@ -41,12 +32,7 @@ export default function Comp2() {
                     Elena Vance
                   </h2>
                   <p className="text-sm opacity-60 flex items-center gap-2">
-                    <span
-                      className="material-symbols-outlined text-sm"
-                      data-icon="location_on"
-                    >
-                      location_on
-                    </span>
+                    <SymbolIcon name={"location_on"} className="text-sm" />
                     Berlin, DE &nbsp; • &nbsp; elena.v@archive-editorial.com
                   </p>
                   <div className="mt-4 flex gap-2">
@@ -76,12 +62,7 @@ export default function Comp2() {
                 </p>
                 <h4 className="font-impact text-4xl">$447.01</h4>
                 <div className="flex items-center gap-1 text-primary">
-                  <span
-                    className="material-symbols-outlined text-sm"
-                    data-icon="trending_up"
-                  >
-                    trending_up
-                  </span>
+                  <SymbolIcon name={"trending_up"} className="text-sm" />
                   <span className="text-[10px] font-bold">
                     +12% vs last year
                   </span>
@@ -148,11 +129,9 @@ export default function Comp2() {
                     </td>
                     <td className="py-6 px-2 text-right">
                       <button
-                        className="material-symbols-outlined opacity-0 group-hover:opacity-100 transition-opacity"
+                        
                         data-icon="open_in_new"
-                      >
-                        open_in_new
-                      </button>
+                       className="opacity-0 group-hover:opacity-100 transition-opacity"><SymbolIcon name={"open_in_new"} /></button>
                     </td>
                   </tr>
                   <tr className="border-b border-outline-variant/10 hover:bg-white transition-colors group">
@@ -170,11 +149,9 @@ export default function Comp2() {
                     <td className="py-6 px-2 text-right font-bold">$890.50</td>
                     <td className="py-6 px-2 text-right">
                       <button
-                        className="material-symbols-outlined opacity-0 group-hover:opacity-100 transition-opacity"
+                        
                         data-icon="open_in_new"
-                      >
-                        open_in_new
-                      </button>
+                       className="opacity-0 group-hover:opacity-100 transition-opacity"><SymbolIcon name={"open_in_new"} /></button>
                     </td>
                   </tr>
                   <tr className="border-b border-outline-variant/10 hover:bg-white transition-colors group">
@@ -192,11 +169,9 @@ export default function Comp2() {
                     <td className="py-6 px-2 text-right font-bold">$345.00</td>
                     <td className="py-6 px-2 text-right">
                       <button
-                        className="material-symbols-outlined opacity-0 group-hover:opacity-100 transition-opacity"
+                        
                         data-icon="open_in_new"
-                      >
-                        open_in_new
-                      </button>
+                       className="opacity-0 group-hover:opacity-100 transition-opacity"><SymbolIcon name={"open_in_new"} /></button>
                     </td>
                   </tr>
                 </tbody>
@@ -219,46 +194,26 @@ export default function Comp2() {
                   <span className="text-xs font-bold tracking-[0.15em]">
                     Send Coupon
                   </span>
-                  <span
-                    className="material-symbols-outlined group-hover:translate-x-1 transition-transform"
-                    data-icon="redeem"
-                  >
-                    redeem
-                  </span>
+                  <SymbolIcon name={"redeem"} className="group-hover:translate-x-1 transition-transform" />
                 </button>
                 <button className="w-full border border-white/20 py-4 px-6 flex items-center justify-between group hover:bg-white hover:text-black transition-all">
                   <span className="text-xs font-bold tracking-[0.15em]">
                     Manual Credit
                   </span>
-                  <span
-                    className="material-symbols-outlined"
-                    data-icon="account_balance_wallet"
-                  >
-                    account_balance_wallet
-                  </span>
+                  <SymbolIcon name={"account_balance_wallet"} />
                 </button>
                 <button className="w-full border border-white/20 py-4 px-6 flex items-center justify-between group hover:bg-white hover:text-black transition-all">
                   <span className="text-xs font-bold tracking-[0.15em]">
                     Direct Message
                   </span>
-                  <span
-                    className="material-symbols-outlined"
-                    data-icon="chat_bubble"
-                  >
-                    chat_bubble
-                  </span>
+                  <SymbolIcon name={"chat_bubble"} />
                 </button>
                 <div className="pt-6 border-t border-white/10">
                   <button className="w-full text-red-500 py-4 px-6 flex items-center justify-between hover:bg-red-500/10 transition-colors group">
                     <span className="text-xs font-bold tracking-[0.15em]">
                       Block Account
                     </span>
-                    <span
-                      className="material-symbols-outlined text-red-500"
-                      data-icon="block"
-                    >
-                      block
-                    </span>
+                    <SymbolIcon name={"block"} className="text-red-500" />
                   </button>
                 </div>
               </div>
@@ -316,12 +271,7 @@ export default function Comp2() {
                 <h3 className="font-headline font-black text-xl tracking-tighter">
                   Admin Notes
                 </h3>
-                <span
-                  className="material-symbols-outlined text-sm cursor-pointer"
-                  data-icon="add_comment"
-                >
-                  add_comment
-                </span>
+                <SymbolIcon name={"add_comment"} className="text-sm cursor-pointer" />
               </div>
               <div className="space-y-4">
                 <div className="p-4 bg-white/50 space-y-2">

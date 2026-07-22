@@ -1,4 +1,5 @@
 "use client";
+import SymbolIcon from "@/app/components/icons/SymbolIcon";
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -117,9 +118,7 @@ export default function SpotlightProductsSection({
             className="hidden items-center gap-1 text-sm font-semibold text-emerald-800 hover:underline md:flex"
           >
             View all products
-            <span className="material-symbols-outlined text-sm">
-              arrow_forward
-            </span>
+            <SymbolIcon name={"arrow_forward"} className="text-sm" />
           </Link>
         </div>
 
@@ -296,13 +295,7 @@ export default function SpotlightProductsSection({
                             : "bg-emerald-800 text-white shadow-md shadow-emerald-900/10 hover:bg-emerald-700 disabled:bg-slate-200 disabled:text-slate-400"
                         }`}
                       >
-                        <span
-                          className={`material-symbols-outlined text-[16px] transition-transform duration-500 lg:text-[18px] ${
-                            inCart ? "rotate-[360deg]" : ""
-                          }`}
-                        >
-                          {inCart ? "arrow_forward" : "shopping_bag"}
-                        </span>
+                        <SymbolIcon name={inCart ? "arrow_forward" : "shopping_bag"} className={`text-[16px] transition-transform duration-500 lg:text-[18px] ${ inCart ? "rotate-[360deg]" : "" }`} />
 
                         <span>
                           {inCart

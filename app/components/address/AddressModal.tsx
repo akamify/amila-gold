@@ -1,4 +1,5 @@
 'use client';
+import SymbolIcon from "@/app/components/icons/SymbolIcon";
 
 import type { ReactNode } from 'react';
 import { createPortal } from 'react-dom';
@@ -34,7 +35,7 @@ export default function AddressModal({ title, children, onClose }: AddressModalP
                             className="text-on-surface-variant hover:text-primary transition-colors"
                             aria-label="Close address form"
                         >
-                            <span className="material-symbols-outlined">close</span>
+                            <SymbolIcon name={"close"} />
                         </button>
                     </div>
                     <div className="p-5 md:p-6">{children}</div>

@@ -1,4 +1,5 @@
 "use client";
+import SymbolIcon from "@/app/components/icons/SymbolIcon";
 
 import React, { useEffect, useRef } from "react";
 
@@ -66,7 +67,7 @@ export default function ConfirmModal({
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-error/10 text-error">
-          <span className="material-symbols-outlined">delete</span>
+          <SymbolIcon name={"delete"} />
         </div>
         <h2 id="confirm-modal-title" className="font-headline text-2xl font-black text-primary">
           {title}

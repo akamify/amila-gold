@@ -1,4 +1,5 @@
 "use client";
+import SymbolIcon from "@/app/components/icons/SymbolIcon";
 import React, { useEffect, useState } from "react";
 import { useAuth, useRequireAuth } from "@/app/context/AuthContext";
 import {
@@ -177,7 +178,7 @@ export default function ProfilePage() {
             <div className="flex items-center gap-4">
               {saveSuccess && (
                 <span className="text-secondary text-sm font-medium flex items-center gap-1">
-                  <span className="material-symbols-outlined text-sm">check_circle</span>
+                  <SymbolIcon name={"check_circle"} className="text-sm" />
                   Saved!
                 </span>
               )}
@@ -256,14 +257,14 @@ export default function ProfilePage() {
             onClick={openCreateAddress}
             className="flex items-center gap-2 border-[1.5px] border-secondary text-secondary px-6 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-secondary-container/10 transition-all"
           >
-            <span className="material-symbols-outlined text-[16px]">add</span> Add New
+            <SymbolIcon name={"add"} className="text-[16px]" /> Add New
           </button>
         </div>
 
         <div className="space-y-4">
           {addresses.length === 0 ? (
             <div className="text-center py-12 bg-surface-container-low rounded-xl">
-              <span className="material-symbols-outlined text-4xl text-outline-variant mb-4">location_off</span>
+              <SymbolIcon name={"location_off"} className="text-4xl text-outline-variant mb-4" />
               <p className="text-on-surface-variant">No saved addresses yet.</p>
             </div>
           ) : (
@@ -324,11 +325,11 @@ export default function ProfilePage() {
           </p>
           <div className="flex flex-wrap items-center gap-6">
             <div className="flex items-center gap-2 text-secondary-container">
-              <span className="material-symbols-outlined text-[20px]">verified_user</span>
+              <SymbolIcon name={"verified_user"} className="text-[20px]" />
               <span className="text-[10px] uppercase tracking-widest font-bold text-on-primary">SSL Secured</span>
             </div>
             <div className="flex items-center gap-2 text-secondary-container">
-              <span className="material-symbols-outlined text-[20px]">history_edu</span>
+              <SymbolIcon name={"history_edu"} className="text-[20px]" />
               <span className="text-[10px] uppercase tracking-widest font-bold text-on-primary">Privacy Guaranteed</span>
             </div>
           </div>

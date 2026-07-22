@@ -1,4 +1,5 @@
 "use client";
+import SymbolIcon from "@/app/components/icons/SymbolIcon";
 import React from "react";
 import type { Product } from '@/app/data/products';
 
@@ -39,7 +40,7 @@ export default function NutritionFacts({ product }: { product?: Product | null }
           ))}
         </div>
         <div className="bg-primary/5 p-6 rounded-2xl border-l-[4px] border-primary flex items-start gap-4">
-          <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>format_quote</span>
+          <SymbolIcon name={"format_quote"} className="text-primary" />
           <span className="italic text-primary font-body text-sm leading-relaxed">
             "Our traditional clarification process uses gentle techniques to preserve the product's nutritional profile."
           </span>

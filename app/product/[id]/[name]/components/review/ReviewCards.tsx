@@ -1,4 +1,5 @@
 'use client';
+import SymbolIcon from "@/app/components/icons/SymbolIcon";
 
 import Image from 'next/image';
 import type { Review, ReviewSlide } from '../types';
@@ -22,10 +23,14 @@ export default function ReviewCards({ sortedReviews, reviewSlides, onOpenSlide }
                 return (
                     <div key={review.id} className="w-[20%] md:w-[26%] snap-start flex flex-col gap-4 border-l-4 border-[#1c1b1b]/20 hover:border-red-600 pl-6 bg-white/70 p-5 md:p-6 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1">
                         <div className="flex items-center justify-between gap-3">
-                            <div className="flex text-[#b90c1b]">{[1, 2, 3, 4, 5].map((star) => <span key={star} className="material-symbols-outlined text-sm" style={{ fontVariationSettings: star <= review.rating ? "'FILL' 1" : "'FILL' 0" }}>grade</span>)}</div>
+                            <div className="flex text-[#b90c1b]">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                    <SymbolIcon key={star} name="grade" className="text-sm" filled={star <= review.rating} />
+                                ))}
+                            </div>
                             {!hasImages && (
                                 <span className="font-headline text-[9px] uppercase tracking-widest opacity-50 flex items-center gap-1">
-                                    <span className="material-symbols-outlined text-xs">article</span>
+                                    <SymbolIcon name={"article"} className="text-xs" />
                                     Text Review
                                 </span>
                             )}

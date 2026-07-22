@@ -4,7 +4,6 @@ import Script from "next/script";
 import "./globals.css";
 import ClientWrapper from "./components/ClientWrapper";
 import MetaPixel from "./components/MetaPixel";
-import MaterialSymbolsLoader from "./components/MaterialSymbolsLoader";
 import { Providers } from "./context/providers";
 
 const manrope = Manrope({ subsets: ["latin"], variable: "--font-body", display: "swap" });
@@ -32,8 +31,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link rel="icon" href="/logo.png" />
       </head>
       <body
@@ -63,7 +60,6 @@ export default function RootLayout({
           />
         </noscript>
         <MetaPixel />
-        <MaterialSymbolsLoader />
         <Providers>
           <ClientWrapper>{children}</ClientWrapper>
         </Providers>

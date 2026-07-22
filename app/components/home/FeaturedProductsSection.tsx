@@ -1,4 +1,5 @@
 "use client";
+import SymbolIcon from "@/app/components/icons/SymbolIcon";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
@@ -445,7 +446,7 @@ export default function FeaturedProductsSection({
                       className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-900 transition-all hover:border-primary hover:text-primary active:scale-95"
                       aria-label="Scroll featured products left"
                     >
-                      <span className="material-symbols-outlined">west</span>
+                      <SymbolIcon name={"west"} />
                     </button>
 
                     <button
@@ -454,7 +455,7 @@ export default function FeaturedProductsSection({
                       className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-900 transition-all hover:border-primary hover:text-primary active:scale-95"
                       aria-label="Scroll featured products right"
                     >
-                      <span className="material-symbols-outlined">east</span>
+                      <SymbolIcon name={"east"} />
                     </button>
                   </div>
                 ) : null}
@@ -494,7 +495,7 @@ export default function FeaturedProductsSection({
                     className="flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-900 transition-all hover:border-primary hover:text-primary active:scale-95"
                     aria-label="Scroll featured products left"
                   >
-                    <span className="material-symbols-outlined">west</span>
+                    <SymbolIcon name={"west"} />
                   </button>
 
                   <button
@@ -503,7 +504,7 @@ export default function FeaturedProductsSection({
                     className="flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-900 transition-all hover:border-primary hover:text-primary active:scale-95"
                     aria-label="Scroll featured products right"
                   >
-                    <span className="material-symbols-outlined">east</span>
+                    <SymbolIcon name={"east"} />
                   </button>
                 </div>
               ) : null}
@@ -588,7 +589,7 @@ function ProductCard({
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-slate-100 text-slate-300">
-            <span className="material-symbols-outlined text-4xl">image</span>
+            <SymbolIcon name={"image"} className="text-4xl" />
           </div>
         )}
 
@@ -632,9 +633,7 @@ function ProductCard({
             className="flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 py-4 text-xs font-bold uppercase tracking-[0.2em] text-white transition-all duration-300 hover:bg-primary active:scale-[0.98]"
           >
             <span>Book Now</span>
-            <span className="material-symbols-outlined text-sm">
-              arrow_forward
-            </span>
+            <SymbolIcon name={"arrow_forward"} className="text-sm" />
           </Link>
         </div>
       </div>

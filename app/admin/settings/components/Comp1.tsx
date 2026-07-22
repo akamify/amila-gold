@@ -1,3 +1,4 @@
+import SymbolIcon from "@/app/components/icons/SymbolIcon";
 export default function Comp1() {
   return (
     <>
@@ -36,9 +37,7 @@ export default function Comp1() {
             <div className="bg-surface-container-lowest p-0 relative border-l-4 border-primary">
               <div className="p-8">
                 <h3 className="text-xl font-headline font-black mb-8 flex items-center gap-2">
-                  <span className="material-symbols-outlined" data-icon="info">
-                    info
-                  </span>
+                  <SymbolIcon name={"info"} />
                   General Identity
                 </h3>
                 <div className="space-y-8">
@@ -91,9 +90,7 @@ export default function Comp1() {
 
             <div className="bg-surface-container-lowest p-8 relative">
               <h3 className="text-xl font-headline font-black mb-8 flex items-center gap-2">
-                <span className="material-symbols-outlined" data-icon="groups">
-                  groups
-                </span>
+                <SymbolIcon name={"groups"} />
                 Team Access
               </h3>
               <div className="space-y-4">
@@ -120,12 +117,7 @@ export default function Comp1() {
                       Owner
                     </span>
                     <button className="opacity-0 group-hover:opacity-100 transition-opacity">
-                      <span
-                        className="material-symbols-outlined text-sm"
-                        data-icon="more_vert"
-                      >
-                        more_vert
-                      </span>
+                      <SymbolIcon name={"more_vert"} className="text-sm" />
                     </button>
                   </div>
                 </div>
@@ -152,12 +144,7 @@ export default function Comp1() {
                       Editor
                     </span>
                     <button className="opacity-0 group-hover:opacity-100 transition-opacity">
-                      <span
-                        className="material-symbols-outlined text-sm"
-                        data-icon="more_vert"
-                      >
-                        more_vert
-                      </span>
+                      <SymbolIcon name={"more_vert"} className="text-sm" />
                     </button>
                   </div>
                 </div>
@@ -184,12 +171,7 @@ export default function Comp1() {
                       Viewer
                     </span>
                     <button className="opacity-0 group-hover:opacity-100 transition-opacity">
-                      <span
-                        className="material-symbols-outlined text-sm"
-                        data-icon="more_vert"
-                      >
-                        more_vert
-                      </span>
+                      <SymbolIcon name={"more_vert"} className="text-sm" />
                     </button>
                   </div>
                 </div>
@@ -204,12 +186,7 @@ export default function Comp1() {
             <div className="bg-on-surface p-8 text-white relative overflow-hidden">
               <div className="relative z-10">
                 <h3 className="text-xl font-headline font-black mb-8 flex items-center gap-2 text-primary">
-                  <span
-                    className="material-symbols-outlined"
-                    data-icon="payments"
-                  >
-                    payments
-                  </span>
+                  <SymbolIcon name={"payments"} />
                   Gateways
                 </h3>
                 <div className="space-y-6">
@@ -223,12 +200,7 @@ export default function Comp1() {
                         type="password"
                         value="pk_live_51MvR9SGI7Y8rF9q1"
                       />
-                      <span
-                        className="material-symbols-outlined absolute right-0 top-1/2 -translate-y-1/2 text-white/30 cursor-pointer"
-                        data-icon="visibility"
-                      >
-                        visibility
-                      </span>
+                      <SymbolIcon name={"visibility"} className="absolute right-0 top-1/2 -translate-y-1/2 text-white/30 cursor-pointer" />
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -252,23 +224,13 @@ export default function Comp1() {
                 </div>
               </div>
               <div className="absolute -right-12 -bottom-12 opacity-10 pointer-events-none">
-                <span
-                  className="material-symbols-outlined text-[200px]"
-                  data-icon="bolt"
-                >
-                  bolt
-                </span>
+                <SymbolIcon name={"bolt"} className="text-[200px]" />
               </div>
             </div>
 
             <div className="bg-surface-container-high p-8">
               <h3 className="text-xl font-headline font-black mb-8 flex items-center gap-2">
-                <span
-                  className="material-symbols-outlined"
-                  data-icon="local_shipping"
-                >
-                  local_shipping
-                </span>
+                <SymbolIcon name={"local_shipping"} />
                 Shipping Zones
               </h3>
               <div className="space-y-6">
@@ -285,11 +247,9 @@ export default function Comp1() {
                     </p>
                   </div>
                   <button
-                    className="material-symbols-outlined text-on-surface/40 hover:text-primary transition-colors"
+                    
                     data-icon="edit"
-                  >
-                    edit
-                  </button>
+                   className="text-on-surface/40 hover:text-primary transition-colors"><SymbolIcon name={"edit"} /></button>
                 </div>
                 <div className="p-4 bg-surface-container-lowest border-l-2 border-on-surface/20 flex justify-between items-center">
                   <div>
@@ -304,21 +264,14 @@ export default function Comp1() {
                     </p>
                   </div>
                   <button
-                    className="material-symbols-outlined text-on-surface/40 hover:text-primary transition-colors"
+                    
                     data-icon="edit"
-                  >
-                    edit
-                  </button>
+                   className="text-on-surface/40 hover:text-primary transition-colors"><SymbolIcon name={"edit"} /></button>
                 </div>
               </div>
               <button className="mt-6 flex items-center gap-2 text-[10px] font-headline font-bold tracking-widest text-primary hover:gap-4 transition-all">
                 Add New Zone
-                <span
-                  className="material-symbols-outlined text-sm"
-                  data-icon="arrow_forward"
-                >
-                  arrow_forward
-                </span>
+                <SymbolIcon name={"arrow_forward"} className="text-sm" />
               </button>
             </div>
           </div>

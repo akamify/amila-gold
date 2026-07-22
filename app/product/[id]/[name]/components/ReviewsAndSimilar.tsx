@@ -1,4 +1,5 @@
 "use client";
+import SymbolIcon from "@/app/components/icons/SymbolIcon";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/app/context/CartContext";
@@ -157,9 +158,12 @@ export default function ReviewsAndSimilar({ product }: { product?: Product | nul
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }).map((_, i) => (
-      <span key={i} className="material-symbols-outlined text-lg" style={{ fontVariationSettings: i + 1 <= rating ? "'FILL' 1" : "'FILL' 0" }}>
-        {i + 0.5 === rating ? 'star_half' : 'star'}
-      </span>
+      <SymbolIcon
+        key={i}
+        name={i + 0.5 === rating ? 'star_half' : 'star'}
+        className="text-lg"
+        filled={i + 1 <= rating}
+      />
     ));
   };
 
@@ -190,7 +194,7 @@ export default function ReviewsAndSimilar({ product }: { product?: Product | nul
             onClick={() => setShowReviewModal(true)}
             className="w-full md:w-auto px-8 py-3.5 bg-secondary text-on-secondary rounded-full font-semibold text-sm uppercase tracking-wide hover:opacity-90 hover:shadow-lg transition-all shadow-md active:scale-95 flex justify-center items-center gap-2"
           >
-            <span className="material-symbols-outlined text-sm">edit_square</span>
+            <SymbolIcon name={"edit_square"} className="text-sm" />
             Write a Review
           </button>
         </div>
@@ -207,7 +211,7 @@ export default function ReviewsAndSimilar({ product }: { product?: Product | nul
               <div className="space-y-4">
                 <div className="flex justify-between items-start">
                   <div className="flex text-secondary text-base">{renderStars(review.rating)}</div>
-                  <span className="material-symbols-outlined text-outline-variant/20 text-4xl leading-none group-hover:text-secondary/20 transition-colors">format_quote</span>
+                  <SymbolIcon name={"format_quote"} className="text-outline-variant/20 text-4xl leading-none group-hover:text-secondary/20 transition-colors" />
                 </div>
 
                 <p className="font-headline text-on-surface text-base md:text-lg leading-relaxed line-clamp-4 md:line-clamp-5">
@@ -217,7 +221,7 @@ export default function ReviewsAndSimilar({ product }: { product?: Product | nul
 
               <div className="flex items-center gap-4 pt-6 mt-auto border-t border-outline-variant/10">
                 <div className="w-12 h-12 rounded-full bg-surface-container-highest overflow-hidden shadow-sm flex items-center justify-center border border-outline-variant/20">
-                  <span className="material-symbols-outlined text-on-surface-variant text-xl">person</span>
+                  <SymbolIcon name={"person"} className="text-on-surface-variant text-xl" />
                 </div>
                 <div>
                   <div className="font-bold text-on-surface text-sm md:text-base">{review.author}</div>
@@ -230,7 +234,7 @@ export default function ReviewsAndSimilar({ product }: { product?: Product | nul
           {/* Fallback state when there are no reviews - Fully Responsive */}
           {reviews.length === 0 && (
             <div className="bg-surface-container-low p-8 rounded-[2rem] border border-outline-variant/10 w-[85vw] md:w-[700px] snap-start flex-shrink-0 flex flex-col items-center justify-center min-h-[250px] text-center">
-              <span className="material-symbols-outlined text-4xl text-outline-variant/30 mb-3">rate_review</span>
+              <SymbolIcon name={"rate_review"} className="text-4xl text-outline-variant/30 mb-3" />
               <p className="text-on-surface-variant font-medium">No reviews yet for this product.</p>
             </div>
           )}
@@ -269,7 +273,7 @@ export default function ReviewsAndSimilar({ product }: { product?: Product | nul
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-on-surface-variant/40 bg-surface-container">
-                        <span className="material-symbols-outlined text-5xl">image</span>
+                        <SymbolIcon name={"image"} className="text-5xl" />
                       </div>
                     )}
                   </div>
@@ -299,7 +303,7 @@ export default function ReviewsAndSimilar({ product }: { product?: Product | nul
                         href="/cart"
                         className="w-full py-3 rounded-full text-[11px] font-bold uppercase tracking-[0.15em] transition-all duration-300 flex items-center justify-center gap-2 bg-primary text-on-primary shadow-md hover:bg-primary/90 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
                       >
-                        <span className="material-symbols-outlined text-[18px]">shopping_cart_checkout</span>
+                        <SymbolIcon name={"shopping_cart_checkout"} className="text-[18px]" />
                         Go to Cart
                       </Link>
                     ) : (
@@ -309,9 +313,7 @@ export default function ReviewsAndSimilar({ product }: { product?: Product | nul
                         disabled={!inStock}
                         className="group/btn w-full py-3 rounded-full text-[11px] font-bold uppercase tracking-[0.15em] transition-all duration-300 border-[1.5px] border-primary text-primary flex items-center justify-center gap-2 hover:bg-primary hover:text-on-primary hover:shadow-lg hover:-translate-y-0.5 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-primary"
                       >
-                        <span className="material-symbols-outlined text-[18px] transition-transform duration-300 group-hover/btn:-rotate-12 group-hover/btn:scale-110">
-                          {inStock ? "add_shopping_cart" : "block"}
-                        </span>
+                        <SymbolIcon name={inStock ? "add_shopping_cart" : "block"} className="text-[18px] transition-transform duration-300 group-hover/btn:-rotate-12 group-hover/btn:scale-110" />
                         {inStock ? "Add to Cart" : "Out of Stock"}
                       </button>
                     )}

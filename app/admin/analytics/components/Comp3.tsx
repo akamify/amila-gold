@@ -1,3 +1,4 @@
+import SymbolIcon from "@/app/components/icons/SymbolIcon";
 export default function Comp3() {
   return (
     <>
@@ -45,17 +46,10 @@ export default function Comp3() {
                   Month over Month
                 </p>
               </div>
-              <span className="material-symbols-outlined text-4xl opacity-20 group-hover:opacity-100 transition-opacity">
-                trending_up
-              </span>
+              <SymbolIcon name={"trending_up"} className="text-4xl opacity-20 group-hover:opacity-100 transition-opacity" />
             </div>
             <div className="absolute -right-4 -bottom-4 opacity-10 pointer-events-none group-hover:scale-110 transition-transform duration-700">
-              <span
-                className="material-symbols-outlined text-[120px]"
-                style={{ fontVariationSettings: "'FILL' 1" }}
-              >
-                star
-              </span>
+              <SymbolIcon name={"star"} className="text-[120px]" />
             </div>
           </div>
 
@@ -82,7 +76,7 @@ export default function Comp3() {
               <div className="text-4xl font-black bebas mt-2">4.2%</div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-sm">warning</span>
+              <SymbolIcon name={"warning"} className="text-sm" />
               <p className="text-[10px] font-bold tracking-widest">
                 Action Required
               </p>
@@ -163,9 +157,7 @@ export default function Comp3() {
                     <p className="text-[10px] opacity-40">RIOT-77421-JKT</p>
                   </td>
                   <td className="p-4 text-right">
-                    <button className="material-symbols-outlined opacity-40 hover:opacity-100 hover:text-primary transition-all">
-                      more_vert
-                    </button>
+                    <button  className="opacity-40 hover:opacity-100 hover:text-primary transition-all"><SymbolIcon name={"more_vert"} /></button>
                   </td>
                 </tr>
 
@@ -212,9 +204,7 @@ export default function Comp3() {
                     <p className="text-[10px] opacity-40">RIOT-11209-ACC</p>
                   </td>
                   <td className="p-4 text-right">
-                    <button className="material-symbols-outlined opacity-40 hover:opacity-100 hover:text-primary transition-all">
-                      more_vert
-                    </button>
+                    <button  className="opacity-40 hover:opacity-100 hover:text-primary transition-all"><SymbolIcon name={"more_vert"} /></button>
                   </td>
                 </tr>
 
@@ -261,9 +251,7 @@ export default function Comp3() {
                     <p className="text-[10px] opacity-40">RIOT-99301-TEE</p>
                   </td>
                   <td className="p-4 text-right">
-                    <button className="material-symbols-outlined opacity-40 hover:opacity-100 hover:text-primary transition-all">
-                      more_vert
-                    </button>
+                    <button  className="opacity-40 hover:opacity-100 hover:text-primary transition-all"><SymbolIcon name={"more_vert"} /></button>
                   </td>
                 </tr>
               </tbody>

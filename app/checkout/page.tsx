@@ -1,4 +1,5 @@
 "use client";
+import SymbolIcon from "@/app/components/icons/SymbolIcon";
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -568,7 +569,7 @@ export default function CheckoutPage() {
     return (
       <main className="min-h-screen pt-20 pb-2 px-3 max-w-6xl mx-auto flex items-center justify-center">
         <div className="text-center space-y-6">
-          <span className="material-symbols-outlined text-7xl text-secondary opacity-30">shopping_cart</span>
+          <SymbolIcon name={"shopping_cart"} className="text-7xl text-secondary opacity-30" />
           <h1 className="font-headline text-4xl text-primary font-bold">Your cart is empty</h1>
           <p className="text-on-surface-variant">{buyNowItem ? 'Buy Now item expired. Please try again.' : 'Add products before checkout.'}</p>
           <Link href="/shop" className="inline-block mt-6 px-8 py-3 bg-primary text-white rounded-full font-bold hover:opacity-90 transition-opacity">
@@ -589,7 +590,7 @@ export default function CheckoutPage() {
               <p className="mt-2 text-on-surface-variant">Select address and complete payment.</p>
             </div>
             <Link href="/cart" className="hidden sm:inline-flex items-center gap-2 text-primary hover:text-secondary transition-colors">
-              <span className="material-symbols-outlined">west</span>
+              <SymbolIcon name={"west"} />
               Back to cart
             </Link>
           </header>
@@ -674,7 +675,7 @@ export default function CheckoutPage() {
                 }}
                 className="w-full py-4 border-2 border-dashed border-outline-variant/50 rounded-2xl text-on-surface-variant hover:border-primary hover:text-primary transition-all flex items-center justify-center gap-2 bg-surface"
               >
-                <span className="material-symbols-outlined">add</span>
+                <SymbolIcon name={"add"} />
                 Add new address
               </button>
 
@@ -805,9 +806,7 @@ export default function CheckoutPage() {
                 }
                 className="mt-6 w-full bg-primary text-on-primary py-4 rounded-full font-headline text-lg font-bold tracking-wide hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-xl"
               >
-                <span className="material-symbols-outlined">
-                  {isAuthenticated ? "credit_card" : "mark_email_unread"}
-                </span>
+                <SymbolIcon name={isAuthenticated ? "credit_card" : "mark_email_unread"} />
                 <span>
                   {isProcessing
                     ? "Processing..."

@@ -1,4 +1,5 @@
 'use client';
+import SymbolIcon from "@/app/components/icons/SymbolIcon";
 
 import Image from 'next/image';
 import type { ReviewViewerState } from '../types';
@@ -51,7 +52,7 @@ export default function ReviewImageViewerModal({ reviewViewer, onClose, onMove }
                     aria-label="Previous review image"
                     className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 h-10 w-10 md:h-12 md:w-12 border border-white/30 bg-black/50 text-white hover:bg-black/75 flex items-center justify-center"
                 >
-                    <span className="material-symbols-outlined text-xl md:text-2xl">chevron_left</span>
+                    <SymbolIcon name={"chevron_left"} className="text-xl md:text-2xl" />
                 </button>
 
                 <button
@@ -60,7 +61,7 @@ export default function ReviewImageViewerModal({ reviewViewer, onClose, onMove }
                     aria-label="Next review image"
                     className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 h-10 w-10 md:h-12 md:w-12 border border-white/30 bg-black/50 text-white hover:bg-black/75 flex items-center justify-center"
                 >
-                    <span className="material-symbols-outlined text-xl md:text-2xl">chevron_right</span>
+                    <SymbolIcon name={"chevron_right"} className="text-xl md:text-2xl" />
                 </button>
 
                 <button
@@ -69,7 +70,7 @@ export default function ReviewImageViewerModal({ reviewViewer, onClose, onMove }
                     aria-label="Close review image viewer"
                     className="absolute top-2 right-2 md:top-4 md:right-4 h-10 w-10 md:h-11 md:w-11 border border-white/30 bg-black/50 text-white hover:bg-black/75 flex items-center justify-center"
                 >
-                    <span className="material-symbols-outlined text-lg md:text-xl">close</span>
+                    <SymbolIcon name={"close"} className="text-lg md:text-xl" />
                 </button>
             </div>
         </div>

@@ -1,4 +1,5 @@
 'use client';
+import SymbolIcon from "@/app/components/icons/SymbolIcon";
 
 import { createPortal } from 'react-dom';
 import { useState, useEffect } from 'react';
@@ -72,7 +73,7 @@ export default function ReviewFormModal({
                                 onClick={onClose}
                                 disabled={isSubmittingReview}
                             >
-                                <span className="material-symbols-outlined text-lg">close</span>
+                                <SymbolIcon name={"close"} className="text-lg" />
                             </button>
                         </div>
 
@@ -92,8 +93,10 @@ export default function ReviewFormModal({
                                 <div className="flex items-center gap-2">
                                     {[1, 2, 3, 4, 5].map((star) => (
                                         <button key={star} type="button" onClick={() => setReviewForm((p) => ({ ...p, rating: star }))}
-                                            className={`material-symbols-outlined text-3xl transition-colors hover:scale-110 ${star <= reviewForm.rating ? 'text-secondary' : 'text-outline-variant'}`}
-                                            style={{ fontVariationSettings: star <= reviewForm.rating ? "'FILL' 1" : "'FILL' 0" }}>grade</button>
+                                            className={`text-3xl transition-colors hover:scale-110 ${star <= reviewForm.rating ? 'text-secondary' : 'text-outline-variant'}`}
+                                        >
+                                            <SymbolIcon name="grade" filled={star <= reviewForm.rating} />
+                                        </button>
                                     ))}
                                 </div>
                             </div>

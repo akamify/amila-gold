@@ -1,3 +1,4 @@
+import SymbolIcon from "@/app/components/icons/SymbolIcon";
 export default function Comp3() {
   return (
     <>
@@ -175,9 +176,7 @@ export default function Comp3() {
               <div className="relative space-y-8 before:content-[''] before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-surface-container-high">
                 <div className="relative pl-10">
                   <div className="absolute left-0 top-1 w-6 h-6 bg-primary flex items-center justify-center text-on-primary">
-                    <span className="material-symbols-outlined text-[14px]">
-                      check
-                    </span>
+                    <SymbolIcon name={"check"} className="text-[14px]" />
                   </div>
                   <div className="space-y-1">
                     <p className="font-bold text-sm tracking-tight">
@@ -193,9 +192,7 @@ export default function Comp3() {
                 </div>
                 <div className="relative pl-10">
                   <div className="absolute left-0 top-1 w-6 h-6 bg-primary flex items-center justify-center text-on-primary">
-                    <span className="material-symbols-outlined text-[14px]">
-                      payments
-                    </span>
+                    <SymbolIcon name={"payments"} className="text-[14px]" />
                   </div>
                   <div className="space-y-1">
                     <p className="font-bold text-sm tracking-tight">
@@ -211,9 +208,7 @@ export default function Comp3() {
                 </div>
                 <div className="relative pl-10">
                   <div className="absolute left-0 top-1 w-6 h-6 bg-surface-container-high flex items-center justify-center text-on-surface">
-                    <span className="material-symbols-outlined text-[14px]">
-                      inventory_2
-                    </span>
+                    <SymbolIcon name={"inventory_2"} className="text-[14px]" />
                   </div>
                   <div className="space-y-1 opacity-50">
                     <p className="font-bold text-sm tracking-tight">
@@ -235,9 +230,7 @@ export default function Comp3() {
                 <h3 className="font-bebas text-2xl tracking-wide">
                   Customer
                 </h3>
-                <span className="material-symbols-outlined text-secondary hover:text-primary cursor-pointer">
-                  edit
-                </span>
+                <SymbolIcon name={"edit"} className="text-secondary hover:text-primary cursor-pointer" />
               </div>
               <div className="flex items-center gap-4 mb-6">
                 <div className="w-12 h-12 bg-on-surface text-surface flex items-center justify-center font-bold text-xl">
@@ -303,9 +296,7 @@ export default function Comp3() {
                       <option>DHL Express Worldwide</option>
                       <option>UPS Ground</option>
                     </select>
-                    <span className="material-symbols-outlined absolute right-2 top-2 pointer-events-none text-secondary">
-                      expand_more
-                    </span>
+                    <SymbolIcon name={"expand_more"} className="absolute right-2 top-2 pointer-events-none text-secondary" />
                   </div>
                 </div>
                 <div className="space-y-1">
@@ -319,9 +310,7 @@ export default function Comp3() {
                       value="SR-TRK-771928"
                     />
                     <button className="bg-on-surface text-surface px-4 py-2 hover:bg-primary transition-colors">
-                      <span className="material-symbols-outlined text-sm">
-                        content_copy
-                      </span>
+                      <SymbolIcon name={"content_copy"} className="text-sm" />
                     </button>
                   </div>
                 </div>

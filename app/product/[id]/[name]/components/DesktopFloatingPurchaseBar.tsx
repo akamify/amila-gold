@@ -1,4 +1,5 @@
 "use client";
+import SymbolIcon from "@/app/components/icons/SymbolIcon";
 
 import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -91,9 +92,7 @@ export default function DesktopFloatingPurchaseBar({
                       : "bg-secondary text-on-secondary shadow-secondary/15 hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
                   }`}
                 >
-                  <span className="material-symbols-outlined text-[18px]">
-                    {inCart ? "done_all" : "add_shopping_cart"}
-                  </span>
+                  <SymbolIcon name={inCart ? "done_all" : "add_shopping_cart"} className="text-[18px]" />
                   {inCart ? "Go to Cart" : isOutOfStock ? "Out of Stock" : "Add to Cart"}
                 </button>
 
@@ -103,7 +102,7 @@ export default function DesktopFloatingPurchaseBar({
                   disabled={isOutOfStock}
                   className="h-12 px-5 sm:px-6 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] transition-all active:scale-95 shadow-xl bg-primary text-on-primary shadow-primary/15 hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed flex-1 sm:flex-none flex items-center justify-center gap-2"
                 >
-                  <span className="material-symbols-outlined text-[18px]">bolt</span>
+                  <SymbolIcon name={"bolt"} className="text-[18px]" />
                   Buy Now
                 </button>
               </div>

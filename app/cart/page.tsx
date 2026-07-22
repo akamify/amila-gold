@@ -1,4 +1,5 @@
 "use client";
+import SymbolIcon from "@/app/components/icons/SymbolIcon";
 
 import React from "react";
 import Link from "next/link";
@@ -457,9 +458,7 @@ export default function CartPage() {
         <div className="max-w-md animate-fade-in text-center">
           <div className="relative mb-8 inline-block">
             <div className="absolute inset-0 rounded-full bg-primary/5 blur-3xl" />
-            <span className="material-symbols-outlined relative text-8xl text-primary/20">
-              shopping_basket
-            </span>
+            <SymbolIcon name={"shopping_basket"} className="relative text-8xl text-primary/20" />
           </div>
 
           <h1 className="mb-4 text-4xl font-bold tracking-tight text-primary">
@@ -475,7 +474,7 @@ export default function CartPage() {
             href="/shop"
             className="inline-flex items-center gap-3 rounded-2xl bg-primary px-10 py-4 font-bold text-white transition-all hover:shadow-2xl hover:shadow-primary/30 active:scale-95"
           >
-            <span className="material-symbols-outlined text-sm">explore</span>
+            <SymbolIcon name={"explore"} className="text-sm" />
             Start Shopping
           </Link>
         </div>
@@ -503,9 +502,7 @@ export default function CartPage() {
               href="/shop"
               className="flex items-center gap-2 text-sm font-bold text-primary underline-offset-8 hover:underline"
             >
-              <span className="material-symbols-outlined text-base">
-                add_shopping_cart
-              </span>
+              <SymbolIcon name={"add_shopping_cart"} className="text-base" />
               Add more items
             </Link>
           </header>
@@ -612,9 +609,7 @@ export default function CartPage() {
                         aria-label={`Remove ${item.name} from cart`}
                         type="button"
                       >
-                        <span className="material-symbols-outlined text-xl leading-none">
-                          delete_sweep
-                        </span>
+                        <SymbolIcon name={"delete_sweep"} className="text-xl leading-none" />
                       </button>
                     </div>
 
@@ -633,9 +628,7 @@ export default function CartPage() {
                           }
                           type="button"
                         >
-                          <span className="material-symbols-outlined text-base">
-                            remove
-                          </span>
+                          <SymbolIcon name={"remove"} className="text-base" />
                         </button>
 
                         <span className="w-10 text-center text-sm font-bold text-primary">
@@ -655,9 +648,7 @@ export default function CartPage() {
                           }
                           type="button"
                         >
-                          <span className="material-symbols-outlined text-base">
-                            add
-                          </span>
+                          <SymbolIcon name={"add"} className="text-base" />
                         </button>
                       </div>
 
@@ -737,23 +728,17 @@ export default function CartPage() {
                     ? "Update Cart to Continue"
                     : "Secure Checkout"}
 
-              <span className="material-symbols-outlined transition-transform group-hover:translate-x-1">
-                arrow_forward
-              </span>
+              <SymbolIcon name={"arrow_forward"} className="transition-transform group-hover:translate-x-1" />
             </Link>
 
             <div className="mt-8 flex flex-col gap-4">
               <div className="flex items-center gap-3 text-on-surface-variant/60">
-                <span className="material-symbols-outlined text-lg text-primary/60">
-                  verified
-                </span>
+                <SymbolIcon name={"verified"} className="text-lg text-primary/60" />
                 <p className="text-xs font-medium">Authenticity Guaranteed</p>
               </div>
 
               <div className="flex items-center gap-3 text-on-surface-variant/60">
-                <span className="material-symbols-outlined text-lg text-primary/60">
-                  local_shipping
-                </span>
+                <SymbolIcon name={"local_shipping"} className="text-lg text-primary/60" />
                 <p className="text-xs font-medium">
                   Safe & Disinfected Delivery
                 </p>

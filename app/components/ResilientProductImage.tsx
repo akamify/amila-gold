@@ -1,4 +1,5 @@
 'use client';
+import SymbolIcon from "@/app/components/icons/SymbolIcon";
 
 import { useEffect, useMemo, useState, type MouseEvent } from 'react';
 
@@ -65,7 +66,7 @@ export default function ResilientProductImage({
   if (failed || !currentSource) {
     return (
       <div className={`absolute inset-0 flex flex-col items-center justify-center gap-2 text-center ${fallbackClassName}`}>
-        <span className={`material-symbols-outlined opacity-60 ${compact ? 'text-lg' : 'text-2xl'}`}>broken_image</span>
+        <SymbolIcon name={"broken_image"} className={`opacity-60 ${compact ? 'text-lg' : 'text-2xl'}`} />
         <button
           type="button"
           onClick={retry}
@@ -74,7 +75,7 @@ export default function ResilientProductImage({
             compact ? 'h-5 w-5 text-[0]' : 'px-3 py-1 text-[10px]'
           }`}
         >
-          {compact ? <span className="material-symbols-outlined text-xs">refresh</span> : 'Try again'}
+          {compact ? <SymbolIcon name={"refresh"} className="text-xs" /> : 'Try again'}
         </button>
       </div>
     );

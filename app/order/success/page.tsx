@@ -1,4 +1,5 @@
 'use client';
+import SymbolIcon from "@/app/components/icons/SymbolIcon";
 
 import React, { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -17,7 +18,7 @@ function OrderSuccessContent() {
     <main className="min-h-screen flex items-center justify-center px-6 py-24 bg-surface">
       <div className="w-full max-w-md text-center">
         <div className="w-24 h-24 bg-secondary/10 rounded-full flex items-center justify-center mx-auto mb-8">
-          <span className="material-symbols-outlined text-5xl text-secondary">check_circle</span>
+          <SymbolIcon name={"check_circle"} className="text-5xl text-secondary" />
         </div>
         
         <h1 className="font-headline text-4xl font-bold italic text-primary mb-4">

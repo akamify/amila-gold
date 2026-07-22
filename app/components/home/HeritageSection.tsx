@@ -1,4 +1,5 @@
 "use client";
+import SymbolIcon from "@/app/components/icons/SymbolIcon";
 
 import React, { useRef, useState, useEffect } from "react";
 
@@ -144,9 +145,7 @@ export default function HeritageSection() {
                   aria-label={isMuted ? "Unmute heritage video" : "Mute heritage video"}
                   className="absolute bottom-3 right-3 z-30 w-9 h-9 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white hover:bg-black/80 transition-all shadow-lg active:scale-90"
                 >
-                  <span className="material-symbols-outlined !text-lg pointer-events-none">
-                    {isMuted ? "volume_off" : "volume_up"}
-                  </span>
+                  <SymbolIcon name={isMuted ? "volume_off" : "volume_up"} className="!text-lg pointer-events-none" />
                 </button>
 
                 {/* Gradient Overlay */}
