@@ -6,16 +6,10 @@ on:
       - main
 
 jobs:
- deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check Secret Length
-        run: |
-          echo "KEY_LENGTH=${#SSH_KEY}"
-        env:
-          SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-
       - name: Deploy
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -23,5 +17,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.VPS_PORT }}
+
           script: |
-            echo "Connected"
+            cd /root/amila-gold-frontend
+            ./deploy.sh
