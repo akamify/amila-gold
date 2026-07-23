@@ -18,3 +18,4 @@ jobs:
           debug: true
           script: |
             whoami
+            
