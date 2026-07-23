@@ -304,7 +304,7 @@ export default function Navbar() {
               <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-1.5 lg:gap-2">
                 <Link
                   href={isAuthenticated ? "/user/profile" : "/user/auth"}
-                  className="group hidden min-h-11 items-center gap-2 rounded-2xl px-2.5 text-[#5b4734] transition hover:bg-[#f5ecde] hover:text-[#285b25] lg:flex xl:px-3"
+                  className="group hidden min-h-11 items-center gap-2 rounded-2xl border border-[#e4d7c1] bg-white/85 px-3 text-[#30271e] shadow-[0_8px_20px_rgba(59,42,22,0.06)] transition hover:-translate-y-0.5 hover:border-[#d0a65e] hover:bg-[#fff7e8] hover:text-[#7b4516] active:translate-y-0 active:scale-95 lg:flex xl:px-3"
                 >
                   <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f3ebdf] transition group-hover:bg-white">
                     <User className="h-[20px] w-[20px]" />
@@ -352,7 +352,6 @@ export default function Navbar() {
                         {stableCartCount > 99 ? "99+" : stableCartCount}
                       </span>
                     )}
-                    
                   </span>
                 </Link>
               </div>
