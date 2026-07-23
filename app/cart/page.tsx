@@ -390,7 +390,7 @@ export default function CartPage() {
       </main>
     );
   }
-
+  
   return (
     <main className="min-h-screen bg-[#f4f6f8] px-2 pb-4 pt-[2.25rem] font-body sm:px-5 sm:pt-[2rem] lg:px-8 lg:pb-2 xl:px-10">
       <div className="mx-auto grid max-w-[1540px] gap-4 lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_400px] xl:gap-6">
