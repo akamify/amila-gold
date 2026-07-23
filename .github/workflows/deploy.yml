@@ -1,21 +1,5 @@
-name: Test SSH
-
-on:
-  workflow_dispatch:
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Test
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: 22
-          debug: true
-          script: |
-            whoami
-            
+- name: Check Secret Length
+  run: |
+    echo "KEY_LENGTH=${#SSH_KEY}"
+  env:
+    SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
