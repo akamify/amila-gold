@@ -1,20 +1,31 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
+import {
+  AnimatePresence,
+  motion,
+  useReducedMotion,
+} from "framer-motion";
 import {
   ArrowRight,
-  BadgeCheck,
   ChevronLeft,
   ChevronRight,
-  Leaf,
+  CircleCheck,
   MessageCircle,
+  Pause,
+  Play,
   ShieldCheck,
   ShoppingBag,
-  Sparkles,
 } from "lucide-react";
+
 import type { PublicBanner } from "@/app/lib/publicDataClient";
 import { getWholesaleWhatsAppUrl } from "@/app/lib/whatsapp";
 
@@ -24,345 +35,540 @@ const FALLBACK_BANNERS = [
   "/banner3.png",
 ];
 
+const AUTOPLAY_DELAY = 5500;
+const SWIPE_THRESHOLD = 55;
+const MAX_BANNERS = 6;
+
 const WHOLESALE_WHATSAPP_URL = getWholesaleWhatsAppUrl();
-const AUTOPLAY_MS = 4500;
 
 type HeroSectionProps = {
   initialBanners?: PublicBanner[];
   managed?: boolean;
 };
 
-const trustPoints = [
-  {
-    icon: Leaf,
-    label: "100% Natural",
-    description: "Naturally sourced",
-  },
-  {
-    icon: ShieldCheck,
-    label: "Quality Assured",
-    description: "Carefully checked",
-  },
-  {
-    icon: BadgeCheck,
-    label: "Authentic",
-    description: "Trusted quality",
-  },
-];
+type SlideDirection = 1 | -1;
 
 function getBannerSources(initialBanners?: PublicBanner[]) {
-  const dynamicBanners = Array.isArray(initialBanners)
+  const managedBanners = Array.isArray(initialBanners)
     ? initialBanners
-        .map((item) => String(item?.img || "").trim())
+        .map((banner) => String(banner?.img || "").trim())
         .filter(Boolean)
     : [];
 
   return Array.from(
-    new Set([...dynamicBanners, ...FALLBACK_BANNERS]),
-  ).slice(0, 3);
+    new Set([...managedBanners, ...FALLBACK_BANNERS]),
+  ).slice(0, MAX_BANNERS);
 }
+
+const slideVariants = {
+  enter: (direction: SlideDirection) => ({
+    opacity: 0,
+    x: direction > 0 ? "4%" : "-4%",
+    scale: 1.025,
+    filter: "blur(2px)",
+  }),
+
+  center: {
+    opacity: 1,
+    x: "0%",
+    scale: 1,
+    filter: "blur(0px)",
+  },
+
+  exit: (direction: SlideDirection) => ({
+    opacity: 0,
+    x: direction > 0 ? "-3%" : "3%",
+    scale: 1.01,
+    filter: "blur(1px)",
+  }),
+};
 
 export default function HeroSection({
   initialBanners,
 }: HeroSectionProps) {
+  const prefersReducedMotion = useReducedMotion();
+
   const bannerSources = useMemo(
     () => getBannerSources(initialBanners),
     [initialBanners],
   );
 
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
+  const [direction, setDirection] =
+    useState<SlideDirection>(1);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const [isDocumentHidden, setIsDocumentHidden] =
+    useState(false);
+  const [isAutoplayEnabled, setIsAutoplayEnabled] =
+    useState(true);
+
+  const touchStartX = useRef<number | null>(null);
+  const touchCurrentX = useRef<number | null>(null);
+
+  const totalBanners = bannerSources.length;
+  const hasMultipleBanners = totalBanners > 1;
+
+  const isAutoplayPaused =
+    isHovered ||
+    isFocused ||
+    isDocumentHidden ||
+    !isAutoplayEnabled ||
+    Boolean(prefersReducedMotion);
 
   useEffect(() => {
     setActiveIndex(0);
-  }, [bannerSources.length]);
+    setDirection(1);
+  }, [bannerSources]);
+
+  const changeSlide = useCallback(
+    (nextIndex: number, nextDirection: SlideDirection) => {
+      if (totalBanners <= 1) return;
+
+      const normalizedIndex =
+        (nextIndex + totalBanners) % totalBanners;
+
+      setDirection(nextDirection);
+      setActiveIndex(normalizedIndex);
+    },
+    [totalBanners],
+  );
+
+  const showPreviousBanner = useCallback(() => {
+    changeSlide(activeIndex - 1, -1);
+  }, [activeIndex, changeSlide]);
+
+  const showNextBanner = useCallback(() => {
+    changeSlide(activeIndex + 1, 1);
+  }, [activeIndex, changeSlide]);
+
+  const showBanner = useCallback(
+    (index: number) => {
+      if (index === activeIndex) return;
+
+      const directDistance = index - activeIndex;
+      const wrappedDistance =
+        directDistance > 0
+          ? directDistance - totalBanners
+          : directDistance + totalBanners;
+
+      const nextDirection: SlideDirection =
+        Math.abs(directDistance) <= Math.abs(wrappedDistance)
+          ? directDistance > 0
+            ? 1
+            : -1
+          : wrappedDistance > 0
+            ? 1
+            : -1;
+
+      changeSlide(index, nextDirection);
+    },
+    [activeIndex, changeSlide, totalBanners],
+  );
 
   useEffect(() => {
-    if (bannerSources.length <= 1 || isPaused) return;
+    if (!hasMultipleBanners || isAutoplayPaused) return;
 
-    const timer = window.setInterval(() => {
-      setActiveIndex(
-        (currentIndex) =>
-          (currentIndex + 1) % bannerSources.length,
+    const autoplayTimer = window.setTimeout(() => {
+      changeSlide(activeIndex + 1, 1);
+    }, AUTOPLAY_DELAY);
+
+    return () => {
+      window.clearTimeout(autoplayTimer);
+    };
+  }, [
+    activeIndex,
+    changeSlide,
+    hasMultipleBanners,
+    isAutoplayPaused,
+  ]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsDocumentHidden(document.hidden);
+    };
+
+    handleVisibilityChange();
+
+    document.addEventListener(
+      "visibilitychange",
+      handleVisibilityChange,
+    );
+
+    return () => {
+      document.removeEventListener(
+        "visibilitychange",
+        handleVisibilityChange,
       );
-    }, AUTOPLAY_MS);
+    };
+  }, []);
 
-    return () => window.clearInterval(timer);
-  }, [bannerSources.length, isPaused]);
+  useEffect(() => {
+    if (!hasMultipleBanners) return;
 
-  const showPreviousBanner = () => {
-    setActiveIndex((currentIndex) =>
-      currentIndex === 0
-        ? bannerSources.length - 1
-        : currentIndex - 1,
+    const handleKeyboardNavigation = (
+      event: KeyboardEvent,
+    ) => {
+      if (event.key === "ArrowLeft") {
+        showPreviousBanner();
+      }
+
+      if (event.key === "ArrowRight") {
+        showNextBanner();
+      }
+    };
+
+    window.addEventListener(
+      "keydown",
+      handleKeyboardNavigation,
     );
+
+    return () => {
+      window.removeEventListener(
+        "keydown",
+        handleKeyboardNavigation,
+      );
+    };
+  }, [
+    hasMultipleBanners,
+    showNextBanner,
+    showPreviousBanner,
+  ]);
+
+  const handleTouchStart = (
+    event: React.TouchEvent<HTMLDivElement>,
+  ) => {
+    touchStartX.current = event.touches[0]?.clientX ?? null;
+    touchCurrentX.current = null;
   };
 
-  const showNextBanner = () => {
-    setActiveIndex(
-      (currentIndex) =>
-        (currentIndex + 1) % bannerSources.length,
-    );
+  const handleTouchMove = (
+    event: React.TouchEvent<HTMLDivElement>,
+  ) => {
+    touchCurrentX.current =
+      event.touches[0]?.clientX ?? null;
   };
 
-  if (!bannerSources.length) return null;
+  const handleTouchEnd = () => {
+    if (
+      touchStartX.current === null ||
+      touchCurrentX.current === null
+    ) {
+      touchStartX.current = null;
+      touchCurrentX.current = null;
+      return;
+    }
+
+    const distance =
+      touchStartX.current - touchCurrentX.current;
+
+    if (Math.abs(distance) >= SWIPE_THRESHOLD) {
+      if (distance > 0) {
+        showNextBanner();
+      } else {
+        showPreviousBanner();
+      }
+    }
+
+    touchStartX.current = null;
+    touchCurrentX.current = null;
+  };
+
+  if (!totalBanners) return null;
 
   return (
-    <section className="relative isolate overflow-hidden bg-[linear-gradient(180deg,#f8f5ed_0%,#eee7d9_100%)] px-1 py-1 sm:px-1 sm:py-1 lg:px-2 lg:py-2">
-      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute -left-28 top-4 h-72 w-72 rounded-full bg-[#5d8b46]/10 blur-3xl" />
-
-        <div className="absolute -right-24 bottom-0 h-80 w-80 rounded-full bg-[#c28b42]/10 blur-3xl" />
-
-        <div className="absolute left-1/2 top-1/2 h-48 w-[70%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/50 blur-3xl" />
+    <section className="relative isolate overflow-hidden bg-[linear-gradient(180deg,#f9f6ef_0%,#f0eadf_100%)] px-1 py-1.5 sm:px-1.5 sm:py-2 lg:px-2">
+      {/* Decorative background */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
+      >
+        <div className="absolute -left-28 -top-32 h-80 w-80 rounded-full bg-[#577e42]/10 blur-[90px]" />
+        <div className="absolute -bottom-32 -right-24 h-80 w-80 rounded-full bg-[#c39246]/10 blur-[95px]" />
+        <div className="absolute left-1/2 top-1/2 h-48 w-[75%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/55 blur-[80px]" />
       </div>
 
       <div className="mx-auto w-full max-w-[1536px]">
         <div
-          className="relative"
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
+          className="overflow-hidden rounded-[8px] border border-[#d9cfbe] bg-[#fffdf9] shadow-[0_18px_55px_rgba(54,43,24,0.12)] sm:rounded-[10px]"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          onFocusCapture={() => setIsFocused(true)}
+          onBlurCapture={(event) => {
+            if (
+              !event.currentTarget.contains(
+                event.relatedTarget as Node | null,
+              )
+            ) {
+              setIsFocused(false);
+            }
+          }}
         >
-          {/* Banner */}
-          <div className="relative overflow-hidden rounded-[2px] border border-[#d8cebb] bg-[#eee6d8] shadow-[0_18px_50px_rgba(52,42,23,0.12)]">
-            <div className="relative aspect-[2172/724] w-full overflow-hidden">
-              <AnimatePresence initial={false} mode="popLayout">
-                <motion.div
-                  key={bannerSources[activeIndex]}
-                  initial={{
-                    opacity: 0,
-                    scale: 1.025,
-                  }}
-                  animate={{
-                    opacity: 1,
-                    scale: 1,
-                  }}
-                  exit={{
-                    opacity: 0,
-                    scale: 0.99,
-                  }}
-                  transition={{
-                    opacity: {
-                      duration: 0.45,
-                      ease: "easeOut",
-                    },
-                    scale: {
-                      duration: 0.75,
-                      ease: [0.22, 1, 0.36, 1],
-                    },
-                  }}
-                  className="absolute inset-0"
+          {/* Main banner */}
+          <div
+            className="group/hero relative aspect-[2172/724] w-full touch-pan-y overflow-hidden bg-[#eee6d7]"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            <AnimatePresence
+              initial={false}
+              custom={direction}
+              mode="sync"
+            >
+              <motion.div
+                key={`${bannerSources[activeIndex]}-${activeIndex}`}
+                custom={direction}
+                variants={slideVariants}
+                initial={
+                  prefersReducedMotion ? false : "enter"
+                }
+                animate="center"
+                exit={
+                  prefersReducedMotion ? undefined : "exit"
+                }
+                transition={
+                  prefersReducedMotion
+                    ? { duration: 0 }
+                    : {
+                        x: {
+                          duration: 0.72,
+                          ease: [0.22, 1, 0.36, 1],
+                        },
+                        opacity: {
+                          duration: 0.42,
+                          ease: "easeOut",
+                        },
+                        scale: {
+                          duration: 0.85,
+                          ease: [0.22, 1, 0.36, 1],
+                        },
+                        filter: {
+                          duration: 0.38,
+                          ease: "easeOut",
+                        },
+                      }
+                }
+                className="absolute inset-0"
+              >
+                <Image
+                  src={bannerSources[activeIndex]}
+                  alt={`Amila Gold promotional banner ${
+                    activeIndex + 1
+                  }`}
+                  fill
+                  priority={activeIndex === 0}
+                  fetchPriority={
+                    activeIndex === 0 ? "high" : "auto"
+                  }
+                  quality={100}
+                  sizes="(max-width: 640px) 100vw, (max-width: 1536px) 100vw, 1536px"
+                  className="select-none object-cover object-center"
+                  draggable={false}
+                />
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Premium visual overlays */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.05)_0%,transparent_45%,rgba(24,49,20,0.06)_100%)]"
+            />
+
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-y-0 left-0 w-[10%] bg-gradient-to-r from-black/[0.055] to-transparent"
+            />
+
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-y-0 right-0 w-[10%] bg-gradient-to-l from-black/[0.055] to-transparent"
+            />
+
+            {/* Banner count */}
+            {hasMultipleBanners && (
+              <div className="absolute right-2 top-2 z-20 hidden items-center rounded-full border border-white/70 bg-black/25 px-2.5 py-1 text-[9px] font-bold tracking-[0.12em] text-white shadow-lg backdrop-blur-md sm:flex">
+                {String(activeIndex + 1).padStart(2, "0")}
+                <span className="mx-1 opacity-60">/</span>
+                {String(totalBanners).padStart(2, "0")}
+              </div>
+            )}
+
+            {/* Slider arrows */}
+            {hasMultipleBanners && (
+              <>
+                <button
+                  type="button"
+                  onClick={showPreviousBanner}
+                  aria-label="Show previous banner"
+                  className="absolute left-1.5 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-white/80 bg-white/90 text-[#31592d] shadow-[0_8px_24px_rgba(23,40,18,0.18)] backdrop-blur-xl transition-all duration-300 hover:scale-105 hover:bg-white hover:text-[#1f4e22] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#387136] focus-visible:ring-offset-2 active:scale-95 sm:left-3 sm:h-10 sm:w-10 lg:left-5 lg:h-12 lg:w-12"
                 >
-                  <Image
-                    src={bannerSources[activeIndex]}
-                    alt={`Amila Gold banner ${activeIndex + 1}`}
-                    fill
-                    priority={activeIndex === 0}
-                    fetchPriority={
-                      activeIndex === 0 ? "high" : "auto"
-                    }
-                    quality={100}
-                    sizes="(max-width: 640px) 100vw, (max-width: 1536px) 100vw, 1536px"
-                    className="object-cover object-center"
+                  <ChevronLeft
+                    className="h-4 w-4 sm:h-5 sm:w-5"
+                    strokeWidth={2.8}
                   />
-                </motion.div>
-              </AnimatePresence>
+                </button>
 
-              {/* Desktop soft overlays */}
-              <div className="pointer-events-none absolute inset-0 hidden bg-[linear-gradient(180deg,rgba(255,255,255,0.04)_0%,transparent_38%,rgba(20,39,17,0.14)_100%)] sm:block" />
+                <button
+                  type="button"
+                  onClick={showNextBanner}
+                  aria-label="Show next banner"
+                  className="absolute right-1.5 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-white/80 bg-white/90 text-[#31592d] shadow-[0_8px_24px_rgba(23,40,18,0.18)] backdrop-blur-xl transition-all duration-300 hover:scale-105 hover:bg-white hover:text-[#1f4e22] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#387136] focus-visible:ring-offset-2 active:scale-95 sm:right-3 sm:h-10 sm:w-10 lg:right-5 lg:h-12 lg:w-12"
+                >
+                  <ChevronRight
+                    className="h-4 w-4 sm:h-5 sm:w-5"
+                    strokeWidth={2.8}
+                  />
+                </button>
+              </>
+            )}
+          </div>
 
-              <div className="pointer-events-none absolute inset-y-0 left-0 hidden w-[18%] bg-gradient-to-r from-black/10 to-transparent sm:block" />
+          {/* Desktop action strip */}
+          <div className="hidden min-h-[76px] grid-cols-[1fr_auto_1fr] items-center gap-5 border-t border-[#ded3c1] bg-[linear-gradient(90deg,#fffdfa_0%,#f5eee3_50%,#fffdfa_100%)] px-4 py-2.5 sm:grid lg:min-h-[82px] lg:gap-8 lg:px-7">
+            <div className="flex justify-start">
+              <Link
+                href="/shop"
+                className="group/shop relative inline-flex min-h-12 items-center justify-center gap-2.5 overflow-hidden rounded-full border border-[#316d31] bg-[linear-gradient(135deg,#123f19_0%,#28682c_54%,#4d8d42_100%)] px-6 text-[10px] font-black uppercase tracking-[0.13em] text-white shadow-[0_12px_30px_rgba(28,91,35,0.32)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_17px_36px_rgba(28,91,35,0.4)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#397435] focus-visible:ring-offset-2 active:translate-y-0 lg:px-8 lg:text-[11px]"
+              >
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-0 -translate-x-full bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.22)_50%,transparent_75%)] transition-transform duration-700 group-hover/shop:translate-x-full"
+                />
 
-              <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[18%] bg-gradient-to-l from-black/10 to-transparent sm:block" />
+                <ShoppingBag
+                  className="relative h-4 w-4 shrink-0"
+                  strokeWidth={2.6}
+                />
 
-              {/* Desktop arrows */}
-              {bannerSources.length > 1 && (
-                <>
-                  <button
-                    type="button"
-                    onClick={showPreviousBanner}
-                    aria-label="Show previous banner"
-                    className="absolute left-4 top-1/2 z-30 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/60 bg-white/85 text-[#31572c] shadow-[0_10px_30px_rgba(25,38,20,0.18)] backdrop-blur-md transition duration-300 hover:scale-105 hover:bg-white sm:flex lg:left-6 lg:h-12 lg:w-12"
-                  >
-                    <ChevronLeft
-                      className="h-5 w-5"
-                      strokeWidth={2.7}
-                    />
-                  </button>
+                <span className="relative whitespace-nowrap">
+                  Shop Now
+                </span>
 
-                  <button
-                    type="button"
-                    onClick={showNextBanner}
-                    aria-label="Show next banner"
-                    className="absolute right-4 top-1/2 z-30 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/60 bg-white/85 text-[#31572c] shadow-[0_10px_30px_rgba(25,38,20,0.18)] backdrop-blur-md transition duration-300 hover:scale-105 hover:bg-white sm:flex lg:right-6 lg:h-12 lg:w-12"
-                  >
-                    <ChevronRight
-                      className="h-5 w-5"
-                      strokeWidth={2.7}
-                    />
-                  </button>
-                </>
-              )}
+                <ArrowRight
+                  className="relative h-4 w-4 shrink-0 transition-transform duration-300 group-hover/shop:translate-x-1"
+                  strokeWidth={2.7}
+                />
+              </Link>
+            </div>
 
-              {/* Desktop banner content */}
-              <div className="absolute inset-x-0 bottom-0 z-20 hidden items-end justify-between gap-5 p-5 sm:flex lg:p-7">
-                <div className="inline-flex items-center gap-2.5 rounded-full border border-white/55 bg-white/88 px-4 py-2.5 text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#69451f] shadow-[0_12px_35px_rgba(43,34,18,0.18)] backdrop-blur-xl lg:px-5 lg:text-[11px]">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#e7f0df] text-[#2f652a]">
-                    <ShieldCheck
-                      className="h-4 w-4"
-                      strokeWidth={2.5}
-                    />
-                  </span>
+            {/* Quality badge */}
+            <div className="flex justify-center">
+              <div className="inline-flex items-center gap-3 rounded-full border border-[#d5dfcf] bg-white/90 px-4 py-2 shadow-[0_8px_22px_rgba(45,66,34,0.08)] backdrop-blur-md lg:px-5">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#d5e2d0] bg-[#edf5e9] text-[#32662f]">
+                  <ShieldCheck
+                    className="h-[18px] w-[18px]"
+                    strokeWidth={2.5}
+                  />
+                </span>
 
-                  Trusted household essentials
-                </div>
+                <div>
+                  <p className="whitespace-nowrap text-[9px] font-black uppercase tracking-[0.15em] text-[#674a31] lg:text-[10px]">
+                    Quality Assured
+                  </p>
 
-                <div className="flex items-center gap-2.5">
-                  <Link
-                    href="/shop"
-                    className="group inline-flex min-h-12 items-center justify-center gap-2.5 rounded-full border border-[#4d813f] bg-[linear-gradient(135deg,#153f1a_0%,#276529_52%,#4b863d_100%)] px-6 text-[11px] font-black uppercase tracking-[0.13em] text-white shadow-[0_15px_36px_rgba(25,83,31,0.42)] transition duration-300 hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[0_20px_42px_rgba(25,83,31,0.48)]"
-                  >
-                    <ShoppingBag
-                      className="h-[17px] w-[17px]"
-                      strokeWidth={2.6}
-                    />
-
-                    Shop Now
-
-                    <ArrowRight
-                      className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
-                      strokeWidth={2.6}
-                    />
-                  </Link>
-
-                  <a
-                    href={WHOLESALE_WHATSAPP_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group inline-flex min-h-12 items-center justify-center gap-2.5 rounded-full border-2 border-[#356d31] bg-[#fffef9] px-6 text-[11px] font-black uppercase tracking-[0.12em] text-[#295d27] shadow-[0_14px_34px_rgba(38,74,31,0.22)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#edf6e8] hover:shadow-[0_18px_40px_rgba(38,74,31,0.3)]"
-                  >
-                    <MessageCircle
-                      className="h-[17px] w-[17px]"
-                      strokeWidth={2.6}
-                    />
-
-                    WhatsApp Wholesale
-
-                    <ArrowRight
-                      className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
-                      strokeWidth={2.5}
-                    />
-                  </a>
+                  <p className="mt-0.5 whitespace-nowrap text-[9px] font-medium text-[#9a826a] lg:text-[10px]">
+                    Carefully checked
+                  </p>
                 </div>
               </div>
+            </div>
+
+            <div className="flex justify-end">
+              <a
+                href={WHOLESALE_WHATSAPP_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group/wholesale relative inline-flex min-h-12 items-center justify-center gap-2.5 overflow-hidden rounded-full border-2 border-[#397738] bg-[linear-gradient(180deg,#ffffff_0%,#eef7eb_100%)] px-6 text-[9px] font-black uppercase tracking-[0.1em] text-[#285f29] shadow-[0_10px_27px_rgba(38,95,35,0.16)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#eaf6e6] hover:shadow-[0_15px_34px_rgba(38,95,35,0.24)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#397435] focus-visible:ring-offset-2 active:translate-y-0 lg:px-8 lg:text-[10px]"
+              >
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-0 -translate-x-full bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.75)_50%,transparent_75%)] transition-transform duration-700 group-hover/wholesale:translate-x-full"
+                />
+
+                <MessageCircle
+                  className="relative h-4 w-4 shrink-0"
+                  strokeWidth={2.7}
+                />
+
+                <span className="relative whitespace-nowrap">
+                  WhatsApp Wholesale
+                </span>
+
+                <ArrowRight
+                  className="relative h-4 w-4 shrink-0 transition-transform duration-300 group-hover/wholesale:translate-x-1"
+                  strokeWidth={2.7}
+                />
+              </a>
             </div>
           </div>
 
-          {/* Slider dots */}
-          {bannerSources.length > 1 && (
-            <div className="relative z-30 -mt-2.5 flex justify-center sm:absolute sm:inset-x-0 sm:bottom-4 sm:mt-0 lg:bottom-5">
-              <div className="flex items-center gap-1 rounded-full border border-[#ddd2be] bg-[#fffdf8]/96 px-2.5 py-1.5 shadow-[0_8px_20px_rgba(51,39,20,0.15)] backdrop-blur-xl sm:border-white/50 sm:bg-white/80">
-                {bannerSources.map((banner, index) => {
-                  const isActive = index === activeIndex;
-
-                  return (
-                    <button
-                      key={`${banner}-${index}`}
-                      type="button"
-                      aria-label={`Show banner ${index + 1}`}
-                      aria-pressed={isActive}
-                      onClick={() => setActiveIndex(index)}
-                      className={`h-1.5 rounded-full transition-all duration-300 ${
-                        isActive
-                          ? "w-6 bg-[#32652c]"
-                          : "w-1.5 bg-[#c7b79d] hover:bg-[#987448]"
-                      }`}
-                    />
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Mobile area */}
-          <div className="mt-1.5 overflow-hidden rounded-[10px] border border-[#ddd2bf] bg-[linear-gradient(145deg,#fffefb_0%,#f7f0e4_100%)] shadow-[0_10px_26px_rgba(57,43,22,0.08)] sm:hidden">
-            {/* Small heading */}
-            <div className="flex items-center justify-between gap-3 border-b border-[#e7ddcc] px-3 py-2.5">
-              <div className="min-w-0">
-                <div className="inline-flex items-center gap-1 text-[7px] font-black uppercase tracking-[0.15em] text-[#a2692a]">
-                  <Sparkles
-                    className="h-2.5 w-2.5"
-                    strokeWidth={2.5}
+          {/* Mobile action section */}
+          <div className="border-t border-[#ded3c1] bg-[linear-gradient(180deg,#fffefa_0%,#f7f0e5_100%)] p-2.5 sm:hidden">
+            <div className="mb-2 flex items-center justify-between rounded-[12px] border border-[#ddd6c8] bg-white/75 px-2.5 py-2 shadow-[0_5px_16px_rgba(54,42,22,0.06)]">
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#edf5e9] text-[#32662f]">
+                  <CircleCheck
+                    className="h-4 w-4"
+                    strokeWidth={2.6}
                   />
+                </span>
 
-                  Naturally better
+                <div className="min-w-0">
+                  <p className="truncate text-[8px] font-black uppercase tracking-[0.12em] text-[#65492f]">
+                    Quality Assured
+                  </p>
+
+                  <p className="mt-0.5 truncate text-[7.5px] font-medium text-[#957e66]">
+                    Pure, carefully checked products
+                  </p>
                 </div>
-
-                <h2 className="mt-0.5 text-[14px] font-black leading-tight tracking-[-0.03em] text-[#22461f]">
-                  Pure quality for every home
-                </h2>
-
-                <p className="mt-0.5 text-[8px] font-medium leading-3 text-[#806a52]">
-                  Authentic products for better everyday living.
-                </p>
               </div>
 
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] border border-[#d9e3cf] bg-[#edf5e7] text-[#32642d]">
-                <Leaf
-                  className="h-4 w-4"
-                  strokeWidth={2.4}
-                />
-              </span>
+              {hasMultipleBanners && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setIsAutoplayEnabled((current) => !current)
+                  }
+                  aria-label={
+                    isAutoplayEnabled
+                      ? "Pause banner autoplay"
+                      : "Play banner autoplay"
+                  }
+                  className="ml-2 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#d6dfd0] bg-[#f3f8f0] text-[#356831] transition active:scale-95"
+                >
+                  {isAutoplayEnabled ? (
+                    <Pause
+                      className="h-3.5 w-3.5"
+                      strokeWidth={2.5}
+                    />
+                  ) : (
+                    <Play
+                      className="ml-0.5 h-3.5 w-3.5"
+                      strokeWidth={2.5}
+                    />
+                  )}
+                </button>
+              )}
             </div>
 
-            {/* Smaller mobile trust points */}
-            <div className="grid grid-cols-3 gap-1.5 px-2 py-2">
-              {trustPoints.map((item) => {
-                const Icon = item.icon;
-
-                return (
-                  <div
-                    key={item.label}
-                    className="relative flex min-w-0 items-center gap-1.5 overflow-hidden rounded-[9px] border border-[#e5dac8] bg-white px-1.5 py-2 shadow-[0_4px_12px_rgba(61,46,23,0.05)]"
-                  >
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[9px] bg-[#edf4e7] text-[#30622b]">
-                      <Icon
-                        className="h-3.5 w-3.5"
-                        strokeWidth={2.5}
-                      />
-                    </span>
-
-                    <div className="min-w-0">
-                      <p className="truncate text-[6.5px] font-black uppercase leading-3 tracking-[0.04em] text-[#65472f]">
-                        {item.label}
-                      </p>
-
-                      <p className="truncate text-[5.5px] font-medium leading-2.5 text-[#9a8064]">
-                        {item.description}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Highlighted CTA buttons */}
-            <div className="grid grid-cols-2 gap-2 border-t border-[#e7ddcc] bg-[#fffdfa] p-2">
+            <div className="grid grid-cols-2 gap-2">
               <Link
                 href="/shop"
-                className="group relative inline-flex min-h-[46px] items-center justify-center gap-2 overflow-hidden rounded-[11px] border border-[#3d7737] bg-[linear-gradient(135deg,#153f1a_0%,#28662a_55%,#4c873e_100%)] px-2 text-[9px] font-black uppercase tracking-[0.08em] text-white shadow-[0_10px_22px_rgba(30,91,35,0.38)] transition active:scale-[0.98]"
+                className="group/shop relative inline-flex min-h-[46px] items-center justify-center gap-1.5 overflow-hidden rounded-[12px] border border-[#347035] bg-[linear-gradient(135deg,#143f19_0%,#28672c_55%,#4b8a40_100%)] px-2 text-[8.5px] font-black uppercase tracking-[0.08em] text-white shadow-[0_9px_22px_rgba(30,92,36,0.3)] transition active:scale-[0.98]"
               >
-                <span className="absolute inset-x-3 top-0 h-px bg-white/45" />
-
                 <ShoppingBag
                   className="h-4 w-4 shrink-0"
                   strokeWidth={2.6}
                 />
 
-                <span>Shop Now</span>
+                <span className="whitespace-nowrap">
+                  Shop Now
+                </span>
 
                 <ArrowRight
-                  className="h-3.5 w-3.5 shrink-0 transition-transform group-hover:translate-x-0.5"
+                  className="h-3.5 w-3.5 shrink-0 transition-transform group-hover/shop:translate-x-0.5"
                   strokeWidth={2.7}
                 />
               </Link>
@@ -371,7 +577,7 @@ export default function HeroSection({
                 href={WHOLESALE_WHATSAPP_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group relative inline-flex min-h-[46px] items-center justify-center gap-1.5 overflow-hidden rounded-[11px] border-2 border-[#397535] bg-[linear-gradient(180deg,#ffffff_0%,#edf6e9_100%)] px-2 text-center text-[7.5px] font-black uppercase leading-[10px] tracking-[0.07em] text-[#285d27] shadow-[0_8px_20px_rgba(37,91,34,0.18)] transition active:scale-[0.98]"
+                className="group/wholesale inline-flex min-h-[46px] items-center justify-center gap-1.5 rounded-[12px] border-2 border-[#397638] bg-[linear-gradient(180deg,#ffffff_0%,#edf7e9_100%)] px-1.5 text-center text-[7.5px] font-black uppercase leading-[9px] tracking-[0.05em] text-[#285e28] shadow-[0_8px_19px_rgba(37,91,34,0.16)] transition active:scale-[0.98]"
               >
                 <MessageCircle
                   className="h-4 w-4 shrink-0"
@@ -385,47 +591,68 @@ export default function HeroSection({
                 </span>
 
                 <ArrowRight
-                  className="h-3.5 w-3.5 shrink-0 transition-transform group-hover:translate-x-0.5"
+                  className="h-3.5 w-3.5 shrink-0 transition-transform group-hover/wholesale:translate-x-0.5"
                   strokeWidth={2.7}
                 />
               </a>
             </div>
           </div>
 
-          {/* Tablet and desktop trust bar */}
-          <div className="mt-3 hidden overflow-hidden rounded-[14px] border border-[#ded3c0] bg-[linear-gradient(90deg,#fffdfa_0%,#f5eddf_50%,#fffdfa_100%)] shadow-[0_12px_30px_rgba(55,42,22,0.07)] sm:flex">
-            {trustPoints.map((item, index) => {
-              const Icon = item.icon;
+          {/* Bottom slider navigation */}
+          {hasMultipleBanners && (
+            <div className="relative flex min-h-[27px] items-center justify-center border-t border-[#e2d9ca] bg-[#fffdf9] px-3 py-1.5">
+              <div
+                className="flex items-center gap-1.5"
+                role="tablist"
+                aria-label="Promotional banners"
+              >
+                {bannerSources.map((banner, index) => {
+                  const isActive = index === activeIndex;
 
-              return (
-                <div
-                  key={item.label}
-                  className={`group flex flex-1 items-center justify-center gap-3 px-4 py-3.5 transition duration-300 hover:bg-white/65 lg:px-7 ${
-                    index !== trustPoints.length - 1
-                      ? "border-r border-[#e2d7c5]"
-                      : ""
-                  }`}
-                >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] border border-[#dbe5d3] bg-[#edf4e8] text-[#32642d] transition duration-300 group-hover:scale-105">
-                    <Icon
-                      className="h-[18px] w-[18px]"
-                      strokeWidth={2.4}
-                    />
-                  </span>
+                  return (
+                    <button
+                      key={`${banner}-${index}`}
+                      type="button"
+                      role="tab"
+                      aria-label={`Show banner ${index + 1}`}
+                      aria-selected={isActive}
+                      onClick={() => showBanner(index)}
+                      className={[
+                        "relative h-1.5 overflow-hidden rounded-full",
+                        "transition-all duration-500 ease-out",
+                        "focus-visible:outline-none focus-visible:ring-2",
+                        "focus-visible:ring-[#3b7135] focus-visible:ring-offset-2",
+                        isActive
+                          ? "w-8 bg-[#dfe9da]"
+                          : "w-1.5 bg-[#cbbda6] hover:w-3 hover:bg-[#9b7951]",
+                      ].join(" ")}
+                    >
+                      {isActive && (
+                        <motion.span
+                          key={`progress-${activeIndex}-${isAutoplayPaused}`}
+                          initial={{ scaleX: 0 }}
+                          animate={{
+                            scaleX: isAutoplayPaused ? 0 : 1,
+                          }}
+                          transition={{
+                            duration: isAutoplayPaused
+                              ? 0
+                              : AUTOPLAY_DELAY / 1000,
+                            ease: "linear",
+                          }}
+                          className="absolute inset-0 origin-left rounded-full bg-[#32682f]"
+                        />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
 
-                  <div>
-                    <p className="text-[9px] font-black uppercase tracking-[0.13em] text-[#6b4b30] lg:text-[10px]">
-                      {item.label}
-                    </p>
-
-                    <p className="mt-0.5 hidden text-[10px] font-medium text-[#9a8168] lg:block">
-                      {item.description}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+              <span className="absolute right-3 text-[8px] font-bold tracking-[0.1em] text-[#9a856c] sm:hidden">
+                {activeIndex + 1}/{totalBanners}
+              </span>
+            </div>
+          )}
         </div>
       </div>
     </section>
