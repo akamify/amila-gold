@@ -1,19 +1,9 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import {
-  AnimatePresence,
-  motion,
-  useReducedMotion,
-} from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
   ChevronLeft,
@@ -29,11 +19,7 @@ import {
 import type { PublicBanner } from "@/app/lib/publicDataClient";
 import { getWholesaleWhatsAppUrl } from "@/app/lib/whatsapp";
 
-const FALLBACK_BANNERS = [
-  "/banner.png",
-  "/banner2.png",
-  "/banner3.png",
-];
+const FALLBACK_BANNERS = ["/banner.png", "/banner2.png", "/banner3.png"];
 
 const AUTOPLAY_DELAY = 5500;
 const SWIPE_THRESHOLD = 55;
@@ -55,9 +41,10 @@ function getBannerSources(initialBanners?: PublicBanner[]) {
         .filter(Boolean)
     : [];
 
-  return Array.from(
-    new Set([...managedBanners, ...FALLBACK_BANNERS]),
-  ).slice(0, MAX_BANNERS);
+  return Array.from(new Set([...managedBanners, ...FALLBACK_BANNERS])).slice(
+    0,
+    MAX_BANNERS,
+  );
 }
 
 const slideVariants = {
@@ -83,9 +70,7 @@ const slideVariants = {
   }),
 };
 
-export default function HeroSection({
-  initialBanners,
-}: HeroSectionProps) {
+export default function HeroSection({ initialBanners }: HeroSectionProps) {
   const prefersReducedMotion = useReducedMotion();
 
   const bannerSources = useMemo(
@@ -94,14 +79,11 @@ export default function HeroSection({
   );
 
   const [activeIndex, setActiveIndex] = useState(0);
-  const [direction, setDirection] =
-    useState<SlideDirection>(1);
+  const [direction, setDirection] = useState<SlideDirection>(1);
   const [isHovered, setIsHovered] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
-  const [isDocumentHidden, setIsDocumentHidden] =
-    useState(false);
-  const [isAutoplayEnabled, setIsAutoplayEnabled] =
-    useState(true);
+  const [isDocumentHidden, setIsDocumentHidden] = useState(false);
+  const [isAutoplayEnabled, setIsAutoplayEnabled] = useState(true);
 
   const touchStartX = useRef<number | null>(null);
   const touchCurrentX = useRef<number | null>(null);
@@ -125,8 +107,7 @@ export default function HeroSection({
     (nextIndex: number, nextDirection: SlideDirection) => {
       if (totalBanners <= 1) return;
 
-      const normalizedIndex =
-        (nextIndex + totalBanners) % totalBanners;
+      const normalizedIndex = (nextIndex + totalBanners) % totalBanners;
 
       setDirection(nextDirection);
       setActiveIndex(normalizedIndex);
@@ -176,12 +157,7 @@ export default function HeroSection({
     return () => {
       window.clearTimeout(autoplayTimer);
     };
-  }, [
-    activeIndex,
-    changeSlide,
-    hasMultipleBanners,
-    isAutoplayPaused,
-  ]);
+  }, [activeIndex, changeSlide, hasMultipleBanners, isAutoplayPaused]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -190,25 +166,17 @@ export default function HeroSection({
 
     handleVisibilityChange();
 
-    document.addEventListener(
-      "visibilitychange",
-      handleVisibilityChange,
-    );
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
-      document.removeEventListener(
-        "visibilitychange",
-        handleVisibilityChange,
-      );
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
 
   useEffect(() => {
     if (!hasMultipleBanners) return;
 
-    const handleKeyboardNavigation = (
-      event: KeyboardEvent,
-    ) => {
+    const handleKeyboardNavigation = (event: KeyboardEvent) => {
       if (event.key === "ArrowLeft") {
         showPreviousBanner();
       }
@@ -218,49 +186,30 @@ export default function HeroSection({
       }
     };
 
-    window.addEventListener(
-      "keydown",
-      handleKeyboardNavigation,
-    );
+    window.addEventListener("keydown", handleKeyboardNavigation);
 
     return () => {
-      window.removeEventListener(
-        "keydown",
-        handleKeyboardNavigation,
-      );
+      window.removeEventListener("keydown", handleKeyboardNavigation);
     };
-  }, [
-    hasMultipleBanners,
-    showNextBanner,
-    showPreviousBanner,
-  ]);
+  }, [hasMultipleBanners, showNextBanner, showPreviousBanner]);
 
-  const handleTouchStart = (
-    event: React.TouchEvent<HTMLDivElement>,
-  ) => {
+  const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
     touchStartX.current = event.touches[0]?.clientX ?? null;
     touchCurrentX.current = null;
   };
 
-  const handleTouchMove = (
-    event: React.TouchEvent<HTMLDivElement>,
-  ) => {
-    touchCurrentX.current =
-      event.touches[0]?.clientX ?? null;
+  const handleTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
+    touchCurrentX.current = event.touches[0]?.clientX ?? null;
   };
 
   const handleTouchEnd = () => {
-    if (
-      touchStartX.current === null ||
-      touchCurrentX.current === null
-    ) {
+    if (touchStartX.current === null || touchCurrentX.current === null) {
       touchStartX.current = null;
       touchCurrentX.current = null;
       return;
     }
 
-    const distance =
-      touchStartX.current - touchCurrentX.current;
+    const distance = touchStartX.current - touchCurrentX.current;
 
     if (Math.abs(distance) >= SWIPE_THRESHOLD) {
       if (distance > 0) {
@@ -296,9 +245,7 @@ export default function HeroSection({
           onFocusCapture={() => setIsFocused(true)}
           onBlurCapture={(event) => {
             if (
-              !event.currentTarget.contains(
-                event.relatedTarget as Node | null,
-              )
+              !event.currentTarget.contains(event.relatedTarget as Node | null)
             ) {
               setIsFocused(false);
             }
@@ -311,22 +258,14 @@ export default function HeroSection({
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
           >
-            <AnimatePresence
-              initial={false}
-              custom={direction}
-              mode="sync"
-            >
+            <AnimatePresence initial={false} custom={direction} mode="sync">
               <motion.div
                 key={`${bannerSources[activeIndex]}-${activeIndex}`}
                 custom={direction}
                 variants={slideVariants}
-                initial={
-                  prefersReducedMotion ? false : "enter"
-                }
+                initial={prefersReducedMotion ? false : "enter"}
                 animate="center"
-                exit={
-                  prefersReducedMotion ? undefined : "exit"
-                }
+                exit={prefersReducedMotion ? undefined : "exit"}
                 transition={
                   prefersReducedMotion
                     ? { duration: 0 }
@@ -353,14 +292,10 @@ export default function HeroSection({
               >
                 <Image
                   src={bannerSources[activeIndex]}
-                  alt={`Amila Gold promotional banner ${
-                    activeIndex + 1
-                  }`}
+                  alt={`Amila Gold promotional banner ${activeIndex + 1}`}
                   fill
                   priority={activeIndex === 0}
-                  fetchPriority={
-                    activeIndex === 0 ? "high" : "auto"
-                  }
+                  fetchPriority={activeIndex === 0 ? "high" : "auto"}
                   quality={100}
                   sizes="(max-width: 640px) 100vw, (max-width: 1536px) 100vw, 1536px"
                   className="select-none object-cover object-center"
@@ -401,24 +336,18 @@ export default function HeroSection({
                   type="button"
                   onClick={showPreviousBanner}
                   aria-label="Show previous banner"
-                  className="absolute left-1.5 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-white/80 bg-white/90 text-[#31592d] shadow-[0_8px_24px_rgba(23,40,18,0.18)] backdrop-blur-xl transition-all duration-300 hover:scale-105 hover:bg-white hover:text-[#1f4e22] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#387136] focus-visible:ring-offset-2 active:scale-95 sm:left-3 sm:h-10 sm:w-10 lg:left-5 lg:h-12 lg:w-12"
+                  className="hidden lg:flex absolute left-5 top-1/2 z-20 h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-transparent text-white transition-all duration-300 hover:scale-110 hover:text-white/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 active:scale-95"
                 >
-                  <ChevronLeft
-                    className="h-4 w-4 sm:h-5 sm:w-5"
-                    strokeWidth={2.8}
-                  />
+                  <ChevronLeft className="h-7 w-7" strokeWidth={2.8} />
                 </button>
 
                 <button
                   type="button"
                   onClick={showNextBanner}
                   aria-label="Show next banner"
-                  className="absolute right-1.5 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-white/80 bg-white/90 text-[#31592d] shadow-[0_8px_24px_rgba(23,40,18,0.18)] backdrop-blur-xl transition-all duration-300 hover:scale-105 hover:bg-white hover:text-[#1f4e22] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#387136] focus-visible:ring-offset-2 active:scale-95 sm:right-3 sm:h-10 sm:w-10 lg:right-5 lg:h-12 lg:w-12"
+                  className="hidden lg:flex absolute right-5 top-1/2 z-20 h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-transparent text-white transition-all duration-300 hover:scale-110 hover:text-white/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 active:scale-95"
                 >
-                  <ChevronRight
-                    className="h-4 w-4 sm:h-5 sm:w-5"
-                    strokeWidth={2.8}
-                  />
+                  <ChevronRight className="h-7 w-7" strokeWidth={2.8} />
                 </button>
               </>
             )}
@@ -441,9 +370,7 @@ export default function HeroSection({
                   strokeWidth={2.6}
                 />
 
-                <span className="relative whitespace-nowrap">
-                  Shop Now
-                </span>
+                <span className="relative whitespace-nowrap">Shop Now</span>
 
                 <ArrowRight
                   className="relative h-4 w-4 shrink-0 transition-transform duration-300 group-hover/shop:translate-x-1"
@@ -504,14 +431,11 @@ export default function HeroSection({
           </div>
 
           {/* Mobile action section */}
-          <div className="border-t border-[#ded3c1] bg-[linear-gradient(180deg,#fffefa_0%,#f7f0e5_100%)] p-2.5 sm:hidden">
-            <div className="mb-2 flex items-center justify-between rounded-[12px] border border-[#ddd6c8] bg-white/75 px-2.5 py-2 shadow-[0_5px_16px_rgba(54,42,22,0.06)]">
+          <div className="border-t border-[#ded3c1] bg-[linear-gradient(180deg,#fffefa_0%,#f7f0e5_100%)] p-2.5">
+            <div className="mb-2 hidden lg:block flex items-center justify-between rounded-[12px] border border-[#ddd6c8] bg-white/75 px-2.5 py-2 shadow-[0_5px_16px_rgba(54,42,22,0.06)]">
               <div className="flex min-w-0 items-center gap-2">
                 <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#edf5e9] text-[#32662f]">
-                  <CircleCheck
-                    className="h-4 w-4"
-                    strokeWidth={2.6}
-                  />
+                  <CircleCheck className="h-4 w-4" strokeWidth={2.6} />
                 </span>
 
                 <div className="min-w-0">
@@ -528,9 +452,7 @@ export default function HeroSection({
               {hasMultipleBanners && (
                 <button
                   type="button"
-                  onClick={() =>
-                    setIsAutoplayEnabled((current) => !current)
-                  }
+                  onClick={() => setIsAutoplayEnabled((current) => !current)}
                   aria-label={
                     isAutoplayEnabled
                       ? "Pause banner autoplay"
@@ -539,15 +461,9 @@ export default function HeroSection({
                   className="ml-2 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#d6dfd0] bg-[#f3f8f0] text-[#356831] transition active:scale-95"
                 >
                   {isAutoplayEnabled ? (
-                    <Pause
-                      className="h-3.5 w-3.5"
-                      strokeWidth={2.5}
-                    />
+                    <Pause className="h-3.5 w-3.5" strokeWidth={2.5} />
                   ) : (
-                    <Play
-                      className="ml-0.5 h-3.5 w-3.5"
-                      strokeWidth={2.5}
-                    />
+                    <Play className="ml-0.5 h-3.5 w-3.5" strokeWidth={2.5} />
                   )}
                 </button>
               )}
@@ -558,14 +474,9 @@ export default function HeroSection({
                 href="/shop"
                 className="group/shop relative inline-flex min-h-[46px] items-center justify-center gap-1.5 overflow-hidden rounded-[12px] border border-[#347035] bg-[linear-gradient(135deg,#143f19_0%,#28672c_55%,#4b8a40_100%)] px-2 text-[8.5px] font-black uppercase tracking-[0.08em] text-white shadow-[0_9px_22px_rgba(30,92,36,0.3)] transition active:scale-[0.98]"
               >
-                <ShoppingBag
-                  className="h-4 w-4 shrink-0"
-                  strokeWidth={2.6}
-                />
+                <ShoppingBag className="h-4 w-4 shrink-0" strokeWidth={2.6} />
 
-                <span className="whitespace-nowrap">
-                  Shop Now
-                </span>
+                <span className="whitespace-nowrap">Shop Now</span>
 
                 <ArrowRight
                   className="h-3.5 w-3.5 shrink-0 transition-transform group-hover/shop:translate-x-0.5"
@@ -579,10 +490,7 @@ export default function HeroSection({
                 rel="noopener noreferrer"
                 className="group/wholesale inline-flex min-h-[46px] items-center justify-center gap-1.5 rounded-[12px] border-2 border-[#397638] bg-[linear-gradient(180deg,#ffffff_0%,#edf7e9_100%)] px-1.5 text-center text-[7.5px] font-black uppercase leading-[9px] tracking-[0.05em] text-[#285e28] shadow-[0_8px_19px_rgba(37,91,34,0.16)] transition active:scale-[0.98]"
               >
-                <MessageCircle
-                  className="h-4 w-4 shrink-0"
-                  strokeWidth={2.6}
-                />
+                <MessageCircle className="h-4 w-4 shrink-0" strokeWidth={2.6} />
 
                 <span>
                   WhatsApp

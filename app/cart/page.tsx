@@ -3,17 +3,18 @@ import SymbolIcon from "@/app/components/icons/SymbolIcon";
 
 import React from "react";
 import Link from "next/link";
+import ConfirmModal from "@/app/components/ConfirmModal";
+import ResilientProductImage from "@/app/components/ResilientProductImage";
 import { useCart } from "@/app/context/CartContext";
 import { useSiteSettings } from "@/app/context/SiteSettingsContext";
+import { createProductHref } from "@/app/data/products";
 import {
   fetchBackendProductById,
   matchVariantByCartSize,
 } from "@/app/lib/backendProducts";
-import { createProductHref } from "@/app/data/products";
-import ConfirmModal from "@/app/components/ConfirmModal";
 
 const SHIPPING = 0;
-const CART_IMAGE_FALLBACK = "/placeholder-product.png";
+const CART_IMAGE_FALLBACK = "/logo.png";
 
 type CartItemBase = {
   id: number;
@@ -52,152 +53,59 @@ function CartItemImage({
   alt: string;
   isOutOfStock: boolean;
 }) {
-  const normalizedSources = React.useMemo(
-    () => normalizeImageSources(sources),
-    [sources],
+  const resolvedSources = React.useMemo(
+    () =>
+      normalizeImageSources([
+        ...fallbackSources,
+        ...sources,
+        CART_IMAGE_FALLBACK,
+      ]),
+    [fallbackSources, sources],
   );
-
-  const normalizedFallbackSources = React.useMemo(
-    () => normalizeImageSources([...fallbackSources, CART_IMAGE_FALLBACK]),
-    [fallbackSources],
-  );
-
-  const sourceKey = React.useMemo(
-    () => normalizedSources.join("|"),
-    [normalizedSources],
-  );
-
-  const fallbackKey = React.useMemo(
-    () => normalizedFallbackSources.join("|"),
-    [normalizedFallbackSources],
-  );
-
-  const [sourceIndex, setSourceIndex] = React.useState(0);
-  const [fallbackIndex, setFallbackIndex] = React.useState(0);
-  const [loaded, setLoaded] = React.useState(false);
-  const [showFallback, setShowFallback] = React.useState(false);
-
-  React.useEffect(() => {
-    setSourceIndex(0);
-    setFallbackIndex(0);
-    setLoaded(false);
-    setShowFallback(false);
-  }, [sourceKey, fallbackKey]);
-
-  React.useEffect(() => {
-    if (normalizedSources.length > 0) return;
-
-    const fallbackDelay = window.setTimeout(() => {
-      setShowFallback(true);
-    }, 1200);
-
-    return () => {
-      window.clearTimeout(fallbackDelay);
-    };
-  }, [normalizedSources.length, sourceKey]);
-
-  React.useEffect(() => {
-    if (showFallback || normalizedSources.length === 0 || loaded) return;
-
-    const slowLoadTimer = window.setTimeout(() => {
-      if (sourceIndex < normalizedSources.length - 1) {
-        setSourceIndex((current) => current + 1);
-        setLoaded(false);
-      } else {
-        setShowFallback(true);
-        setLoaded(false);
-      }
-    }, 7000);
-
-    return () => {
-      window.clearTimeout(slowLoadTimer);
-    };
-  }, [
-    loaded,
-    normalizedSources.length,
-    showFallback,
-    sourceIndex,
-    sourceKey,
-  ]);
-
-  const activeSource = showFallback
-    ? normalizedFallbackSources[fallbackIndex] || CART_IMAGE_FALLBACK
-    : normalizedSources[sourceIndex] || "";
-
-  const showSkeleton = !loaded && !showFallback;
 
   return (
-    <>
-      {showSkeleton ? (
-        <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-surface-variant/30 via-white to-surface-variant/40" />
-      ) : null}
-
-      {activeSource ? (
-        <img
-          key={`${showFallback ? "fallback" : "source"}-${activeSource}`}
-          src={activeSource}
-          alt={alt}
-          loading="eager"
-          decoding="async"
-          className={`h-full w-full object-cover transition-all duration-500 ${
-            loaded || showFallback ? "opacity-100" : "opacity-0"
-          } ${
-            isOutOfStock
-              ? "grayscale opacity-55"
-              : "group-hover:scale-105"
-          }`}
-          onLoad={() => {
-            setLoaded(true);
-          }}
-          onError={() => {
-            setLoaded(false);
-
-            if (!showFallback) {
-              if (sourceIndex < normalizedSources.length - 1) {
-                setSourceIndex((current) => current + 1);
-              } else {
-                setShowFallback(true);
-                setFallbackIndex(0);
-              }
-
-              return;
-            }
-
-            if (fallbackIndex < normalizedFallbackSources.length - 1) {
-              setFallbackIndex((current) => current + 1);
-            }
-          }}
-        />
-      ) : null}
-    </>
+    <div className="absolute inset-0">
+      <ResilientProductImage
+        sources={resolvedSources}
+        alt={alt}
+        eager
+        compact
+        className={`h-full w-full object-cover transition-transform duration-300 ${
+          isOutOfStock
+            ? "grayscale opacity-55"
+            : "group-hover:scale-[1.03]"
+        }`}
+        fallbackClassName="bg-slate-100 text-slate-500"
+      />
+    </div>
   );
 }
 
 function CartSkeletonCard() {
   return (
-    <div className="rounded-[0.5rem] border border-outline-variant/30 bg-white p-3 sm:p-6">
-      <div className="grid grid-cols-[110px_minmax(0,1fr)] gap-4 sm:grid-cols-[160px_minmax(0,1fr)] sm:gap-6">
-        <div className="h-32 animate-pulse rounded-[0.5rem] bg-surface-variant/30 sm:h-44" />
+    <div className="rounded-2xl border border-slate-200/80 bg-white p-3 shadow-[0_8px_28px_rgba(15,23,42,0.05)] sm:p-4">
+      <div className="grid grid-cols-[96px_minmax(0,1fr)] gap-3 sm:grid-cols-[132px_minmax(0,1fr)] lg:grid-cols-[156px_minmax(0,1fr)]">
+        <div className="h-[92px] w-[92px] animate-pulse rounded-xl bg-slate-100 sm:h-auto sm:w-auto sm:aspect-square" />
 
         <div className="space-y-4">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1 space-y-3">
-              <div className="h-5 w-2/3 animate-pulse rounded-full bg-surface-variant/30" />
-              <div className="grid max-w-[220px] grid-cols-2 gap-2">
-                <div className="h-7 animate-pulse rounded-full bg-surface-variant/20" />
-                <div className="h-7 animate-pulse rounded-full bg-surface-variant/20" />
+              <div className="h-4 w-24 animate-pulse rounded-full bg-slate-100" />
+              <div className="h-6 w-2/3 animate-pulse rounded-full bg-slate-200" />
+              <div className="flex gap-2">
+                <div className="h-7 w-20 animate-pulse rounded-full bg-slate-100" />
+                <div className="h-7 w-20 animate-pulse rounded-full bg-slate-100" />
               </div>
             </div>
 
-            <div className="h-10 w-10 animate-pulse rounded-full bg-surface-variant/20" />
+            <div className="h-10 w-10 animate-pulse rounded-full bg-slate-100" />
           </div>
 
-          <div className="flex items-end justify-between gap-4 pt-6">
-            <div className="h-11 w-28 animate-pulse rounded-2xl bg-surface-variant/20" />
-
+          <div className="flex items-center justify-between border-t border-slate-100 pt-4">
+            <div className="h-11 w-32 animate-pulse rounded-full bg-slate-100" />
             <div className="space-y-2">
-              <div className="ml-auto h-3 w-16 animate-pulse rounded-full bg-surface-variant/20" />
-              <div className="h-7 w-24 animate-pulse rounded-full bg-surface-variant/30" />
+              <div className="ml-auto h-3 w-16 animate-pulse rounded-full bg-slate-100" />
+              <div className="h-7 w-24 animate-pulse rounded-full bg-slate-200" />
             </div>
           </div>
         </div>
@@ -208,58 +116,37 @@ function CartSkeletonCard() {
 
 function CartPageSkeleton() {
   return (
-    <main className="mx-auto min-h-screen max-w-[1600px] bg-surface px-3 pt-[7.5rem] pb-2 font-['Poppins'] sm:px-8 lg:px-16">
-      <div className="flex flex-col items-start gap-12 lg:grid lg:grid-cols-12">
-        <section className="w-full space-y-10 lg:col-span-8">
-          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-            <div className="space-y-3">
-              <div className="h-12 w-52 animate-pulse rounded-full bg-surface-variant/30" />
-              <div className="h-5 w-72 animate-pulse rounded-full bg-surface-variant/20" />
-            </div>
-
-            <div className="h-5 w-32 animate-pulse rounded-full bg-surface-variant/20" />
+    <main className="min-h-screen bg-[#f4f6f8] px-2 pb-28 pt-[.25rem] font-body sm:px-5 sm:pt-[6.75rem] lg:px-8 lg:pb-10 xl:px-10">
+      <div className="mx-auto grid max-w-[1540px] gap-4 lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_400px] xl:gap-6">
+        <section className="min-w-0 space-y-3 sm:space-y-4">
+          <div className="rounded-2xl border border-slate-200 bg-white px-5 py-6 shadow-sm">
+            <div className="h-4 w-28 animate-pulse rounded-full bg-slate-100" />
+            <div className="mt-3 h-10 w-48 animate-pulse rounded-full bg-slate-200" />
+            <div className="mt-3 h-4 w-60 animate-pulse rounded-full bg-slate-100" />
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-3">
             {Array.from({ length: 3 }).map((_, index) => (
               <CartSkeletonCard key={index} />
             ))}
           </div>
         </section>
 
-        <aside className="w-full lg:sticky lg:top-32 lg:col-span-4">
-          <div className="rounded-[0.5rem] border border-outline-variant/30 bg-white p-4 shadow-2xl shadow-primary/5 lg:p-8">
-            <div className="h-8 w-40 animate-pulse rounded-full bg-surface-variant/30" />
-
-            <div className="mt-8 space-y-5">
-              <div className="flex items-center justify-between">
-                <div className="h-4 w-24 animate-pulse rounded-full bg-surface-variant/20" />
-                <div className="h-4 w-16 animate-pulse rounded-full bg-surface-variant/20" />
+        <aside>
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="h-8 w-40 animate-pulse rounded-full bg-slate-200" />
+            <div className="mt-6 space-y-4">
+              <div className="flex justify-between">
+                <div className="h-4 w-24 animate-pulse rounded-full bg-slate-100" />
+                <div className="h-4 w-16 animate-pulse rounded-full bg-slate-100" />
               </div>
-
-              <div className="flex items-center justify-between">
-                <div className="h-4 w-28 animate-pulse rounded-full bg-surface-variant/20" />
-                <div className="h-6 w-14 animate-pulse rounded-full bg-surface-variant/20" />
+              <div className="flex justify-between">
+                <div className="h-4 w-24 animate-pulse rounded-full bg-slate-100" />
+                <div className="h-4 w-16 animate-pulse rounded-full bg-slate-100" />
               </div>
-
-              <div className="my-2 h-px bg-outline-variant/20" />
-
-              <div className="flex items-end justify-between py-2">
-                <div className="space-y-2">
-                  <div className="h-4 w-24 animate-pulse rounded-full bg-surface-variant/20" />
-                  <div className="h-4 w-20 animate-pulse rounded-full bg-surface-variant/20" />
-                </div>
-
-                <div className="h-10 w-28 animate-pulse rounded-full bg-surface-variant/30" />
-              </div>
+              <div className="h-20 animate-pulse rounded-2xl bg-slate-100" />
             </div>
-
-            <div className="mt-10 h-14 animate-pulse rounded-[1.5rem] bg-surface-variant/30" />
-
-            <div className="mt-8 space-y-4">
-              <div className="h-4 w-36 animate-pulse rounded-full bg-surface-variant/20" />
-              <div className="h-4 w-40 animate-pulse rounded-full bg-surface-variant/20" />
-            </div>
+            <div className="mt-6 h-14 animate-pulse rounded-2xl bg-slate-200" />
           </div>
         </aside>
       </div>
@@ -268,7 +155,14 @@ function CartPageSkeleton() {
 }
 
 export default function CartPage() {
-  const { items, removeItem, updateQty, itemCount, isHydrating } = useCart();
+  const {
+    items,
+    removeItem,
+    updateQty,
+    itemCount,
+    isHydrating,
+    syncError,
+  } = useCart();
   const { settings } = useSiteSettings();
 
   const currencySymbol = settings.currencySymbol || "Rs.";
@@ -308,6 +202,14 @@ export default function CartPage() {
 
     setIsStockLoading(true);
     setStockError("");
+    setImageSourcesByItem(
+      Object.fromEntries(
+        items.map((item) => [
+          `${item.id}|${item.size}|${item.color}`,
+          normalizeImageSources([item.image, CART_IMAGE_FALLBACK]),
+        ]),
+      ),
+    );
 
     try {
       const productIds = [
@@ -348,11 +250,12 @@ export default function CartPage() {
           : createProductHref({ id: item.id, name: item.name }, item.size);
 
         nextImages[key] = normalizeImageSources([
+          item.image,
           variant?.image,
           ...(variant?.images || []),
-          item.image,
           ...(product?.images || []),
           product?.image,
+          CART_IMAGE_FALLBACK,
         ]);
       });
 
@@ -364,7 +267,10 @@ export default function CartPage() {
 
       items.forEach((item) => {
         const key = `${item.id}|${item.size}|${item.color}`;
-        fallbackImages[key] = normalizeImageSources([item.image]);
+        fallbackImages[key] = normalizeImageSources([
+          item.image,
+          CART_IMAGE_FALLBACK,
+        ]);
       });
 
       setImageSourcesByItem(fallbackImages);
@@ -454,25 +360,28 @@ export default function CartPage() {
 
   if (!itemCount) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-surface px-6 pt-3 pb-2 font-['Poppins']">
-        <div className="max-w-md animate-fade-in text-center">
+      <main className="flex min-h-screen items-center justify-center bg-[#f1f3f6] px-6 pt-3 pb-2 font-body">
+        <div className="max-w-md text-center">
           <div className="relative mb-8 inline-block">
             <div className="absolute inset-0 rounded-full bg-primary/5 blur-3xl" />
-            <SymbolIcon name={"shopping_basket"} className="relative text-8xl text-primary/20" />
+            <SymbolIcon
+              name={"shopping_basket"}
+              className="relative text-8xl text-primary/20"
+            />
           </div>
 
-          <h1 className="mb-4 text-4xl font-bold tracking-tight text-primary">
+          <h1 className="font-headline mb-4 text-4xl font-bold tracking-tight text-primary">
             Your cart is empty
           </h1>
 
-          <p className="mb-10 leading-relaxed text-on-surface-variant/70">
+          <p className="mb-10 leading-relaxed text-slate-600">
             It looks like you haven&apos;t added anything to your cart yet.
             Discover our exclusive collection and find something you love.
           </p>
 
           <Link
             href="/shop"
-            className="inline-flex items-center gap-3 rounded-2xl bg-primary px-10 py-4 font-bold text-white transition-all hover:shadow-2xl hover:shadow-primary/30 active:scale-95"
+            className="inline-flex items-center gap-3 rounded-2xl bg-primary px-10 py-4 font-bold text-white transition-all hover:shadow-xl active:scale-95"
           >
             <SymbolIcon name={"explore"} className="text-sm" />
             Start Shopping
@@ -481,33 +390,55 @@ export default function CartPage() {
       </main>
     );
   }
-
+  
   return (
-    <main className="mx-auto min-h-screen max-w-[1600px] bg-surface px-3 pt-[7.5rem] pb-2 font-['Poppins'] sm:px-8 lg:px-16">
-      <div className="flex flex-col items-start gap-12 lg:grid lg:grid-cols-12">
-        <section className="w-full space-y-10 lg:col-span-8">
-          <header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-            <div>
-              <h1 className="text-4xl font-bold tracking-tighter text-primary md:text-5xl">
-                Your Bag
-              </h1>
+    <main className="min-h-screen bg-[#f4f6f8] px-2 pb-4 pt-[2.25rem] font-body sm:px-5 sm:pt-[2rem] lg:px-8 lg:pb-2 xl:px-10">
+      <div className="mx-auto grid max-w-[1540px] gap-4 lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_400px] xl:gap-6">
+        <section className="min-w-0 space-y-3 sm:space-y-4">
+          <header className="rounded-2xl border border-slate-200/80 bg-white px-4 py-4 shadow-[0_8px_30px_rgba(15,23,42,0.04)] sm:px-6 sm:py-5">
+            <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-primary/55">
+              Shopping Cart
+            </p>
+            <h1 className="font-headline mt-1 text-2xl font-black tracking-tight text-slate-900 sm:mt-2 sm:text-4xl">
+              Your Bag
+            </h1>
+            <p className="mt-1 text-xs font-medium text-slate-500 sm:mt-2 sm:text-sm">
+              {itemCount} {itemCount === 1 ? "item" : "items"} ready for checkout
+            </p>
 
-              <p className="mt-2 font-medium tracking-wide text-on-surface-variant/60">
-                {itemCount} {itemCount === 1 ? "item" : "items"} selected for
-                checkout
-              </p>
+            <div className="mt-3 flex items-center justify-between gap-3 border-t border-slate-100 pt-3 sm:mt-4 sm:pt-4">
+              <div className="hidden flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 sm:flex">
+                <span className="rounded-full bg-slate-100 px-3 py-1.5">
+                  Free delivery
+                </span>
+                <span className="rounded-full bg-slate-100 px-3 py-1.5">
+                  Secure checkout
+                </span>
+              </div>
+
+              <Link
+                href="/shop"
+                className="inline-flex items-center gap-2 text-sm font-bold text-primary underline-offset-4 hover:underline"
+              >
+                <SymbolIcon name={"add_shopping_cart"} className="text-base" />
+                Add more items
+              </Link>
             </div>
-
-            <Link
-              href="/shop"
-              className="flex items-center gap-2 text-sm font-bold text-primary underline-offset-8 hover:underline"
-            >
-              <SymbolIcon name={"add_shopping_cart"} className="text-base" />
-              Add more items
-            </Link>
           </header>
 
-          <div className="space-y-6">
+          {syncError ? (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
+              {syncError}
+            </div>
+          ) : null}
+
+          {stockError ? (
+            <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+              {stockError}
+            </div>
+          ) : null}
+
+          <div className="space-y-3">
             {items.map((item: CartItemBase) => {
               const key = `${item.id}|${item.size}|${item.color}`;
               const hasStockValue = Object.prototype.hasOwnProperty.call(
@@ -547,120 +478,137 @@ export default function CartPage() {
               return (
                 <div
                   key={`${item.id}-${item.size}-${item.color}`}
-                  className={`group relative flex flex-row gap-3 rounded-[0.5rem] border p-3 transition-all duration-500 sm:p-6 ${
+                  className={`group relative overflow-hidden rounded-2xl border bg-white p-3 shadow-[0_8px_28px_rgba(15,23,42,0.05)] transition-all duration-300 sm:p-4 ${
                     isOutOfStock || exceedsStock
-                      ? "border-error/30 bg-error/[0.03]"
-                      : "border-outline-variant/30 bg-white hover:shadow-2xl hover:shadow-primary/5"
+                      ? "border-error/30 ring-1 ring-error/10"
+                      : "border-slate-200 hover:border-slate-300"
                   }`}
                 >
-                  {isOutOfStock ? (
-                    <div className="relative aspect-square w-28 shrink-0 overflow-hidden rounded-[0.5rem] bg-surface-variant/10 sm:w-40 lg:w-[15vw] lg:max-w-[220px]">
-                      {imageContent}
-                    </div>
-                  ) : (
-                    <Link
-                      href={productHref}
-                      className="relative block aspect-square w-28 shrink-0 overflow-hidden rounded-[0.5rem] bg-surface-variant/10 sm:w-40 lg:w-[15vw] lg:max-w-[220px]"
-                      aria-label={`Open ${item.name} ${item.size}`}
-                    >
-                      {imageContent}
-                    </Link>
-                  )}
+                  <div className="grid grid-cols-[96px_minmax(0,1fr)] gap-3 sm:grid-cols-[132px_minmax(0,1fr)] lg:grid-cols-[156px_minmax(0,1fr)]">
+                    {isOutOfStock ? (
+                      <div className="relative h-24 w-24 overflow-hidden rounded-xl bg-slate-100 sm:h-auto sm:w-full sm:aspect-square">
+                        {imageContent}
+                      </div>
+                    ) : (
+                      <Link
+                        href={productHref}
+                        className="relative block h-24 w-24 overflow-hidden rounded-xl bg-slate-100 sm:h-auto sm:w-full sm:aspect-square"
+                        aria-label={`Open ${item.name} ${item.size}`}
+                      >
+                        {imageContent}
+                      </Link>
+                    )}
 
-                  <div className="flex flex-1 flex-col justify-between">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        {isOutOfStock ? (
-                          <h3 className="mb-1 text-xl font-bold text-primary/60">
-                            {item.name}
-                          </h3>
-                        ) : (
-                          <Link href={productHref} className="block">
-                            <h3 className="mb-1 text-xl font-bold text-primary transition-colors group-hover:text-primary-container">
+                    <div className="flex min-w-0 flex-col justify-between">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="mb-1 text-[9px] font-bold uppercase tracking-[0.18em] text-slate-400 sm:mb-2 sm:text-[10px] sm:tracking-[0.24em]">
+                            {item.collection || "Cart Item"}
+                          </p>
+
+                          {isOutOfStock ? (
+                            <h3 className="font-headline line-clamp-2 text-sm font-bold leading-5 text-slate-500 sm:text-lg">
                               {item.name}
                             </h3>
-                          </Link>
-                        )}
+                          ) : (
+                            <Link href={productHref} className="block">
+                              <h3 className="font-headline line-clamp-2 text-sm font-bold leading-5 text-slate-900 transition-colors group-hover:text-primary sm:text-lg">
+                                {item.name}
+                              </h3>
+                            </Link>
+                          )}
 
-                        <div className="flex flex-wrap gap-2">
-                          <span className="rounded-full bg-surface-variant/30 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
-                            Size: {item.size}
+                          <div className="mt-2 flex flex-wrap gap-1.5 sm:mt-3 sm:gap-2">
+                            <span className="rounded-md bg-slate-100 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-slate-600 sm:rounded-full sm:px-3 sm:text-[10px] sm:tracking-[0.18em]">
+                              Size: {item.size}
+                            </span>
+
+                            {item.color ? (
+                              <span className="rounded-md bg-slate-100 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-slate-600 sm:rounded-full sm:px-3 sm:text-[10px] sm:tracking-[0.18em]">
+                                Color: {item.color}
+                              </span>
+                            ) : null}
+                          </div>
+
+                          <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-slate-500 sm:mt-3 sm:text-xs">
+                            <span>
+                              Unit Price: {currencySymbol}
+                              {item.price.toLocaleString()}
+                            </span>
+                            <span className="font-semibold text-emerald-700">Free Delivery</span>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() =>
+                            setRemoveTarget({
+                              id: item.id,
+                              size: item.size,
+                              color: item.color,
+                              name: item.name,
+                            })
+                          }
+                          disabled={isItemPending}
+                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-400 transition-all hover:bg-red-50 hover:text-red-600 disabled:opacity-40 sm:h-10 sm:w-10"
+                          aria-label={`Remove ${item.name} from cart`}
+                          type="button"
+                        >
+                          <SymbolIcon
+                            name={"delete_sweep"}
+                            className="text-lg leading-none sm:text-xl"
+                          />
+                        </button>
+                      </div>
+
+                      <div className="col-span-2 mt-3 flex items-center justify-between gap-3 border-t border-slate-100 pt-3 sm:col-span-1 sm:mt-4 sm:items-end sm:pt-4">
+                        <div className="flex items-center rounded-xl border border-slate-200 bg-slate-50 p-0.5 sm:rounded-full sm:p-1">
+                          <button
+                            onClick={() =>
+                              handleQuantityChange(item, -1, available)
+                            }
+                            className="flex h-8 w-8 items-center justify-center rounded-lg text-primary transition-all hover:bg-white hover:shadow-sm disabled:opacity-30 sm:h-9 sm:w-9 sm:rounded-full"
+                            disabled={
+                              item.qty <= 1 ||
+                              isOutOfStock ||
+                              isItemPending ||
+                              Boolean(stockError)
+                            }
+                            type="button"
+                          >
+                            <SymbolIcon name={"remove"} className="text-base" />
+                          </button>
+
+                          <span className="w-9 text-center text-xs font-bold text-slate-900 sm:w-12 sm:text-sm">
+                            {item.qty}
                           </span>
 
-                          {item.color ? (
-                            <span className="rounded-full bg-surface-variant/30 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
-                              Color: {item.color}
-                            </span>
-                          ) : null}
+                          <button
+                            onClick={() =>
+                              handleQuantityChange(item, 1, available)
+                            }
+                            className="flex h-8 w-8 items-center justify-center rounded-lg text-primary transition-all hover:bg-white hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-30 sm:h-9 sm:w-9 sm:rounded-full"
+                            disabled={
+                              !stockKnown ||
+                              isOutOfStock ||
+                              isItemPending ||
+                              item.qty >= available
+                            }
+                            type="button"
+                          >
+                            <SymbolIcon name={"add"} className="text-base" />
+                          </button>
                         </div>
-                      </div>
 
-                      <button
-                        onClick={() =>
-                          setRemoveTarget({
-                            id: item.id,
-                            size: item.size,
-                            color: item.color,
-                            name: item.name,
-                          })
-                        }
-                        disabled={isItemPending}
-                        className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface-variant/40 transition-all hover:bg-error/10 hover:text-error disabled:opacity-40"
-                        aria-label={`Remove ${item.name} from cart`}
-                        type="button"
-                      >
-                        <SymbolIcon name={"delete_sweep"} className="text-xl leading-none" />
-                      </button>
-                    </div>
+                        <div className="text-right">
+                          <span className="block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                            Item Total
+                          </span>
 
-                    <div className="mt-6 flex items-center justify-between sm:mt-2">
-                      <div className="flex items-center rounded-2xl border border-outline-variant/10 bg-surface-variant/20 p-1">
-                        <button
-                          onClick={() =>
-                            handleQuantityChange(item, -1, available)
-                          }
-                          className="flex h-8 w-8 items-center justify-center rounded-xl text-primary transition-all hover:bg-white hover:shadow-sm disabled:opacity-30"
-                          disabled={
-                            item.qty <= 1 ||
-                            isOutOfStock ||
-                            isItemPending ||
-                            Boolean(stockError)
-                          }
-                          type="button"
-                        >
-                          <SymbolIcon name={"remove"} className="text-base" />
-                        </button>
-
-                        <span className="w-10 text-center text-sm font-bold text-primary">
-                          {item.qty}
-                        </span>
-
-                        <button
-                          onClick={() =>
-                            handleQuantityChange(item, 1, available)
-                          }
-                          className="flex h-8 w-8 items-center justify-center rounded-xl text-primary transition-all hover:bg-white hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-30"
-                          disabled={
-                            !stockKnown ||
-                            isOutOfStock ||
-                            isItemPending ||
-                            item.qty >= available
-                          }
-                          type="button"
-                        >
-                          <SymbolIcon name={"add"} className="text-base" />
-                        </button>
-                      </div>
-
-                      <div className="text-right">
-                        <span className="block text-xs font-bold uppercase leading-none tracking-tighter text-on-surface-variant/50">
-                          Subtotal
-                        </span>
-
-                        <span className="text-2xl font-black leading-none tracking-tighter text-primary">
-                          {currencySymbol}
-                          {(item.price * item.qty).toLocaleString()}
-                        </span>
+                          <span className="mt-1 block text-lg font-black leading-none tracking-tight text-slate-900 sm:text-2xl">
+                            {currencySymbol}
+                            {(item.price * item.qty).toLocaleString()}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -670,37 +618,37 @@ export default function CartPage() {
           </div>
         </section>
 
-        <aside className="w-full lg:sticky lg:top-32 lg:col-span-4">
-          <div className="rounded-[0.5rem] border border-outline-variant/30 bg-white p-4 shadow-2xl shadow-primary/5 lg:p-8">
-            <h2 className="mb-8 text-2xl font-bold tracking-tight text-primary">
+        <aside className="lg:sticky lg:top-28 lg:self-start">
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_8px_30px_rgba(15,23,42,0.05)] sm:p-5 lg:p-6">
+            <h2 className="font-headline mb-5 text-xl font-black tracking-tight text-slate-900 sm:mb-6 sm:text-2xl">
               Order Summary
             </h2>
 
-            <div className="space-y-5">
-              <div className="flex items-center justify-between text-on-surface-variant/70">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between text-slate-500">
                 <span className="text-sm font-medium">Bag Subtotal</span>
-                <span className="font-semibold">
+                <span className="font-semibold text-slate-900">
                   {currencySymbol}
                   {subtotal.toLocaleString()}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between text-on-surface-variant/70">
+              <div className="flex items-center justify-between text-slate-500">
                 <span className="text-sm font-medium">Delivery Charges</span>
-                <span className="rounded bg-secondary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.2em] text-secondary">
+                <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-700">
                   Free
                 </span>
               </div>
 
-              <div className="my-2 h-px bg-outline-variant/20" />
+              <div className="my-2 h-px bg-slate-100" />
 
-              <div className="flex items-center justify-between py-2">
-                <p className="mb-1 text-[20px] font-black uppercase tracking-widest text-on-surface-variant/80">
+              <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-4">
+                <p className="text-sm font-black uppercase tracking-[0.22em] text-slate-500">
                   Total
                 </p>
 
                 <div className="text-right">
-                  <p className="text-4xl font-black leading-none tracking-tighter text-primary">
+                  <p className="text-3xl font-black leading-none tracking-tight text-slate-900">
                     {currencySymbol}
                     {total.toLocaleString()}
                   </p>
@@ -714,38 +662,74 @@ export default function CartPage() {
                 if (isCheckoutBlocked) event.preventDefault();
               }}
               aria-disabled={isCheckoutBlocked}
-              className={`group mt-10 flex w-full items-center justify-center gap-3 rounded-[1.5rem] py-5 text-lg font-bold transition-all ${
+              className={`group mt-6 hidden w-full items-center justify-center gap-3 rounded-2xl py-4 text-base font-bold transition-all lg:flex ${
                 isCheckoutBlocked
-                  ? "cursor-not-allowed bg-surface-variant text-on-surface-variant/50"
-                  : "bg-primary text-white hover:shadow-2xl hover:shadow-primary/30 active:scale-[0.98]"
+                  ? "cursor-not-allowed bg-slate-200 text-slate-500"
+                  : "bg-[#fb641b] text-white hover:bg-[#f75d12] active:scale-[0.99]"
               }`}
             >
               {isStockLoading
-                ? "Checking Stock…"
+                ? "Checking Stock..."
                 : stockError
                   ? "Stock Check Required"
                   : hasOutOfStockItems || hasQuantityConflict
                     ? "Update Cart to Continue"
                     : "Secure Checkout"}
 
-              <SymbolIcon name={"arrow_forward"} className="transition-transform group-hover:translate-x-1" />
+              <SymbolIcon
+                name={"arrow_forward"}
+                className="transition-transform group-hover:translate-x-1"
+              />
             </Link>
 
-            <div className="mt-8 flex flex-col gap-4">
-              <div className="flex items-center gap-3 text-on-surface-variant/60">
-                <SymbolIcon name={"verified"} className="text-lg text-primary/60" />
+            <div className="mt-6 space-y-3 rounded-2xl bg-slate-50 p-4">
+              <div className="flex items-center gap-3 text-slate-600">
+                <SymbolIcon
+                  name={"verified"}
+                  className="text-lg text-primary/60"
+                />
                 <p className="text-xs font-medium">Authenticity Guaranteed</p>
               </div>
 
-              <div className="flex items-center gap-3 text-on-surface-variant/60">
-                <SymbolIcon name={"local_shipping"} className="text-lg text-primary/60" />
-                <p className="text-xs font-medium">
-                  Safe & Disinfected Delivery
-                </p>
+              <div className="flex items-center gap-3 text-slate-600">
+                <SymbolIcon
+                  name={"local_shipping"}
+                  className="text-lg text-primary/60"
+                />
+                <p className="text-xs font-medium">Safe Delivery Across India</p>
               </div>
             </div>
           </div>
         </aside>
+      </div>
+
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 px-3 py-2.5 shadow-[0_-12px_34px_rgba(15,23,42,0.12)] backdrop-blur-xl lg:hidden">
+        <div className="mx-auto flex max-w-[1540px] items-center justify-between gap-4">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-400">
+              Total
+            </p>
+            <p className="text-xl font-black text-slate-900">
+              {currencySymbol}
+              {total.toLocaleString()}
+            </p>
+          </div>
+
+          <Link
+            href={isCheckoutBlocked ? "#" : "/checkout"}
+            onClick={(event) => {
+              if (isCheckoutBlocked) event.preventDefault();
+            }}
+            aria-disabled={isCheckoutBlocked}
+            className={`inline-flex min-w-[170px] items-center justify-center rounded-xl px-5 py-3 text-sm font-bold ${
+              isCheckoutBlocked
+                ? "bg-slate-200 text-slate-500"
+                : "bg-[#fb641b] text-white"
+            }`}
+          >
+            {isCheckoutBlocked ? "Review Cart" : "Place Order"}
+          </Link>
+        </div>
       </div>
 
       <ConfirmModal
