@@ -27,6 +27,7 @@ import {
   Truck,
   User,
   X,
+  ShoppingBag,
 } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useCart } from "@/app/context/CartContext";
@@ -345,15 +346,12 @@ export default function Navbar() {
                   className="group relative flex h-11 items-center justify-center gap-2 rounded-2xl border border-[#e4d7c1] bg-white/85 px-3 text-[#30271e] shadow-[0_8px_20px_rgba(59,42,22,0.06)] transition hover:-translate-y-0.5 hover:border-[#d0a65e] hover:bg-[#fff7e8] hover:text-[#7b4516] active:translate-y-0 active:scale-95"
                 >
                   <span className="relative">
-                    <ShoppingCart className="h-[23px] w-[23px]" />
+                    <ShoppingBag className="h-[23px] w-[23px]" />
                     {stableCartCount > 0 && (
                       <span className="absolute -right-2.5 -top-2.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#bd7d25] px-1 text-[10px] font-black leading-none text-white ring-2 ring-[#fffdf8]">
                         {stableCartCount > 99 ? "99+" : stableCartCount}
                       </span>
                     )}
-                  </span>
-                  <span className="hidden text-xs font-extrabold sm:block">
-                    Cart
                   </span>
                 </Link>
               </div>
