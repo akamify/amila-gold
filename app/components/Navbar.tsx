@@ -352,6 +352,7 @@ export default function Navbar() {
                         {stableCartCount > 99 ? "99+" : stableCartCount}
                       </span>
                     )}
+                    
                   </span>
                 </Link>
               </div>
