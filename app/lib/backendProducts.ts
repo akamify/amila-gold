@@ -3,6 +3,9 @@ import { formatProductNameForPath } from '@/app/data/products';
 import { getBackendBaseUrlCandidates } from '@/app/lib/session';
 
 type GenericRecord = Record<string, unknown>;
+const PRODUCT_CACHE_TTL_MS = 60_000;
+const productByIdCache = new Map<string, { expiresAt: number; product: Product | null }>();
+const pendingProductRequests = new Map<string, Promise<Product | null>>();
 
 function asRecord(value: unknown): GenericRecord {
     return value && typeof value === 'object' ? (value as GenericRecord) : {};
@@ -350,6 +353,14 @@ export async function fetchBackendProducts(query?: string): Promise<Product[]> {
 export async function fetchBackendProductById(id: string | number): Promise<Product | null> {
     const idValue = String(id || '').trim();
     if (!idValue) return null;
+    const cached = productByIdCache.get(idValue);
+    if (cached && cached.expiresAt > Date.now()) {
+        return cached.product;
+    }
+    const pending = pendingProductRequests.get(idValue);
+    if (pending) {
+        return pending;
+    }
 
     const rawCandidates = getBackendBaseUrlCandidates();
     const baseCandidates = (() => {
@@ -360,30 +371,48 @@ export async function fetchBackendProductById(id: string | number): Promise<Prod
         }
         return rawCandidates;
     })();
-    for (const baseUrl of baseCandidates) {
-        try {
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 3500);
-            const response = await fetch(`${baseUrl}/user/get-product-byid/${encodeURIComponent(idValue)}`, {
-                method: 'GET',
-                cache: 'no-store',
-                signal: controller.signal,
-            });
-            clearTimeout(timeout);
+    const requestPromise = (async () => {
+        for (const baseUrl of baseCandidates) {
+            try {
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 3500);
+                const response = await fetch(`${baseUrl}/user/get-product-byid/${encodeURIComponent(idValue)}`, {
+                    method: 'GET',
+                    cache: 'no-store',
+                    signal: controller.signal,
+                });
+                clearTimeout(timeout);
 
-            if (!response.ok) continue;
+                if (!response.ok) continue;
 
-            const data = (await response.json()) as GenericRecord;
-            const rawProduct = Array.isArray(data.data)
-                ? data.data[0]
-                : asRecord(data.product && typeof data.product === 'object' ? data.product : null);
-            if (!rawProduct || (typeof rawProduct === 'object' && Object.keys(asRecord(rawProduct)).length === 0)) continue;
+                const data = (await response.json()) as GenericRecord;
+                const rawProduct = Array.isArray(data.data)
+                    ? data.data[0]
+                    : asRecord(data.product && typeof data.product === 'object' ? data.product : null);
+                if (!rawProduct || (typeof rawProduct === 'object' && Object.keys(asRecord(rawProduct)).length === 0)) continue;
 
-            return normalizeBackendProduct(rawProduct);
-        } catch {
-            continue;
+                const normalized = normalizeBackendProduct(rawProduct);
+                productByIdCache.set(idValue, {
+                    expiresAt: Date.now() + PRODUCT_CACHE_TTL_MS,
+                    product: normalized,
+                });
+                return normalized;
+            } catch {
+                continue;
+            }
         }
-    }
 
-    return null;
+        productByIdCache.set(idValue, {
+            expiresAt: Date.now() + 10_000,
+            product: null,
+        });
+        return null;
+    })();
+
+    pendingProductRequests.set(idValue, requestPromise);
+    try {
+        return await requestPromise;
+    } finally {
+        pendingProductRequests.delete(idValue);
+    }
 }
