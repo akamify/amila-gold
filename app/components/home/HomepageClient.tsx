@@ -128,7 +128,7 @@ export default function HomepageClient() {
 
   return (
     <main>
-      <HeroSection initialBanners={homepageData.banners} managed />
+      <HeroSection />
       <SpotlightProducts initialProducts={homepageData.featuredProducts} managed loading={isPublicDataLoading && homepageData.featuredProducts.length === 0} />
       <FeaturedProducts initialProducts={homepageData.featuredProducts} managed loading={isPublicDataLoading && homepageData.featuredProducts.length === 0} />
       <HeritageSection />
