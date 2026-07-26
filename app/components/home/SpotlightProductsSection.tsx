@@ -41,7 +41,7 @@ function discountPct(original: number | undefined, selling: number) {
  * - existing image design unchanged
  */
 const spotlightGridClass =
-  "grid grid-cols-2 gap-3 md:grid-cols-3 lg:mx-auto lg:w-full lg:max-w-[1200px] lg:grid-cols-3 lg:justify-center lg:gap-6";
+  "grid grid-cols-2 gap-3 md:grid-cols-3 lg:mx-auto lg:w-full lg:grid-cols-3 lg:justify-center lg:gap-6";
 
 export default function SpotlightProductsSection({
   initialProducts = [],
@@ -96,7 +96,7 @@ export default function SpotlightProductsSection({
       });
   }, [initialProducts.length, managed]);
 
-  const spotlight = useMemo(() => products.slice(0, 5), [products]);
+  const spotlight = useMemo(() => products.slice(0, 3), [products]);
 
   return (
     <section className="bg-[#F9F9F7] pt-10 pb-6 lg:py-20">
@@ -125,7 +125,7 @@ export default function SpotlightProductsSection({
         {/* Loading State */}
         {loading ? (
           <div className={spotlightGridClass}>
-            {Array.from({ length: 5 }).map((_, index) => {
+            {Array.from({ length: 3 }).map((_, index) => {
               const isOddLastMobileCard = index === 4;
 
               return (
@@ -288,8 +288,8 @@ export default function SpotlightProductsSection({
                         }}
                         disabled={!inStock && !inCart}
                         className={`flex h-10 w-full transform-gpu items-center justify-center gap-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all duration-500 ease-out active:scale-95 lg:h-11 lg:gap-2 lg:rounded-2xl lg:text-xs ${inCart
-                            ? "bg-slate-900 text-white shadow-lg hover:bg-black"
-                            : "bg-emerald-800 text-white shadow-md shadow-emerald-900/10 hover:bg-emerald-700 disabled:bg-slate-200 disabled:text-slate-400"
+                          ? "bg-slate-900 text-white shadow-lg hover:bg-black"
+                          : "bg-emerald-800 text-white shadow-md shadow-emerald-900/10 hover:bg-emerald-700 disabled:bg-slate-200 disabled:text-slate-400"
                           }`}
                       >
                         <SymbolIcon name={inCart ? "arrow_forward" : "shopping_bag"} className={`text-[16px] transition-transform duration-500 lg:text-[18px] ${inCart ? "rotate-[360deg]" : ""}`} />
