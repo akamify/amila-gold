@@ -41,7 +41,7 @@ function discountPct(original: number | undefined, selling: number) {
  * - existing image design unchanged
  */
 const spotlightGridClass =
-  "grid grid-cols-2 gap-3 md:grid-cols-3 lg:mx-auto lg:w-full lg:grid-cols-3 lg:justify-center lg:gap-6";
+  "grid grid-cols-2 gap-3 md:grid-cols-3 lg:mx-auto lg:w-full lg:max-w-[1200px] lg:grid-cols-3 lg:justify-center lg:gap-6";
 
 export default function SpotlightProductsSection({
   initialProducts = [],
