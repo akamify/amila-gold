@@ -512,8 +512,10 @@ export default function FeaturedProductsSection({
               {isGridMode ? (
                 <div className="grid grid-cols-2 gap-8 lg:grid-cols-3 lg:gap-10">
                   {products.map((product) => (
-                    <div key={product.id} className="w-full max-w-[400px]">
-                      <ProductCard product={product} currency={currencySymbol} />
+                    <div key={product.id} className="w-full">
+                      <div className="h-full">
+                        <ProductCard product={product} currency={currencySymbol} />
+                      </div>
                     </div>
                   ))}
                 </div>
