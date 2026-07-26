@@ -131,9 +131,8 @@ export default function SpotlightProductsSection({
               return (
                 <div
                   key={index}
-                  className={`relative flex flex-col overflow-hidden rounded-[1.5rem] border border-slate-100 bg-white p-3 lg:rounded-[2rem] lg:p-4 ${
-                    isOddLastMobileCard ? "col-span-2 md:col-span-1" : ""
-                  }`}
+                  className={`relative flex flex-col overflow-hidden rounded-[1.5rem] border border-slate-100 bg-white p-3 lg:rounded-[2rem] lg:p-4 ${isOddLastMobileCard ? "col-span-2 md:col-span-1" : ""
+                    }`}
                 >
                   <div className="pointer-events-none absolute inset-0 z-10 -translate-x-full animate-[spotlightShimmer_1.6s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-white/70 to-transparent" />
 
@@ -184,9 +183,8 @@ export default function SpotlightProductsSection({
                 <div
                   key={product.id}
                   data-product-card
-                  className={`group relative flex flex-col rounded-[1.5rem] border border-slate-100 bg-white p-3 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_40px_rgba(0,0,0,0.06)] lg:rounded-[2rem] lg:p-4 ${
-                    isOddLastMobileCard ? "col-span-2 md:col-span-1 py-7 px-5" : ""
-                  }`}
+                  className={`group relative flex flex-col rounded-[1.5rem] border border-slate-100 bg-white p-3 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_40px_rgba(0,0,0,0.06)] lg:rounded-[2rem] lg:p-4 ${isOddLastMobileCard ? "col-span-2 md:col-span-1 py-7 px-5" : ""
+                    }`}
                 >
                   {/* Image Container - original image behavior kept */}
                   <Link
@@ -260,9 +258,9 @@ export default function SpotlightProductsSection({
 
                             const imageUrl = String(
                               img?.currentSrc ||
-                                img?.src ||
-                                product.image ||
-                                "",
+                              img?.src ||
+                              product.image ||
+                              "",
                             ).trim();
 
                             renderedImageUrl = imageUrl || renderedImageUrl;
@@ -289,13 +287,12 @@ export default function SpotlightProductsSection({
                           });
                         }}
                         disabled={!inStock && !inCart}
-                        className={`flex h-10 w-full transform-gpu items-center justify-center gap-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all duration-500 ease-out active:scale-95 lg:h-11 lg:gap-2 lg:rounded-2xl lg:text-xs ${
-                          inCart
+                        className={`flex h-10 w-full transform-gpu items-center justify-center gap-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all duration-500 ease-out active:scale-95 lg:h-11 lg:gap-2 lg:rounded-2xl lg:text-xs ${inCart
                             ? "bg-slate-900 text-white shadow-lg hover:bg-black"
                             : "bg-emerald-800 text-white shadow-md shadow-emerald-900/10 hover:bg-emerald-700 disabled:bg-slate-200 disabled:text-slate-400"
-                        }`}
+                          }`}
                       >
-                        <SymbolIcon name={inCart ? "arrow_forward" : "shopping_bag"} className={`text-[16px] transition-transform duration-500 lg:text-[18px] ${ inCart ? "rotate-[360deg]" : "" }`} />
+                        <SymbolIcon name={inCart ? "arrow_forward" : "shopping_bag"} className={`text-[16px] transition-transform duration-500 lg:text-[18px] ${inCart ? "rotate-[360deg]" : ""}`} />
 
                         <span>
                           {inCart
