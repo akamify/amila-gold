@@ -432,42 +432,7 @@ export default function HeroSection({ initialBanners }: HeroSectionProps) {
 
           {/* Mobile action section */}
           <div className="border-t border-[#ded3c1] bg-[linear-gradient(180deg,#fffefa_0%,#f7f0e5_100%)] p-2.5">
-            <div className="mb-2 hidden lg:block flex items-center justify-between rounded-[12px] border border-[#ddd6c8] bg-white/75 px-2.5 py-2 shadow-[0_5px_16px_rgba(54,42,22,0.06)]">
-              <div className="flex min-w-0 items-center gap-2">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#edf5e9] text-[#32662f]">
-                  <CircleCheck className="h-4 w-4" strokeWidth={2.6} />
-                </span>
-
-                <div className="min-w-0">
-                  <p className="truncate text-[8px] font-black uppercase tracking-[0.12em] text-[#65492f]">
-                    Quality Assured
-                  </p>
-
-                  <p className="mt-0.5 truncate text-[7.5px] font-medium text-[#957e66]">
-                    Pure, carefully checked products
-                  </p>
-                </div>
-              </div>
-
-              {hasMultipleBanners && (
-                <button
-                  type="button"
-                  onClick={() => setIsAutoplayEnabled((current) => !current)}
-                  aria-label={
-                    isAutoplayEnabled
-                      ? "Pause banner autoplay"
-                      : "Play banner autoplay"
-                  }
-                  className="ml-2 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#d6dfd0] bg-[#f3f8f0] text-[#356831] transition active:scale-95"
-                >
-                  {isAutoplayEnabled ? (
-                    <Pause className="h-3.5 w-3.5" strokeWidth={2.5} />
-                  ) : (
-                    <Play className="ml-0.5 h-3.5 w-3.5" strokeWidth={2.5} />
-                  )}
-                </button>
-              )}
-            </div>
+            
 
             <div className="grid grid-cols-2 gap-2">
               <Link
