@@ -37,11 +37,11 @@ function discountPct(original: number | undefined, selling: number) {
  * - 3 columns
  *
  * Desktop:
- * - centered auto-fit grid
+ * - 3 columns (fixed)
  * - existing image design unchanged
  */
 const spotlightGridClass =
-  "grid grid-cols-2 gap-3 md:grid-cols-3 lg:mx-auto lg:w-full lg:max-w-[1396px] lg:grid-cols-[repeat(auto-fit,minmax(230px,250px))] lg:justify-center lg:gap-6 xl:grid-cols-[repeat(auto-fit,minmax(240px,260px))]";
+  "grid grid-cols-2 gap-3 md:grid-cols-3 lg:mx-auto lg:w-full lg:grid-cols-3 lg:justify-center lg:gap-6";
 
 export default function SpotlightProductsSection({
   initialProducts = [],
