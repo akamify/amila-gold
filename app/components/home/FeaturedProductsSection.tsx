@@ -463,21 +463,19 @@ export default function FeaturedProductsSection({
 
               <div
                 ref={mobileTrackRef}
-                className={`hide-scrollbar flex gap-4 scroll-smooth ${
-                  mobileProducts.length === 1
+                className={`hide-scrollbar flex gap-4 scroll-smooth ${mobileProducts.length === 1
                     ? "justify-center overflow-hidden"
                     : "overflow-x-auto snap-x snap-mandatory"
-                }`}
+                  }`}
               >
                 {mobileProducts.map((product) => (
                   <div
                     key={product.id}
                     data-feature-card
-                    className={`shrink-0 snap-center ${
-                      mobileProducts.length === 1
+                    className={`shrink-0 snap-center ${mobileProducts.length === 1
                         ? "w-full max-w-[350px]"
                         : "w-[85vw]"
-                    }`}
+                      }`}
                   >
                     <ProductCard product={product} currency={currencySymbol} />
                   </div>
