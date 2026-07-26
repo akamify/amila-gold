@@ -511,9 +511,7 @@ export default function FeaturedProductsSection({
                 <div className="mx-auto grid w-full max-w-[1200px] grid-cols-2 gap-8 lg:grid-cols-3 lg:gap-10">
                   {products.map((product) => (
                     <div key={product.id} className="w-full">
-                      <div className="max-w-full overflow-hidden rounded-3xl">
-                        <ProductCard product={product} currency={currencySymbol} />
-                      </div>
+                      <ProductCard product={product} currency={currencySymbol} />
                     </div>
                   ))}
                 </div>
@@ -568,7 +566,7 @@ function ProductCard({
   const productHref = createProductHref(product);
 
   return (
-    <div className="group relative flex w-full flex-col rounded-3xl border border-slate-100 bg-white p-3 transition-all duration-500 hover:shadow-2xl hover:shadow-slate-200/60">
+    <div className="group relative flex flex-col overflow-hidden rounded-3xl border border-slate-100 bg-white p-3 transition-all duration-500 hover:shadow-2xl hover:shadow-slate-200/60">
       {/* Image Container */}
       <Link
         href={productHref}
@@ -602,7 +600,7 @@ function ProductCard({
       </Link>
 
       {/* Content */}
-      <div className="flex flex-grow flex-col px-3 pt-6 pb-4">
+      <div className="flex flex-col px-3 pt-6 pb-4">
         <div className="mb-2 flex items-start justify-between gap-4">
           <h3 className="line-clamp-1 text-xl font-bold text-slate-900 transition-colors group-hover:text-primary">
             {product.name}
