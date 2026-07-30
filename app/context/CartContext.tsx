@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { addCartItem, clearCartItems, fetchCartItems, updateCartItem } from '@/app/lib/apiClient';
+import { trackMetaPixelEvent } from '@/app/lib/metaPixel';
 
 export interface CartItem {
   id: number;
@@ -166,6 +167,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     // Add to local state immediately
     setItems((prev) => [...prev, safeItem]);
+    trackMetaPixelEvent('AddToCart', {
+      content_ids: [String(safeItem.id)],
+      contents: [{ id: String(safeItem.id), quantity: safeItem.qty, item_price: safeItem.price }],
+      content_name: safeItem.name,
+      content_type: 'product',
+      currency: 'INR',
+      value: safeItem.price * safeItem.qty,
+    });
 
     // Try to sync with backend, but don't fail if it doesn't work
     addCartItem({

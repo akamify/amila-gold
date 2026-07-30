@@ -3,14 +3,7 @@
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Script from "next/script";
-
-const META_PIXEL_ID = "914367171674247";
-
-declare global {
-  interface Window {
-    fbq?: (...args: unknown[]) => void;
-  }
-}
+import { META_PIXEL_ID, trackMetaPixelEvent } from "@/app/lib/metaPixel";
 
 export default function MetaPixel() {
   const pathname = usePathname();
@@ -22,8 +15,10 @@ export default function MetaPixel() {
       return;
     }
 
-    window.fbq?.("track", "PageView");
+    trackMetaPixelEvent("PageView");
   }, [pathname]);
+
+  if (!META_PIXEL_ID) return null;
 
   return (
     <>

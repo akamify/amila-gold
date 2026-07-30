@@ -24,6 +24,7 @@ import ResilientProductImage from "@/app/components/ResilientProductImage";
 import { fetchBackendProductById, matchVariantByCartSize } from "@/app/lib/backendProducts";
 import { createProductHref, getProductImageSources } from "@/app/data/products";
 import CheckoutEmailOtpModal from "./components/CheckoutEmailOtpModal";
+import { trackMetaPixelEvent } from "@/app/lib/metaPixel";
 
 declare global {
   interface Window {
@@ -474,6 +475,18 @@ export default function CheckoutPage() {
 
     setIsProcessing(true);
     setPaymentError("");
+    trackMetaPixelEvent("InitiateCheckout", {
+      content_ids: checkoutItems.map((item) => String(item.id)),
+      contents: checkoutItems.map((item) => ({
+        id: String(item.id),
+        quantity: item.qty,
+        item_price: item.price,
+      })),
+      content_type: "product",
+      currency: "INR",
+      num_items: checkoutItemCount,
+      value: total,
+    });
 
     try {
       const data = (await createBackendOrder(
