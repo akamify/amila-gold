@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Script from "next/script";
-import { META_PIXEL_ID, trackMetaPixelEvent } from "@/app/lib/metaPixel";
+import { META_PIXEL_IDS, trackMetaPixelEvent } from "@/app/lib/metaPixel";
 
 export default function MetaPixel() {
   const pathname = usePathname();
@@ -18,7 +18,9 @@ export default function MetaPixel() {
     trackMetaPixelEvent("PageView");
   }, [pathname]);
 
-  if (!META_PIXEL_ID) return null;
+  if (META_PIXEL_IDS.length === 0) return null;
+
+  const initCommands = META_PIXEL_IDS.map((id) => `fbq('init', '${id}');`).join("\n");
 
   return (
     <>
@@ -31,18 +33,20 @@ n.queue=[];t=b.createElement(e);t.async=!0;
 t.src=v;s=b.getElementsByTagName(e)[0];
 s.parentNode.insertBefore(t,s)}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init', '${META_PIXEL_ID}');
+${initCommands}
 fbq('track', 'PageView');`}
       </Script>
-      <noscript>
-        <img
-          height="1"
-          width="1"
-          style={{ display: "none" }}
-          src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
-          alt=""
-        />
-      </noscript>
+      {META_PIXEL_IDS.map((id) => (
+        <noscript key={id}>
+          <img
+            height="1"
+            width="1"
+            style={{ display: "none" }}
+            src={`https://www.facebook.com/tr?id=${id}&ev=PageView&noscript=1`}
+            alt=""
+          />
+        </noscript>
+      ))}
     </>
   );
 }
