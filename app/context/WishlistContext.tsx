@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { addWishlistProduct, fetchWishlistProducts, removeWishlistProduct } from '@/app/lib/apiClient';
+import { trackMetaPixelEvent } from '@/app/lib/metaPixel';
 
 export interface WishlistItem {
   id: number;
@@ -49,7 +50,18 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   }, [items]);
 
   const addItem = (item: WishlistItem) => {
+    const exists = items.some((entry) => entry.id === item.id);
     setItems(prev => prev.find(i => i.id === item.id) ? prev : [...prev, item]);
+    if (!exists) {
+      trackMetaPixelEvent('AddToWishlist', {
+        content_ids: [String(item.id)],
+        contents: [{ id: String(item.id), quantity: 1, item_price: item.price }],
+        content_name: item.name,
+        content_type: 'product',
+        currency: 'GBP',
+        value: item.price,
+      });
+    }
     addWishlistProduct(item.id)
       .then((data) => {
         const products = Array.isArray((data as Record<string, unknown>).products)

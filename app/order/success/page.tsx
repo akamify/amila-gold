@@ -19,7 +19,8 @@ function OrderSuccessContent() {
     if (window.sessionStorage.getItem(storageKey)) return;
     window.sessionStorage.setItem(storageKey, '1');
     trackMetaPixelEvent('Purchase', {
-      currency: 'INR',
+      value: 0.00,
+      currency: 'GBP',
       order_id: oid,
     });
   }, [searchParams]);
