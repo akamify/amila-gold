@@ -25,6 +25,7 @@ const EMPTY_HOME_DATA: PublicHomepageData = {
   testimonials: [],
   settings: null,
 };
+const MIN_HOMEPAGE_PRODUCTS = 4;
 
 const devLog = (message: string, details?: unknown) => {
   if (process.env.NODE_ENV !== "production") {
@@ -61,6 +62,13 @@ export default function HomepageClient() {
   const [isPublicDataLoading, setIsPublicDataLoading] = useState(true);
   const hasDataRef = useRef(false);
   const requestInFlightRef = useRef(false);
+  const hasEnoughFeaturedProducts =
+    homepageData.featuredProducts.length >= MIN_HOMEPAGE_PRODUCTS;
+  const featuredProductsForSections = hasEnoughFeaturedProducts
+    ? homepageData.featuredProducts
+    : [];
+  const featuredSectionsLoading =
+    isPublicDataLoading || homepageData.featuredProducts.length < MIN_HOMEPAGE_PRODUCTS;
 
   const applyFreshData = (data: PublicHomepageData) => {
     hasDataRef.current = hasUsefulData(data);
@@ -129,8 +137,16 @@ export default function HomepageClient() {
   return (
     <main>
       <HeroSection />
-      <SpotlightProducts initialProducts={homepageData.featuredProducts} managed loading={isPublicDataLoading && homepageData.featuredProducts.length === 0} />
-      <FeaturedProducts initialProducts={homepageData.featuredProducts} managed loading={isPublicDataLoading && homepageData.featuredProducts.length === 0} />
+      <SpotlightProducts
+        initialProducts={featuredProductsForSections}
+        managed
+        loading={featuredSectionsLoading}
+      />
+      <FeaturedProducts
+        initialProducts={featuredProductsForSections}
+        managed
+        loading={featuredSectionsLoading}
+      />
       <HeritageSection />
       <SlowCraftSection />
       <TestimonialsSection initialTestimonials={homepageData.testimonials} managed />

@@ -27,6 +27,7 @@ export default function ProfilePage() {
   const [editingAddressId, setEditingAddressId] = useState<number | null>(null);
   const [isAddressSaving, setIsAddressSaving] = useState(false);
   const [addressError, setAddressError] = useState("");
+  const [profileError, setProfileError] = useState("");
   const [addressForm, setAddressForm] = useState<UserAddressInput>({
     FullName: "",
     phone1: "",
@@ -52,7 +53,6 @@ export default function ProfilePage() {
         ]);
         const raw = profileData as Record<string, unknown>;
         const profileRecord = ((raw.profile as Record<string, unknown>) || raw) as { name?: string; email?: string; phone?: string; gender?: string };
-        console.log('Loaded profile data:', profileRecord);
         setProfile({
           name: profileRecord.name || "",
           email: profileRecord.email || user?.email || "",
@@ -70,6 +70,12 @@ export default function ProfilePage() {
   }, [isAuthenticated, user?.email]);
 
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const normalizePhone = (value: string) => {
+    let digits = String(value || "").replace(/\D/g, "");
+    if (digits.startsWith("91") && digits.length > 10) digits = digits.slice(2);
+    if (digits.startsWith("0") && digits.length > 10) digits = digits.slice(1);
+    return digits.slice(0, 10);
+  };
 
   const openCreateAddress = () => {
     setEditingAddressId(null);
@@ -134,12 +140,21 @@ export default function ProfilePage() {
   };
 
   const handleSave = async () => {
+    if (profile.name.trim().length < 2) {
+      setProfileError("Please enter a valid full name.");
+      return;
+    }
+    if (profile.phone && !/^\d{10}$/.test(normalizePhone(profile.phone))) {
+      setProfileError("Please enter a valid 10-digit phone number.");
+      return;
+    }
     setIsSaving(true);
     setSaveSuccess(false);
+    setProfileError("");
     try {
       await updateUserProfile({
         name: profile.name,
-        phone: profile.phone,
+        phone: normalizePhone(profile.phone),
         gender: profile.gender,
       });
       setSaveSuccess(true);
@@ -156,6 +171,7 @@ export default function ProfilePage() {
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (error) {
       console.error("Failed to update profile:", error);
+      setProfileError("Failed to update profile. Please try again.");
     } finally {
       setIsSaving(false);
     }
@@ -166,14 +182,14 @@ export default function ProfilePage() {
 
 
   return (
-    <div className="space-y-16">
+    <div className="space-y-8 md:space-y-10">
       {/* Personal Information Section */}
-      <section className="bg-surface-container-low rounded-xl p-8 md:p-12 relative overflow-hidden">
+      <section className="relative overflow-hidden rounded-[2rem] border border-outline-variant/20 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(247,244,236,0.95))] p-5 shadow-[0_18px_55px_rgba(29,66,26,0.06)] md:p-10">
         <div className="relative z-10">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
+          <div className="mb-8 flex flex-col gap-5 md:mb-10 md:flex-row md:items-end md:justify-between">
             <div>
-              <h2 className="font-headline text-3xl font-bold text-primary italic leading-tight">Account Details</h2>
-              <p className="text-on-surface-variant text-sm mt-2">Manage your core identity and contact information.</p>
+              <h2 className="font-headline text-2xl font-bold text-primary italic leading-tight md:text-3xl">Account Details</h2>
+              <p className="mt-2 text-sm text-on-surface-variant">Manage your core identity and contact information.</p>
             </div>
             <div className="flex items-center gap-4">
               {saveSuccess && (
@@ -185,19 +201,25 @@ export default function ProfilePage() {
               <button
                 onClick={handleSave}
                 disabled={isSaving}
-                className="bg-primary text-on-primary px-8 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-primary-container transition-all disabled:opacity-50"
+                className="rounded-full bg-primary px-6 py-3 text-xs font-bold uppercase tracking-[0.16em] text-on-primary transition-all hover:bg-primary-container disabled:opacity-50"
               >
                 {isSaving ? "Saving..." : "Save Changes"}
               </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+          {profileError ? (
+            <p className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+              {profileError}
+            </p>
+          ) : null}
+
+          <div className="grid grid-cols-1 gap-x-10 gap-y-7 md:grid-cols-2 md:gap-y-8">
             <div className="flex flex-col space-y-2">
               <label className="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold">Full Name</label>
-              <div className="border-b border-outline-variant/40 focus-within:border-primary pb-2 transition-colors">
+              <div className="rounded-2xl border border-outline-variant/20 bg-white/80 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] transition-colors focus-within:border-primary">
                 <input
-                  className="w-full bg-transparent border-none p-0 font-headline italic text-xl text-primary focus:ring-0 outline-none"
+                  className="w-full bg-transparent border-none p-0 text-base text-primary outline-none focus:ring-0"
                   type="text"
                   value={profile.name}
                   onChange={(e) => setProfile({ ...profile, name: e.target.value })}
@@ -207,9 +229,9 @@ export default function ProfilePage() {
             </div>
             <div className="flex flex-col space-y-2">
               <label className="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold">Email Address</label>
-              <div className="border-b border-outline-variant/40 focus-within:border-primary pb-2 transition-colors">
+              <div className="rounded-2xl border border-outline-variant/20 bg-[#f8f6ef] px-4 py-3 transition-colors">
                 <input
-                  className="w-full bg-transparent border-none p-0 font-headline italic text-xl text-primary focus:ring-0 outline-none"
+                  className="w-full bg-transparent border-none p-0 text-base text-primary outline-none focus:ring-0"
                   type="email"
                   value={user?.email || ""}
                   readOnly
@@ -218,21 +240,23 @@ export default function ProfilePage() {
             </div>
             <div className="flex flex-col space-y-2">
               <label className="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold">Mobile Phone</label>
-              <div className="border-b border-outline-variant/40 focus-within:border-primary pb-2 transition-colors">
+              <div className="rounded-2xl border border-outline-variant/20 bg-white/80 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] transition-colors focus-within:border-primary">
                 <input
-                  className="w-full bg-transparent border-none p-0 font-headline italic text-xl text-primary focus:ring-0 outline-none"
+                  className="w-full bg-transparent border-none p-0 text-base text-primary outline-none focus:ring-0"
                   type="tel"
                   value={profile.phone}
-                  onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                  placeholder="+91 12345 67890"
+                  inputMode="numeric"
+                  maxLength={10}
+                  onChange={(e) => setProfile({ ...profile, phone: normalizePhone(e.target.value) })}
+                  placeholder="9876543210"
                 />
               </div>
             </div>
             <div className="flex flex-col space-y-2">
               <label className="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold">Gender</label>
-              <div className="border-b border-outline-variant/40 focus-within:border-primary pb-2 transition-colors">
+              <div className="rounded-2xl border border-outline-variant/20 bg-white/80 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] transition-colors focus-within:border-primary">
                 <select
-                  className="w-full bg-transparent border-none p-0 font-headline italic text-xl text-primary focus:ring-0 outline-none appearance-none cursor-pointer"
+                  className="w-full cursor-pointer appearance-none bg-transparent border-none p-0 text-base text-primary outline-none focus:ring-0"
                   value={profile.gender}
                   onChange={(e) => setProfile({ ...profile, gender: String(e.target.value) })}
                 >
@@ -250,12 +274,12 @@ export default function ProfilePage() {
 
       {/* Shipping Addresses Section */}
       <section>
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="font-headline text-3xl font-bold text-primary italic">Saved Addresses</h2>
+        <div className="mb-6 flex items-center justify-between gap-4">
+          <h2 className="font-headline text-2xl font-bold text-primary italic md:text-3xl">Saved Addresses</h2>
           <button
             type="button"
             onClick={openCreateAddress}
-            className="flex items-center gap-2 border-[1.5px] border-secondary text-secondary px-6 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-secondary-container/10 transition-all"
+            className="flex items-center gap-2 rounded-full border-[1.5px] border-secondary px-5 py-2.5 text-[10px] font-bold uppercase tracking-[0.16em] text-secondary transition-all hover:bg-secondary-container/10"
           >
             <SymbolIcon name={"add"} className="text-[16px]" /> Add New
           </button>
@@ -263,7 +287,7 @@ export default function ProfilePage() {
 
         <div className="space-y-4">
           {addresses.length === 0 ? (
-            <div className="text-center py-12 bg-surface-container-low rounded-xl">
+            <div className="rounded-[1.75rem] border border-outline-variant/20 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(247,244,236,0.92))] py-12 text-center shadow-[0_14px_40px_rgba(29,66,26,0.05)]">
               <SymbolIcon name={"location_off"} className="text-4xl text-outline-variant mb-4" />
               <p className="text-on-surface-variant">No saved addresses yet.</p>
             </div>
@@ -307,7 +331,7 @@ export default function ProfilePage() {
       )}
 
       {/* Heritage Callout */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center bg-primary text-on-primary rounded-xl overflow-hidden relative">
+      <section className="relative grid grid-cols-1 items-center gap-8 overflow-hidden rounded-[2rem] bg-primary text-on-primary">
         <div className="md:col-span-1 h-64 md:h-full relative overflow-hidden bg-primary-container">
           <img
             alt="Artisan Texture"

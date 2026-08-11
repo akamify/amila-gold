@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import type { HTMLAttributes } from 'react';
 import type { UserAddressInput } from '@/app/lib/apiClient';
 
 interface AddressFormProps {
@@ -19,22 +20,31 @@ function Field({
     onChange,
     placeholder,
     type = 'text',
+    inputMode,
+    maxLength,
+    autoComplete,
 }: {
     label: string;
     value: string;
     onChange: (value: string) => void;
     placeholder?: string;
     type?: string;
+    inputMode?: HTMLAttributes<HTMLInputElement>['inputMode'];
+    maxLength?: number;
+    autoComplete?: string;
 }) {
     return (
         <label className="flex flex-col gap-2">
-            <span className="font-headline text-xs opacity-70">{label}</span>
+            <span className="font-headline text-xs text-[#52604f]">{label}</span>
             <input
                 type={type}
                 value={value}
                 placeholder={placeholder}
+                inputMode={inputMode}
+                maxLength={maxLength}
+                autoComplete={autoComplete}
                 onChange={(event) => onChange(event.target.value)}
-                className="bg-surface border border-outline-variant/30 rounded-xl px-4 py-3 font-headline text-sm focus:outline-none focus:border-primary"
+                className="rounded-2xl border border-outline-variant/25 bg-white px-4 py-3.5 font-body text-base text-on-surface shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] outline-none transition placeholder:text-[#70796d] focus:border-primary focus:ring-4 focus:ring-primary/10 sm:text-sm"
             />
         </label>
     );
@@ -49,35 +59,20 @@ export default function AddressForm({
     onSubmit,
     onCancel,
 }: AddressFormProps) {
-    const countryDialCode = (countryName: string) => {
-        const map: Record<string, string> = {
-            india: '+91',
-            us: '+1',
-            usa: '+1',
-            'united states': '+1',
-            uk: '+44',
-            'united kingdom': '+44',
-            uae: '+971',
-            canada: '+1',
-            australia: '+61',
-        };
-        const key = String(countryName || '').trim().toLowerCase();
-        return map[key] || '+91';
-    };
-
     const normalizePhone = (raw: string) => {
-        const cleaned = String(raw || '').replace(/[^\d+]/g, '').trim();
-        if (!cleaned) return '';
-        if (cleaned.startsWith('+')) return cleaned;
-        if (cleaned.startsWith('00')) return `+${cleaned.slice(2)}`;
-        const noLeadingZero = cleaned.replace(/^0+/, '');
-        const code = countryDialCode(value.country);
-        return `${code}${noLeadingZero}`;
+        let digits = String(raw || '').replace(/\D/g, '');
+        if (digits.startsWith('91') && digits.length > 10) digits = digits.slice(2);
+        if (digits.startsWith('0') && digits.length > 10) digits = digits.slice(1);
+        return digits.slice(0, 10);
     };
 
     const setField = (key: keyof UserAddressInput, fieldValue: string) => {
         if (key === 'phone1' || key === 'phone2') {
             onChange({ ...value, [key]: normalizePhone(fieldValue) });
+            return;
+        }
+        if (key === 'pinCode') {
+            onChange({ ...value, [key]: String(fieldValue || '').replace(/\D/g, '').slice(0, 6) });
             return;
         }
         onChange({ ...value, [key]: fieldValue });
@@ -131,32 +126,33 @@ export default function AddressForm({
     }, [onChange, value.pinCode]);
 
     return (
-        <div className="bg-white border border-outline-variant/20 rounded-2xl p-5 md:p-6">
+        <div className="rounded-[1.75rem] border border-outline-variant/20 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,245,236,0.96))] p-5 shadow-[0_20px_60px_rgba(21,66,18,0.06)] md:p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Field label="Full Name" value={value.FullName} onChange={(next) => setField('FullName', next)} />
-                <Field label="Phone" value={value.phone1} onChange={(next) => setField('phone1', next)} />
-                <Field label="Alt Phone" value={value.phone2} onChange={(next) => setField('phone2', next)} />
-                <Field label="Pincode" value={value.pinCode} onChange={(next) => setField('pinCode', next)} />
-                <Field label="Country" value={value.country} onChange={(next) => setField('country', next)} />
+                <Field label="Full Name" value={value.FullName} onChange={(next) => setField('FullName', next)} autoComplete="name" />
+                <Field label="Phone" value={value.phone1} onChange={(next) => setField('phone1', next)} inputMode="numeric" maxLength={10} autoComplete="tel" />
+                <Field label="Alt Phone" value={value.phone2} onChange={(next) => setField('phone2', next)} inputMode="numeric" maxLength={10} autoComplete="tel-national" />
+                <Field label="Pincode" value={value.pinCode} onChange={(next) => setField('pinCode', next)} inputMode="numeric" maxLength={6} autoComplete="postal-code" />
+                <Field label="Country" value={value.country} onChange={(next) => setField('country', next)} autoComplete="country-name" />
                 <Field label="State" value={value.state} onChange={(next) => setField('state', next)} />
                 <Field label="City/Town" value={value.city} onChange={(next) => setField('city', next)} />
                 <Field label="District" value={value.district} onChange={(next) => setField('district', next)} />
                 <div className="md:col-span-2">
-                    <Field label="Address Line 1" value={value.address} onChange={(next) => setField('address', next)} />
+                    <Field label="Address Line 1" value={value.address} onChange={(next) => setField('address', next)} autoComplete="address-line1" />
                 </div>
                 <div className="md:col-span-2">
                     <Field
                         label="Address Line 2"
                         value={value.address_line2}
                         onChange={(next) => setField('address_line2', next)}
+                        autoComplete="address-line2"
                     />
                 </div>
                 <label className="flex flex-col gap-2">
-                    <span className="font-headline text-xs opacity-70">Address Type</span>
+                    <span className="font-headline text-xs text-[#52604f]">Address Type</span>
                     <select
                         value={value.addressType}
                         onChange={(event) => setField('addressType', event.target.value)}
-                        className="bg-surface border border-outline-variant/30 rounded-xl px-4 py-3 font-headline text-sm focus:outline-none focus:border-primary"
+                        className="rounded-2xl border border-outline-variant/25 bg-white px-4 py-3.5 font-body text-base text-on-surface shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10 sm:text-sm"
                     >
                         <option value="Home">Home</option>
                         <option value="Office">Office</option>

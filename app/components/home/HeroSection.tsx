@@ -5,27 +5,19 @@ import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
-  ArrowRight,
   ChevronLeft,
   ChevronRight,
-  CircleCheck,
-  MessageCircle,
   Pause,
   Play,
-  ShieldCheck,
-  ShoppingBag,
 } from "lucide-react";
 
 import type { PublicBanner } from "@/app/lib/publicDataClient";
-import { getWholesaleWhatsAppUrl } from "@/app/lib/whatsapp";
 
 const FALLBACK_BANNERS = ["/banner.png", "/banner2.png", "/banner3.png"];
 
 const AUTOPLAY_DELAY = 5500;
 const SWIPE_THRESHOLD = 55;
 const MAX_BANNERS = 6;
-
-const WHOLESALE_WHATSAPP_URL = getWholesaleWhatsAppUrl();
 
 type HeroSectionProps = {
   initialBanners?: PublicBanner[];
@@ -351,159 +343,6 @@ export default function HeroSection({ initialBanners }: HeroSectionProps) {
                 </button>
               </>
             )}
-          </div>
-
-          {/* Desktop action strip */}
-          <div className="hidden min-h-[76px] grid-cols-[1fr_auto_1fr] items-center gap-5 border-t border-[#ded3c1] bg-[linear-gradient(90deg,#fffdfa_0%,#f5eee3_50%,#fffdfa_100%)] px-4 py-2.5 sm:grid lg:min-h-[82px] lg:gap-8 lg:px-7">
-            <div className="flex justify-start">
-              <Link
-                href="/shop"
-                className="group/shop relative inline-flex min-h-12 items-center justify-center gap-2.5 overflow-hidden rounded-full border border-[#316d31] bg-[linear-gradient(135deg,#123f19_0%,#28682c_54%,#4d8d42_100%)] px-6 text-[10px] font-black uppercase tracking-[0.13em] text-white shadow-[0_12px_30px_rgba(28,91,35,0.32)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_17px_36px_rgba(28,91,35,0.4)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#397435] focus-visible:ring-offset-2 active:translate-y-0 lg:px-8 lg:text-[11px]"
-              >
-                <span
-                  aria-hidden="true"
-                  className="absolute inset-0 -translate-x-full bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.22)_50%,transparent_75%)] transition-transform duration-700 group-hover/shop:translate-x-full"
-                />
-
-                <ShoppingBag
-                  className="relative h-4 w-4 shrink-0"
-                  strokeWidth={2.6}
-                />
-
-                <span className="relative whitespace-nowrap">Shop Now</span>
-
-                <ArrowRight
-                  className="relative h-4 w-4 shrink-0 transition-transform duration-300 group-hover/shop:translate-x-1"
-                  strokeWidth={2.7}
-                />
-              </Link>
-            </div>
-
-            {/* Quality badge */}
-            <div className="flex justify-center">
-              <div className="inline-flex items-center gap-3 rounded-full border border-[#d5dfcf] bg-white/90 px-4 py-2 shadow-[0_8px_22px_rgba(45,66,34,0.08)] backdrop-blur-md lg:px-5">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#d5e2d0] bg-[#edf5e9] text-[#32662f]">
-                  <ShieldCheck
-                    className="h-[18px] w-[18px]"
-                    strokeWidth={2.5}
-                  />
-                </span>
-
-                <div>
-                  <p className="whitespace-nowrap text-[9px] font-black uppercase tracking-[0.15em] text-[#674a31] lg:text-[10px]">
-                    Quality Assured
-                  </p>
-
-                  <p className="mt-0.5 whitespace-nowrap text-[9px] font-medium text-[#9a826a] lg:text-[10px]">
-                    Carefully checked
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end">
-              <a
-                href={WHOLESALE_WHATSAPP_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group/wholesale relative inline-flex min-h-12 items-center justify-center gap-2.5 overflow-hidden rounded-full border-2 border-[#397738] bg-[linear-gradient(180deg,#ffffff_0%,#eef7eb_100%)] px-6 text-[9px] font-black uppercase tracking-[0.1em] text-[#285f29] shadow-[0_10px_27px_rgba(38,95,35,0.16)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#eaf6e6] hover:shadow-[0_15px_34px_rgba(38,95,35,0.24)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#397435] focus-visible:ring-offset-2 active:translate-y-0 lg:px-8 lg:text-[10px]"
-              >
-                <span
-                  aria-hidden="true"
-                  className="absolute inset-0 -translate-x-full bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.75)_50%,transparent_75%)] transition-transform duration-700 group-hover/wholesale:translate-x-full"
-                />
-
-                <MessageCircle
-                  className="relative h-4 w-4 shrink-0"
-                  strokeWidth={2.7}
-                />
-
-                <span className="relative whitespace-nowrap">
-                  WhatsApp Wholesale
-                </span>
-
-                <ArrowRight
-                  className="relative h-4 w-4 shrink-0 transition-transform duration-300 group-hover/wholesale:translate-x-1"
-                  strokeWidth={2.7}
-                />
-              </a>
-            </div>
-          </div>
-
-          {/* Mobile action section */}
-          <div className="border-t border-[#ded3c1] bg-[linear-gradient(180deg,#fffefa_0%,#f7f0e5_100%)] p-2.5">
-            <div className="mb-2 hidden lg:block flex items-center justify-between rounded-[12px] border border-[#ddd6c8] bg-white/75 px-2.5 py-2 shadow-[0_5px_16px_rgba(54,42,22,0.06)]">
-              <div className="flex min-w-0 items-center gap-2">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#edf5e9] text-[#32662f]">
-                  <CircleCheck className="h-4 w-4" strokeWidth={2.6} />
-                </span>
-
-                <div className="min-w-0">
-                  <p className="truncate text-[8px] font-black uppercase tracking-[0.12em] text-[#65492f]">
-                    Quality Assured
-                  </p>
-
-                  <p className="mt-0.5 truncate text-[7.5px] font-medium text-[#957e66]">
-                    Pure, carefully checked products
-                  </p>
-                </div>
-              </div>
-
-              {hasMultipleBanners && (
-                <button
-                  type="button"
-                  onClick={() => setIsAutoplayEnabled((current) => !current)}
-                  aria-label={
-                    isAutoplayEnabled
-                      ? "Pause banner autoplay"
-                      : "Play banner autoplay"
-                  }
-                  className="ml-2 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#d6dfd0] bg-[#f3f8f0] text-[#356831] transition active:scale-95"
-                >
-                  {isAutoplayEnabled ? (
-                    <Pause className="h-3.5 w-3.5" strokeWidth={2.5} />
-                  ) : (
-                    <Play className="ml-0.5 h-3.5 w-3.5" strokeWidth={2.5} />
-                  )}
-                </button>
-              )}
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <Link
-                href="/shop"
-                className="group/shop relative inline-flex min-h-[46px] items-center justify-center gap-1.5 overflow-hidden rounded-[12px] border border-[#347035] bg-[linear-gradient(135deg,#143f19_0%,#28672c_55%,#4b8a40_100%)] px-2 text-[8.5px] font-black uppercase tracking-[0.08em] text-white shadow-[0_9px_22px_rgba(30,92,36,0.3)] transition active:scale-[0.98]"
-              >
-                <ShoppingBag className="h-4 w-4 shrink-0" strokeWidth={2.6} />
-
-                <span className="whitespace-nowrap">Shop Now</span>
-
-                <ArrowRight
-                  className="h-3.5 w-3.5 shrink-0 transition-transform group-hover/shop:translate-x-0.5"
-                  strokeWidth={2.7}
-                />
-              </Link>
-
-              <a
-                href={WHOLESALE_WHATSAPP_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group/wholesale inline-flex min-h-[46px] items-center justify-center gap-1.5 rounded-[12px] border-2 border-[#397638] bg-[linear-gradient(180deg,#ffffff_0%,#edf7e9_100%)] px-1.5 text-center text-[7.5px] font-black uppercase leading-[9px] tracking-[0.05em] text-[#285e28] shadow-[0_8px_19px_rgba(37,91,34,0.16)] transition active:scale-[0.98]"
-              >
-                <MessageCircle className="h-4 w-4 shrink-0" strokeWidth={2.6} />
-
-                <span>
-                  WhatsApp
-                  <br />
-                  Wholesale
-                </span>
-
-                <ArrowRight
-                  className="h-3.5 w-3.5 shrink-0 transition-transform group-hover/wholesale:translate-x-0.5"
-                  strokeWidth={2.7}
-                />
-              </a>
-            </div>
           </div>
 
           {/* Bottom slider navigation */}

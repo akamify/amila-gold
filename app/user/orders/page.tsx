@@ -1,25 +1,39 @@
 "use client";
+
 import SymbolIcon from "@/app/components/icons/SymbolIcon";
-import React, { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+import ResilientProductImage from "@/app/components/ResilientProductImage";
+import { OrderListSkeleton } from "@/app/components/Skeletons";
 import { useRequireAuth } from "@/app/context/AuthContext";
 import { useSiteSettings } from "@/app/context/SiteSettingsContext";
-import { fetchOrders } from "@/app/lib/apiClient";
 import { createProductHref } from "@/app/data/products";
-import ResilientProductImage from "@/app/components/ResilientProductImage";
+import { fetchOrders } from "@/app/lib/apiClient";
+import Link from "next/link";
+import React, { useEffect, useMemo, useState } from "react";
+
 type UserOrder = {
   order_id?: string;
   order_code?: string;
   status?: string;
   amount?: number;
   createdAt?: string;
-  items?: Array<{ product_id?: number; quantity?: number; price?: number; size?: string; product_image?: string; product?: { product_code?: string; title?: string; name?: string; product_image?: string[] } }>;
+  items?: Array<{
+    product_id?: number;
+    quantity?: number;
+    price?: number;
+    size?: string;
+    product_image?: string;
+    product?: {
+      product_code?: string;
+      title?: string;
+      name?: string;
+      product_image?: string[];
+    };
+  }>;
 };
 
-import { OrderListSkeleton } from "@/app/components/Skeletons";
-
 export default function OrdersPage() {
-  const { isLoading: authLoading, isAuthenticated } = useRequireAuth('/user/auth');
+  const { isLoading: authLoading, isAuthenticated } =
+    useRequireAuth("/user/auth");
   const { settings } = useSiteSettings();
   const currencySymbol = settings.currencySymbol || "₹";
   const [orders, setOrders] = useState<UserOrder[]>([]);
@@ -34,105 +48,182 @@ export default function OrdersPage() {
       .finally(() => setIsDataLoading(false));
   }, [isAuthenticated]);
 
-  const mappedOrders = useMemo(() => orders.map((order) => {
-    const status = String(order.status || 'pending');
-    const lower = status.toLowerCase();
-    const statusBg = lower.includes('transit') || lower.includes('ship') ? "bg-secondary" : null;
-    const icon = lower.includes('deliver') ? "check_circle" : lower.includes('harvest') ? "eco" : null;
-    const firstImage = Array.isArray(order.items)
-      ? (order.items[0]?.product?.product_image?.[0] || order.items[0]?.product_image || "")
-      : "";
-    const firstProduct = Array.isArray(order.items) ? order.items[0] : undefined;
-    const firstName = String(firstProduct?.product?.title || firstProduct?.product?.name || "");
-    const firstId = Number(firstProduct?.product_id || 0);
-    const firstPublicId = String(firstProduct?.product?.product_code || "");
-    const safeAmount = Number(order.amount || 0);
-    const itemsTotal = Array.isArray(order.items)
-      ? order.items.reduce((sum, item) => {
-        const price = Number(item.price || 0);
-        const qty = Number(item.quantity || 0);
-        return sum + (Number.isFinite(price) ? price : 0) * (Number.isFinite(qty) ? qty : 0);
-      }, 0)
-      : 0;
-    const normalizedAmount = safeAmount > 0
-      ? (itemsTotal > 0 && safeAmount > itemsTotal * 5 ? safeAmount / 100 : safeAmount)
-      : itemsTotal;
-    return {
-      id: String(order.order_code || order.order_id || ""),
-      date: order.createdAt ? new Date(order.createdAt).toLocaleDateString() : "-",
-      status,
-      statusColor: lower.includes('transit') || lower.includes('ship') ? "text-secondary" : lower.includes('deliver') ? "text-on-surface-variant" : "text-primary",
-      statusBg,
-      icon,
-      total: `${currencySymbol}${normalizedAmount.toFixed(2)}`,
-      images: Array.isArray(firstProduct?.product?.product_image)
-        ? [firstImage, ...firstProduct.product.product_image]
-        : [firstImage],
-      productHref: firstId > 0 && firstName
-        ? createProductHref({ id: firstId, publicId: firstPublicId || undefined, name: firstName }, firstProduct?.size)
-        : "",
-      opacityClass: lower.includes('deliver') ? "opacity-80 grayscale-[10%]" : "",
-    };
-  }), [currencySymbol, orders]);
+  const mappedOrders = useMemo(
+    () =>
+      orders.map((order) => {
+        const status = String(order.status || "pending");
+        const lower = status.toLowerCase();
+        const statusBg =
+          lower.includes("transit") || lower.includes("ship")
+            ? "bg-secondary"
+            : null;
+        const icon = lower.includes("deliver")
+          ? "check_circle"
+          : lower.includes("harvest")
+            ? "eco"
+            : null;
+        const firstImage = Array.isArray(order.items)
+          ? order.items[0]?.product?.product_image?.[0] ||
+            order.items[0]?.product_image ||
+            ""
+          : "";
+        const firstProduct = Array.isArray(order.items)
+          ? order.items[0]
+          : undefined;
+        const firstName = String(
+          firstProduct?.product?.title || firstProduct?.product?.name || "",
+        );
+        const firstId = Number(firstProduct?.product_id || 0);
+        const firstPublicId = String(
+          firstProduct?.product?.product_code || "",
+        );
+        const safeAmount = Number(order.amount || 0);
+        const itemsTotal = Array.isArray(order.items)
+          ? order.items.reduce((sum, item) => {
+              const price = Number(item.price || 0);
+              const qty = Number(item.quantity || 0);
+              return (
+                sum +
+                (Number.isFinite(price) ? price : 0) *
+                  (Number.isFinite(qty) ? qty : 0)
+              );
+            }, 0)
+          : 0;
+        const normalizedAmount =
+          safeAmount > 0
+            ? itemsTotal > 0 && safeAmount > itemsTotal * 5
+              ? safeAmount / 100
+              : safeAmount
+            : itemsTotal;
+
+        return {
+          id: String(order.order_code || order.order_id || ""),
+          date: order.createdAt
+            ? new Date(order.createdAt).toLocaleDateString()
+            : "-",
+          status,
+          statusColor:
+            lower.includes("transit") || lower.includes("ship")
+              ? "text-secondary"
+              : lower.includes("deliver")
+                ? "text-on-surface-variant"
+                : "text-primary",
+          statusBg,
+          icon,
+          total: `${currencySymbol}${normalizedAmount.toFixed(2)}`,
+          images: Array.isArray(firstProduct?.product?.product_image)
+            ? [firstImage, ...firstProduct.product.product_image]
+            : [firstImage],
+          productHref:
+            firstId > 0 && firstName
+              ? createProductHref(
+                  {
+                    id: firstId,
+                    publicId: firstPublicId || undefined,
+                    name: firstName,
+                  },
+                  firstProduct?.size,
+                )
+              : "",
+          opacityClass: lower.includes("deliver")
+            ? "opacity-80 grayscale-[10%]"
+            : "",
+        };
+      }),
+    [currencySymbol, orders],
+  );
 
   if (authLoading || (isAuthenticated && isDataLoading)) {
     return <OrderListSkeleton />;
   }
 
-
   if (!isAuthenticated) return null;
 
   return (
-    <div className="flex-grow mt-15">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-12">
+    <div className="mt-4 flex-grow md:mt-8">
+      <div className="mb-8 flex flex-col gap-3 md:mb-10 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-headline tracking-tighter text-primary italic">Order History</h1>
-          <p className="text-on-surface-variant mt-2 font-body text-sm">Tracking your journey through the harvest.</p>
+          <h1 className="font-headline text-3xl tracking-tight text-primary italic md:text-5xl lg:text-6xl">
+            My Orders
+          </h1>
+          <p className="mt-2 text-sm text-on-surface-variant">
+            Track every order, payment, and delivery update in one place.
+          </p>
         </div>
       </div>
 
-      {/* Orders Grid/List */}
-      <div className="space-y-8">
+      <div className="space-y-6">
         {mappedOrders.map((order) => (
-          <div key={order.id} className={`bg-surface-container-low rounded-xl p-6 md:p-8 transition-all hover:bg-surface-container group border border-transparent hover:border-outline-variant/30 ${order.opacityClass}`}>
-            <div className="flex flex-col xl:flex-row gap-8 items-start xl:items-center">
+          <div
+            key={order.id}
+            className={`group rounded-[1.75rem] border border-outline-variant/20 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(247,244,236,0.95))] p-5 shadow-[0_16px_44px_rgba(29,66,26,0.05)] transition-all hover:-translate-y-0.5 hover:border-outline-variant/30 hover:shadow-[0_18px_46px_rgba(29,66,26,0.08)] md:p-7 ${order.opacityClass}`}
+          >
+            <div className="flex flex-col items-start gap-5 xl:flex-row xl:items-center xl:gap-8">
               {order.productHref ? (
-                <Link href={order.productHref} className="relative w-24 h-24 md:w-32 md:h-32 rounded-lg overflow-hidden flex-shrink-0 bg-white shadow-sm block">
+                <Link
+                  href={order.productHref}
+                  className="relative block h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-outline-variant/10 bg-white shadow-sm md:h-28 md:w-28"
+                >
                   <ResilientProductImage sources={order.images} alt="Order Item" />
                 </Link>
               ) : (
-                <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-lg overflow-hidden flex-shrink-0 bg-white shadow-sm">
+                <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-outline-variant/10 bg-white shadow-sm md:h-28 md:w-28">
                   <ResilientProductImage sources={order.images} alt="Order Item" />
                 </div>
               )}
-              
-              <div className="flex-grow grid grid-cols-2 md:grid-cols-4 gap-y-6 gap-x-4 w-full">
+
+              <div className="grid w-full flex-grow grid-cols-2 gap-x-4 gap-y-5 md:grid-cols-4">
                 <div>
-                  <p className="text-[9px] md:text-[10px] uppercase tracking-widest text-on-surface-variant mb-1 font-bold">Order Number</p>
-                  <p className="font-bold text-primary text-sm md:text-base">{order.id}</p>
+                  <p className="mb-1 text-[9px] font-bold uppercase tracking-widest text-on-surface-variant md:text-[10px]">
+                    Order Number
+                  </p>
+                  <p className="text-sm font-bold text-primary md:text-base">
+                    {order.id}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-[9px] md:text-[10px] uppercase tracking-widest text-on-surface-variant mb-1 font-bold">Date Placed</p>
-                  <p className="font-body text-sm md:text-base text-primary/80">{order.date}</p>
+                  <p className="mb-1 text-[9px] font-bold uppercase tracking-widest text-on-surface-variant md:text-[10px]">
+                    Date Placed
+                  </p>
+                  <p className="text-sm text-primary/80 md:text-base">
+                    {order.date}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-[9px] md:text-[10px] uppercase tracking-widest text-on-surface-variant mb-1 font-bold">Status</p>
+                  <p className="mb-1 text-[9px] font-bold uppercase tracking-widest text-on-surface-variant md:text-[10px]">
+                    Status
+                  </p>
                   <div className={`flex items-center gap-2 ${order.statusColor}`}>
-                    {order.statusBg && <span className={`w-2 h-2 rounded-full ${order.statusBg}`}></span>}
-                    {order.icon && <SymbolIcon name={order.icon} className="text-[16px] md:text-[20px]" />}
-                    <p className="font-bold text-sm md:text-base">{order.status}</p>
+                    {order.statusBg ? (
+                      <span
+                        className={`h-2 w-2 rounded-full ${order.statusBg}`}
+                      />
+                    ) : null}
+                    {order.icon ? (
+                      <SymbolIcon
+                        name={order.icon}
+                        className="text-[16px] md:text-[20px]"
+                      />
+                    ) : null}
+                    <p className="text-sm font-bold md:text-base">
+                      {order.status}
+                    </p>
                   </div>
                 </div>
                 <div>
-                  <p className="text-[9px] md:text-[10px] uppercase tracking-widest text-on-surface-variant mb-1 font-bold">Total</p>
-                  <p className="font-headline italic text-lg md:text-xl text-primary font-bold">{order.total}</p>
+                  <p className="mb-1 text-[9px] font-bold uppercase tracking-widest text-on-surface-variant md:text-[10px]">
+                    Total
+                  </p>
+                  <p className="font-headline text-lg font-bold italic text-primary md:text-xl">
+                    {order.total}
+                  </p>
                 </div>
               </div>
-              
-              <div className="w-full xl:w-auto self-stretch flex items-end">
+
+              <div className="flex w-full items-end self-stretch xl:w-auto">
                 <Link
                   href={`/user/orders/${encodeURIComponent(order.id)}`}
-                  className="w-full xl:w-auto px-8 py-3 rounded-full border-[1.5px] border-secondary text-secondary font-bold text-xs uppercase tracking-widest hover:bg-secondary-container/20 transition-all text-center"
+                  className="w-full rounded-full border-[1.5px] border-secondary px-6 py-3 text-center text-xs font-bold uppercase tracking-[0.16em] text-secondary transition-all hover:bg-secondary-container/20 xl:w-auto"
                 >
                   View Details
                 </Link>
@@ -141,18 +232,24 @@ export default function OrdersPage() {
           </div>
         ))}
       </div>
-      {mappedOrders.length === 0 && (
-        <div className="rounded-xl border border-outline-variant/30 p-8 text-center text-on-surface-variant">
+
+      {mappedOrders.length === 0 ? (
+        <div className="mt-6 rounded-[1.75rem] border border-outline-variant/20 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(247,244,236,0.95))] p-8 text-center text-on-surface-variant shadow-[0_16px_44px_rgba(29,66,26,0.05)]">
           No orders yet.
         </div>
-      )}
+      ) : null}
 
-      {/* Empty State Message */}
-      <div className="mt-20 py-16 border-t border-outline-variant/20 flex flex-col items-center text-center">
-        <SymbolIcon name={"history"} className="text-4xl text-outline mb-4 opacity-50" />
-        <p className="font-headline text-2xl text-primary italic font-bold">Looking for older harvests?</p>
-        <p className="text-on-surface-variant max-w-sm mt-3 text-sm leading-relaxed">
-          Orders older than one year are archived. Please contact our heritage concierge for historical records.
+      <div className="mt-14 flex flex-col items-center border-t border-outline-variant/20 py-12 text-center">
+        <SymbolIcon
+          name={"history"}
+          className="mb-4 text-4xl text-outline opacity-50"
+        />
+        <p className="font-headline text-2xl font-bold italic text-primary">
+          Looking for older orders?
+        </p>
+        <p className="mt-3 max-w-sm text-sm leading-relaxed text-on-surface-variant">
+          Orders older than one year are archived. Please contact our heritage
+          concierge for historical records.
         </p>
       </div>
     </div>
