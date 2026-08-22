@@ -8,17 +8,20 @@ import { Mail, Phone, MapPin, type LucideIcon } from "lucide-react";
 
 const WHOLESALE_WHATSAPP_URL = getWholesaleWhatsAppUrl();
 
+
 type FooterLinkItem = {
   label: string;
   href: string;
   external?: boolean;
 };
 
+
 type SocialItem = {
   label: string;
   href?: string | null;
   icon: "facebook" | "instagram" | "youtube";
 };
+
 
 const footerLinks: Record<string, FooterLinkItem[]> = {
   Links: [
@@ -36,6 +39,7 @@ const footerLinks: Record<string, FooterLinkItem[]> = {
     { label: "Terms of Service", href: "/terms-of-service" },
   ],
 };
+
 
 function SocialSvg({
   type,

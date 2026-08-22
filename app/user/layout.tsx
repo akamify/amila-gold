@@ -26,15 +26,15 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
   const links = [
     { href: "/user/profile", label: "Personal Info", shortLabel: "Profile", icon: "person" },
     { href: "/user/shipping", label: "Shipping Addresses", shortLabel: "Shipping", icon: "local_shipping" },
-    { href: "/user/orders", label: "Order History", shortLabel: "Orders", icon: "history" },
+    { href: "/user/orders", label: "My Orders", shortLabel: "Orders", icon: "history" },
     { href: "/user/wishlist", label: "My Wishlist", shortLabel: "Wishlist", icon: "loyalty" },
   ];
 
   return (
-    <main className="max-w-screen-2xl mx-auto px-6 md:px-12 py-10 md:py-15 flex flex-col md:flex-row gap-8 md:gap-12 pb-5 md:pb-15 min-h-screen">
+    <main className="mx-auto flex min-h-screen max-w-screen-2xl flex-col gap-6 px-4 py-6 pb-24 sm:px-6 md:flex-row md:gap-10 md:px-10 md:py-10 md:pb-10 lg:px-12">
       {/* Sidebar Navigation */}
-      <aside className="w-full md:w-64 shrink-0 md:space-y-12">
-        <div className="md:sticky top-32">
+      <aside className="w-full shrink-0 md:w-72 md:space-y-12">
+        <div className="rounded-[1.75rem] border border-outline-variant/20 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(247,244,236,0.96))] p-4 shadow-[0_16px_45px_rgba(29,66,26,0.06)] md:sticky md:top-28 md:p-5">
           {/* <div className="mb-4 md:mb-8">
             <h1 className="font-headline text-3xl lg:text-4xl font-bold italic tracking-tight text-primary mb-2">
               Welcome, {user?.email?.split('@')[0] || 'User'}
@@ -43,17 +43,17 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
           </div> */}
           
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex flex-col gap-6">
+          <nav className="hidden md:flex flex-col gap-2">
             {links.map((link) => {
               const active = pathname?.includes(link.href);
               return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`flex items-center gap-4 transition-all pl-5 border-l-4 ${
+                  className={`flex items-center gap-3 rounded-2xl border px-4 py-3 transition-all ${
                     active
-                      ? "text-primary font-semibold border-secondary"
-                      : "text-on-surface-variant hover:text-primary border-transparent"
+                      ? "border-[#cfe1c9] bg-[#f3f9ef] text-primary shadow-[0_10px_25px_rgba(29,100,26,0.08)]"
+                      : "border-transparent text-on-surface-variant hover:border-outline-variant/20 hover:bg-white/70 hover:text-primary"
                   }`}
                 >
                   <SymbolIcon name={link.icon} className="scale-90" />
@@ -65,10 +65,10 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
             })}
           </nav>
 
-          <div className="hidden md:block pt-8 mt-4 border-t border-outline-variant/30">
+          <div className="mt-5 hidden border-t border-outline-variant/20 pt-5 md:block">
             <button
               onClick={logout}
-              className="flex items-center gap-3 text-error font-label text-xs uppercase tracking-widest opacity-80 hover:opacity-100 transition-opacity pl-5"
+              className="flex items-center gap-3 rounded-2xl px-4 py-3 text-xs font-bold uppercase tracking-[0.18em] text-error transition hover:bg-white/70"
             >
               <SymbolIcon name={"logout"} className="text-sm" />
               Sign Out
@@ -78,7 +78,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
       </aside>
 
       {/* Main Content */}
-      <section className="flex-1 w-full">
+      <section className="w-full flex-1">
         {children}
       </section>
 

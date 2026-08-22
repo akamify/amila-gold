@@ -4,9 +4,10 @@ export const HOMEPAGE_PUBLIC_CACHE_KEY = "amila_homepage_public_cache_v1";
 export const HOMEPAGE_RECOVERY_KEY = "amila_homepage_recovery_attempted_v1";
 export const HOMEPAGE_SOFT_REFETCH_KEY = "amila_homepage_soft_refetch_done_v1";
 
-const CACHE_VERSION = 1;
+const CACHE_VERSION = 2;
 const FRESH_TTL_MS = 10 * 60 * 1000;
 const STALE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const MIN_HOMEPAGE_PRODUCTS = 4;
 
 type CacheEnvelope = {
   version: number;
@@ -35,6 +36,10 @@ function isValidData(value: unknown): value is PublicHomepageData {
   );
 }
 
+function hasMeaningfulHomepageProducts(data: PublicHomepageData) {
+  return Array.isArray(data.featuredProducts) && data.featuredProducts.length >= MIN_HOMEPAGE_PRODUCTS;
+}
+
 export function readHomepagePublicCache(): HomepageCacheRead {
   if (typeof window === "undefined") {
     return { status: "miss", data: null, source: "static-fallback" };
@@ -53,6 +58,12 @@ export function readHomepagePublicCache(): HomepageCacheRead {
     if (parsed.version !== CACHE_VERSION || !savedAt || !isValidData(parsed.data) || age > STALE_TTL_MS) {
       window.localStorage.removeItem(HOMEPAGE_PUBLIC_CACHE_KEY);
       devLog("cache expired/invalid");
+      return { status: "miss", data: null, source: "static-fallback" };
+    }
+
+    if (!hasMeaningfulHomepageProducts(parsed.data) && age > 60_000) {
+      window.localStorage.removeItem(HOMEPAGE_PUBLIC_CACHE_KEY);
+      devLog("cache dropped due to partial homepage products");
       return { status: "miss", data: null, source: "static-fallback" };
     }
 

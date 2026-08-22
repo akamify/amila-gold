@@ -37,6 +37,7 @@ const EMPTY_HOME_DATA: PublicHomepageData = {
   testimonials: [],
   settings: null,
 };
+const MIN_HOMEPAGE_PRODUCTS = 4;
 
 const devLog = (message: string, error: unknown) => {
   if (process.env.NODE_ENV !== "production") {
@@ -211,11 +212,27 @@ export async function fetchPublicTestimonialsData(): Promise<PublicTestimonial[]
 
 export async function fetchPublicHomepageData(): Promise<PublicHomepageData> {
   try {
-    return await fetchFromFirstAvailable(
+    const homepageData = await fetchFromFirstAvailable(
       "/admin/homepage/public",
       mapHomepagePayload,
       { timeoutMs: 4500, retries: 1, backoffMs: 1000, cache: "no-store", next: { revalidate: 0, tags: ["homepage", "products", "banners", "testimonials"] } }
     );
+    if (homepageData.featuredProducts.length >= MIN_HOMEPAGE_PRODUCTS) {
+      return homepageData;
+    }
+
+    const fallbackProducts = await fetchPublicProducts(12).catch((error) => {
+      devLog("homepage products fallback failed", error);
+      return [];
+    });
+
+    return {
+      ...homepageData,
+      featuredProducts:
+        fallbackProducts.length > homepageData.featuredProducts.length
+          ? fallbackProducts
+          : homepageData.featuredProducts,
+    };
   } catch (aggregateError) {
     devLog("aggregate homepage endpoint failed, using settled fallbacks", aggregateError);
   }
