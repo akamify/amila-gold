@@ -8,6 +8,7 @@ export default function MetaPixelPageViewTracker() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const lastTrackedPath = useRef("");
+  const hasSeenInitialPage = useRef(false);
 
   useEffect(() => {
     if (!pathname || pathname.startsWith("/admin")) return;
@@ -17,6 +18,11 @@ export default function MetaPixelPageViewTracker() {
     if (lastTrackedPath.current === path) return;
 
     lastTrackedPath.current = path;
+    if (!hasSeenInitialPage.current) {
+      hasSeenInitialPage.current = true;
+      return;
+    }
+
     trackMetaPixelPageView(path);
   }, [pathname, searchParams]);
 
