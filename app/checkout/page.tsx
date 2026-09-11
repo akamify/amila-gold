@@ -26,7 +26,6 @@ import {
 } from "@/app/lib/backendProducts";
 import { createProductHref, getProductImageSources } from "@/app/data/products";
 import CheckoutEmailOtpModal from "./components/CheckoutEmailOtpModal";
-import { trackMetaPixelEvent } from "@/app/lib/metaPixel";
 
 declare global {
   interface Window {

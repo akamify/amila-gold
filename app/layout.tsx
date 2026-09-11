@@ -3,7 +3,6 @@ import { Manrope, Newsreader } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import ClientWrapper from "./components/ClientWrapper";
-import MetaPixel from "./components/MetaPixel";
 import { Providers } from "./context/providers";
 
 const manrope = Manrope({ subsets: ["latin"], variable: "--font-body", display: "swap" });
@@ -65,7 +64,6 @@ export default function RootLayout({
             style={{ display: "none", visibility: "hidden" }}
           />
         </noscript>
-        <MetaPixel />
         <Providers>
           <ClientWrapper>{children}</ClientWrapper>
         </Providers>

@@ -4,7 +4,6 @@ import SymbolIcon from "@/app/components/icons/SymbolIcon";
 import React, { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { trackMetaPixelEvent } from '@/app/lib/metaPixel';
 
 function OrderSuccessContent() {
   const searchParams = useSearchParams();
@@ -13,16 +12,6 @@ function OrderSuccessContent() {
   useEffect(() => {
     const oid = searchParams.get('order_id');
     setOrderId(oid);
-    if (!oid || typeof window === 'undefined') return;
-
-    const storageKey = `meta-pixel:purchase:${oid}`;
-    if (window.sessionStorage.getItem(storageKey)) return;
-    window.sessionStorage.setItem(storageKey, '1');
-    trackMetaPixelEvent('Purchase', {
-      value: 0.00,
-      currency: 'GBP',
-      order_id: oid,
-    });
   }, [searchParams]);
 
   return (
