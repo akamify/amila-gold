@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import { Manrope, Newsreader } from "next/font/google";
 import Script from "next/script";
+import { Suspense } from "react";
 import "./globals.css";
 import ClientWrapper from "./components/ClientWrapper";
 import { Providers } from "./context/providers";
+import MetaPixelPageViewTracker from "./components/MetaPixelPageViewTracker";
+import { META_PIXEL_ID } from "./lib/metaPixel";
 
 const manrope = Manrope({ subsets: ["latin"], variable: "--font-body", display: "swap" });
 const newsreader = Newsreader({
@@ -54,6 +57,22 @@ export default function RootLayout({
             gtag('config', 'G-L5ZZPBMBN6');
           `}
         </Script>
+        <Script id="meta-pixel" strategy="afterInteractive">
+          {`
+            !function(f,b,e,v,n,t,s)
+            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+            n.queue=[];t=b.createElement(e);t.async=!0;
+            t.src=v;s=b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t,s)}(window, document,'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+            fbq('init', '${META_PIXEL_ID}');
+          `}
+        </Script>
+        <Suspense fallback={null}>
+          <MetaPixelPageViewTracker />
+        </Suspense>
         {/* Google Tag Manager (noscript) */}
         <noscript>
           <iframe
@@ -62,6 +81,15 @@ export default function RootLayout({
             height="0"
             width="0"
             style={{ display: "none", visibility: "hidden" }}
+          />
+        </noscript>
+        <noscript>
+          <img
+            height="1"
+            width="1"
+            style={{ display: "none" }}
+            src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
+            alt=""
           />
         </noscript>
         <Providers>

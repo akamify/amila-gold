@@ -26,6 +26,11 @@ import {
 } from "@/app/lib/backendProducts";
 import { createProductHref, getProductImageSources } from "@/app/data/products";
 import CheckoutEmailOtpModal from "./components/CheckoutEmailOtpModal";
+import {
+  buildMetaPixelContentIds,
+  trackMetaPixelEvent,
+  trackMetaPixelOnce,
+} from "@/app/lib/metaPixel";
 
 declare global {
   interface Window {
@@ -172,6 +177,27 @@ export default function CheckoutPage() {
   const codUnavailableMessage = codUnavailableNames.length
     ? `COD is not available for ${codUnavailableNames.slice(0, 2).join(", ")}${codUnavailableNames.length > 2 ? " and more" : ""}.`
     : "";
+  const metaPixelContents = useMemo(
+    () =>
+      checkoutItems.map((item) => ({
+        id: item.id,
+        quantity: item.qty,
+        item_price: item.price,
+        variant: item.size || undefined,
+      })),
+    [checkoutItems],
+  );
+  const metaPixelContentIds = useMemo(
+    () => buildMetaPixelContentIds(checkoutItems),
+    [checkoutItems],
+  );
+  const metaPixelCheckoutKey = useMemo(
+    () =>
+      checkoutItems
+        .map((item) => `${item.id}:${item.size}:${item.qty}:${item.price}`)
+        .join("|"),
+    [checkoutItems],
+  );
 
   useEffect(() => {
     const saved = window.localStorage.getItem("sr_buy_now_item");
@@ -182,6 +208,25 @@ export default function CheckoutPage() {
       window.localStorage.removeItem("sr_buy_now_item");
     }
   }, []);
+
+  useEffect(() => {
+    if (isPageLoading || !checkoutItemCount || !metaPixelCheckoutKey) return;
+    trackMetaPixelOnce(`meta:initiate-checkout:${metaPixelCheckoutKey}`, "InitiateCheckout", {
+      content_ids: metaPixelContentIds,
+      content_type: "product",
+      contents: metaPixelContents,
+      currency: "INR",
+      num_items: checkoutItemCount,
+      value: total,
+    });
+  }, [
+    checkoutItemCount,
+    isPageLoading,
+    metaPixelCheckoutKey,
+    metaPixelContentIds,
+    metaPixelContents,
+    total,
+  ]);
 
   useEffect(() => {
     const script = document.createElement("script");
@@ -569,6 +614,15 @@ export default function CheckoutPage() {
     setIsProcessing(true);
     setPaymentError("");
     try {
+      trackMetaPixelEvent("AddPaymentInfo", {
+        content_ids: metaPixelContentIds,
+        content_type: "product",
+        contents: metaPixelContents,
+        currency: "INR",
+        num_items: checkoutItemCount,
+        payment_method: paymentMethod,
+        value: total,
+      });
       const orderData = (await createBackendOrder(
         checkoutItems.map((item) => ({
           product_id: item.id,
@@ -583,10 +637,21 @@ export default function CheckoutPage() {
         effectiveEmail,
       )) as Record<string, unknown>;
       if (paymentMethod === "COD") {
+        const orderRef = String(orderData.order_id || orderData.local_order_id || "");
+        trackMetaPixelOnce(`meta:purchase:${orderRef || metaPixelCheckoutKey}`, "Purchase", {
+          content_ids: metaPixelContentIds,
+          content_type: "product",
+          contents: metaPixelContents,
+          currency: "INR",
+          num_items: checkoutItemCount,
+          order_id: orderRef,
+          payment_method: "COD",
+          value: total,
+        });
         window.localStorage.removeItem("sr_buy_now_item");
         if (!buyNowItem) clearCart();
         router.push(
-          `/order/success?order_id=${encodeURIComponent(String(orderData.order_id || orderData.local_order_id || ""))}`,
+          `/order/success?order_id=${encodeURIComponent(orderRef)}`,
         );
         return;
       }
@@ -626,10 +691,21 @@ export default function CheckoutPage() {
               email: effectiveEmail,
             })) as Record<string, unknown>;
             if (verified.status) {
+              const orderRef = String(verified.order_id || localOrderId);
+              trackMetaPixelOnce(`meta:purchase:${orderRef || metaPixelCheckoutKey}`, "Purchase", {
+                content_ids: metaPixelContentIds,
+                content_type: "product",
+                contents: metaPixelContents,
+                currency: "INR",
+                num_items: checkoutItemCount,
+                order_id: orderRef,
+                payment_method: "Razorpay",
+                value: total,
+              });
               window.localStorage.removeItem("sr_buy_now_item");
               if (!buyNowItem) clearCart();
               router.push(
-                `/order/success?order_id=${encodeURIComponent(String(verified.order_id || localOrderId))}`,
+                `/order/success?order_id=${encodeURIComponent(orderRef)}`,
               );
             } else
               router.push(

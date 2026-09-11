@@ -10,6 +10,7 @@ import { useSiteSettings } from "@/app/context/SiteSettingsContext";
 import ResilientProductImage from "@/app/components/ResilientProductImage";
 import { getProductImageSources, type Product } from '@/app/data/products';
 import { flyImageToCart } from "@/app/lib/flyToCart";
+import { trackMetaPixelEvent } from "@/app/lib/metaPixel";
 
 type ProductHeaderProps = {
   product?: Product | null;
@@ -180,6 +181,17 @@ export default function ProductHeader({
     inCart,
   ]);
 
+  useEffect(() => {
+    if (!product || productId <= 0) return;
+    trackMetaPixelEvent("ViewContent", {
+      content_ids: [String(productId)],
+      content_name: product.name || "Product",
+      content_type: "product",
+      currency: "INR",
+      value: Number(displayPrice || 0),
+    });
+  }, [product, productId, displayPrice]);
+
   const handleShare = async () => {
     if (!product) return;
     const productUrl = window.location.href;
@@ -285,6 +297,22 @@ export default function ProductHeader({
     };
 
     localStorage.setItem('sr_buy_now_item', JSON.stringify(buyNowItem));
+    trackMetaPixelEvent("InitiateCheckout", {
+      content_ids: [String(productId)],
+      content_name: product?.name ?? "Product",
+      content_type: "product",
+      contents: JSON.stringify([
+        {
+          id: String(productId),
+          quantity: qty,
+          item_price: displayPrice,
+          variant: selectedSize || undefined,
+        },
+      ]),
+      currency: "INR",
+      num_items: qty,
+      value: displayPrice * qty,
+    });
 
     // Navigate to checkout
     router.push("/checkout?buyNow=true");

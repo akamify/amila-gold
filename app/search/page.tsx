@@ -11,6 +11,7 @@ import { createProductHref } from "@/app/data/products";
 import { fetchBackendProducts } from "@/app/lib/backendProducts";
 import { flyImageToCart } from "@/app/lib/flyToCart";
 import { productMatchesWeightFilters, resolveListingVariant } from "@/app/lib/shopListing";
+import { trackMetaPixelEvent } from "@/app/lib/metaPixel";
 
 const sortOptions = [
   { label: "Featured", value: "featured" },
@@ -91,6 +92,18 @@ export default function SearchPage() {
   useEffect(() => {
     setCurrentPage(1);
   }, [query, checkedCategories, maxPrice, selectedWeights]);
+
+  useEffect(() => {
+    const searchString = query.trim();
+    if (searchString.length < 2) return;
+    const timeoutId = window.setTimeout(() => {
+      trackMetaPixelEvent("Search", {
+        search_string: searchString,
+        content_type: "product",
+      });
+    }, 700);
+    return () => window.clearTimeout(timeoutId);
+  }, [query]);
 
   const getSortedResults = () => {
     const sorted = [...filteredProducts];

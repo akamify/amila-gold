@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from 'react';
+import { trackMetaPixelEvent } from '@/app/lib/metaPixel';
 
 export default function ContactForm() {
   const [name, setName] = useState('');
@@ -13,6 +14,10 @@ export default function ContactForm() {
     const subject = `Contact from website: ${name || email}`;
     const body = `${message}\n\n---\nFrom: ${name || 'Anonymous'}\nEmail: ${email || ''}`;
     // Open user's mail client as a minimal fallback
+    trackMetaPixelEvent('Lead', {
+      content_name: 'Contact form',
+      status: 'mailto_opened',
+    });
     window.location.href = `mailto:${supportEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     setSent(true);
   };
