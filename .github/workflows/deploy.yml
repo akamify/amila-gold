@@ -10,7 +10,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy
+      - name: Deploy (attempt 1)
+        id: deploy_attempt_1
+        continue-on-error: true
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+
+          script: |
+            cd /root/amila-gold-frontend
+            ./deploy.sh
+
+      - name: Deploy (retry once)
+        if: steps.deploy_attempt_1.outcome == 'failure'
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.VPS_HOST }}
