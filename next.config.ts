@@ -76,11 +76,12 @@ const nextConfig: NextConfig = {
       "img-src 'self' data: blob: https:",
       "font-src 'self' https://fonts.gstatic.com data:",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      // Meta's loader and pixel configuration are external scripts.
       isProd
-        ? "script-src 'self' 'unsafe-inline' https://checkout.razorpay.com"
-        : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com",
+        ? "script-src 'self' 'unsafe-inline' https://checkout.razorpay.com https://connect.facebook.net https://www.facebook.com"
+        : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://connect.facebook.net https://www.facebook.com",
       "connect-src 'self' https: wss:",
-      "frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com",
+      "frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com https://www.facebook.com",
       "form-action 'self'",
       "upgrade-insecure-requests",
     ].join("; ");
