@@ -297,22 +297,6 @@ export default function ProductHeader({
     };
 
     localStorage.setItem('sr_buy_now_item', JSON.stringify(buyNowItem));
-    trackMetaPixelEvent("InitiateCheckout", {
-      content_ids: [String(productId)],
-      content_name: product?.name ?? "Product",
-      content_type: "product",
-      contents: JSON.stringify([
-        {
-          id: String(productId),
-          quantity: qty,
-          item_price: displayPrice,
-          variant: selectedSize || undefined,
-        },
-      ]),
-      currency: "INR",
-      num_items: qty,
-      value: displayPrice * qty,
-    });
 
     // Navigate to checkout
     router.push("/checkout?buyNow=true");

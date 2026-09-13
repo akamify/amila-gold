@@ -126,6 +126,7 @@ export default function CheckoutPage() {
     "Razorpay",
   );
   const [buyNowItem, setBuyNowItem] = useState<BuyNowItem | null>(null);
+  const [hasLoadedBuyNowItem, setHasLoadedBuyNowItem] = useState(false);
   const [addresses, setAddresses] = useState<UserAddress[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(
     null,
@@ -201,16 +202,18 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     const saved = window.localStorage.getItem("sr_buy_now_item");
-    if (!saved) return;
-    try {
-      setBuyNowItem(JSON.parse(saved));
-    } catch {
-      window.localStorage.removeItem("sr_buy_now_item");
+    if (saved) {
+      try {
+        setBuyNowItem(JSON.parse(saved));
+      } catch {
+        window.localStorage.removeItem("sr_buy_now_item");
+      }
     }
+    setHasLoadedBuyNowItem(true);
   }, []);
 
   useEffect(() => {
-    if (isPageLoading || !checkoutItemCount || !metaPixelCheckoutKey) return;
+    if (!hasLoadedBuyNowItem || isPageLoading || !checkoutItemCount || !metaPixelCheckoutKey) return;
     trackMetaPixelOnce(`meta:initiate-checkout:${metaPixelCheckoutKey}`, "InitiateCheckout", {
       content_ids: metaPixelContentIds,
       content_type: "product",
@@ -221,6 +224,7 @@ export default function CheckoutPage() {
     });
   }, [
     checkoutItemCount,
+    hasLoadedBuyNowItem,
     isPageLoading,
     metaPixelCheckoutKey,
     metaPixelContentIds,
