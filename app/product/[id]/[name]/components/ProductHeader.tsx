@@ -303,7 +303,7 @@ export default function ProductHeader({
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-16 items-start mt-2 lg:mt-6 w-full max-w-7xl mx-auto px-4 md:px-0">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-16 items-start mt-2 lg:mt-2 w-full max-w-7xl mx-auto px-4 md:px-0">
 
       {/* --- Main Section: Horizontal Scrollable Images (Desktop & Mobile) --- */}
       <div className="lg:col-span-7 order-1 w-full lg:sticky lg:top-28 self-start">
