@@ -1,5 +1,3 @@
-"use client";
-
 export const META_PIXEL_ID = "27920071607663832";
 
 type MetaPixelScalar = string | number | boolean | null | undefined;
