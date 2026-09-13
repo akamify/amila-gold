@@ -138,7 +138,7 @@ export default function ShopPageClient() {
   };
 
   return (
-    <main className="pt-25 pb-2 px-6 lg:px-12 max-w-[1440px] mx-auto animate-in fade-in duration-700">
+    <main className="pt-5 px-6 lg:px-12 max-w-[1440px] mx-auto animate-in fade-in duration-700">
       {/* Header Section */}
       <header className="mb-12 relative overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">

@@ -332,7 +332,7 @@ export default function ProfilePage() {
 
       {/* Heritage Callout */}
       <section className="relative grid grid-cols-1 items-center gap-8 overflow-hidden rounded-[2rem] bg-primary text-on-primary">
-        <div className="md:col-span-1 h-44 md:h-full relative overflow-hidden bg-primary-container">
+        <div className="md:col-span-1 h-44 relative overflow-hidden bg-primary-container">
           <img
             alt="Artisan Texture"
             className="w-full h-full object-cover brightness-75 mix-blend-overlay"

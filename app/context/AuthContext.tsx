@@ -1,11 +1,21 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { getUserSession, setUserSession, clearUserSession, UserSession } from '@/app/lib/session';
+import {
+  getUserSession,
+  setUserSession,
+  clearUserSession,
+  UserSession,
+  USER_SESSION_CHANGED_EVENT,
+} from '@/app/lib/session';
 import { fetchUserProfile, sendOtp, verifyOtp } from '@/app/lib/apiClient';
 
 const DEFAULT_RETURN_URL = '/user/profile';
 const AUTH_RETURN_URL_STORAGE_KEY = 'auth:return-url';
+const OTP_RESEND_SECONDS = 60;
+const OTP_MAX_FAILED_ATTEMPTS = 3;
+const OTP_ATTEMPT_COOLDOWN_SECONDS = 30;
+const MAX_TIMEOUT_MS = 2_147_483_647;
 
 function normalizeReturnUrl(url: string | null | undefined) {
   if (!url || typeof url !== 'string') return DEFAULT_RETURN_URL;
@@ -36,6 +46,9 @@ interface AuthContextType {
   loginStep: 'email' | 'otp';
   loginEmail: string;
   error: string | null;
+  resendRemainingSeconds: number;
+  otpAttemptCooldownSeconds: number;
+  otpAttemptsLeft: number;
   returnUrl: string;
   setReturnUrl: (url: string) => void;
   sendLoginOtp: (email: string) => Promise<void>;
@@ -54,12 +67,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loginEmail, setLoginEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [returnUrlState, setReturnUrlState] = useState(DEFAULT_RETURN_URL);
+  const [resendAvailableAt, setResendAvailableAt] = useState(0);
+  const [resendRemainingSeconds, setResendRemainingSeconds] = useState(0);
+  const [otpFailedAttempts, setOtpFailedAttempts] = useState(0);
+  const [otpAttemptCooldownUntil, setOtpAttemptCooldownUntil] = useState(0);
+  const [otpAttemptCooldownSeconds, setOtpAttemptCooldownSeconds] = useState(0);
 
   useEffect(() => {
-    const session = getUserSession();
-    setUser(session);
+    const syncSession = () => setUser(getUserSession());
+
+    syncSession();
     setReturnUrlState(readPersistedReturnUrl());
     setIsLoading(false);
+
+    const onStorage = (event: StorageEvent) => {
+      if (!event.key || event.key.startsWith('streetriot_user_')) {
+        syncSession();
+      }
+    };
+
+    window.addEventListener(USER_SESSION_CHANGED_EVENT, syncSession);
+    window.addEventListener('storage', onStorage);
+    return () => {
+      window.removeEventListener(USER_SESSION_CHANGED_EVENT, syncSession);
+      window.removeEventListener('storage', onStorage);
+    };
   }, []);
 
   const setReturnUrl = useCallback((url: string) => {
@@ -69,15 +101,63 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!user?.email) return;
+    const updateOtpTimers = () => {
+      const now = Date.now();
+      setResendRemainingSeconds(Math.max(0, Math.ceil((resendAvailableAt - now) / 1000)));
+      setOtpAttemptCooldownSeconds(Math.max(0, Math.ceil((otpAttemptCooldownUntil - now) / 1000)));
+    };
+
+    updateOtpTimers();
+    if (!resendAvailableAt && !otpAttemptCooldownUntil) return;
+
+    const timer = window.setInterval(updateOtpTimers, 250);
+    return () => window.clearInterval(timer);
+  }, [otpAttemptCooldownUntil, resendAvailableAt]);
+
+  useEffect(() => {
+    if (!user?.expiresAt) return;
+
+    const expiresMs = Date.parse(user.expiresAt);
+    if (!Number.isFinite(expiresMs)) return;
+
+    const delay = expiresMs - Date.now();
+    if (delay <= 0) {
+      clearUserSession();
+      setUser(null);
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      clearUserSession();
+      setUser(null);
+    }, Math.min(delay, MAX_TIMEOUT_MS));
+
+    return () => window.clearTimeout(timer);
+  }, [user?.expiresAt, user?.token]);
+
+  useEffect(() => {
+    if (!user?.token) return;
     let cancelled = false;
+    const tokenAtStart = user.token;
 
     const validateAccess = async () => {
       try {
-        await fetchUserProfile();
+        const data = await fetchUserProfile();
+        const expiresAt = typeof data.expiresAt === 'string' ? data.expiresAt : '';
+        const latestSession = getUserSession();
+        if (!cancelled && expiresAt && latestSession?.token === tokenAtStart && latestSession.expiresAt !== expiresAt) {
+          const refreshedSession = { ...latestSession, expiresAt };
+          setUserSession(refreshedSession);
+          setUser(refreshedSession);
+        }
       } catch (err) {
         const message = err instanceof Error ? err.message : '';
-        if (!cancelled && /blocked|auth|unauthorized|forbidden/i.test(message)) {
+        const latestSession = getUserSession();
+        if (
+          !cancelled &&
+          latestSession?.token === tokenAtStart &&
+          /blocked|token|session|expired|auth|unauthorized|forbidden|mismatch/i.test(message)
+        ) {
           clearUserSession();
           setUser(null);
           setError(message || 'You are blocked. Please contact support.');
@@ -91,45 +171,116 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, [user?.email]);
+  }, [user?.token]);
+
+  useEffect(() => {
+    if (!user?.token) return;
+
+    const validateOnReturn = () => {
+      if (document.visibilityState === 'visible') {
+        fetchUserProfile().then((data) => {
+          const expiresAt = typeof data.expiresAt === 'string' ? data.expiresAt : '';
+          const latestSession = getUserSession();
+          if (expiresAt && latestSession?.token === user.token && latestSession.expiresAt !== expiresAt) {
+            const refreshedSession = { ...latestSession, expiresAt };
+            setUserSession(refreshedSession);
+            setUser(refreshedSession);
+          }
+        }).catch((err) => {
+          const message = err instanceof Error ? err.message : '';
+          const latestSession = getUserSession();
+          if (
+            latestSession?.token === user.token &&
+            /blocked|token|session|expired|auth|unauthorized|forbidden|mismatch/i.test(message)
+          ) {
+            clearUserSession();
+            setUser(null);
+          }
+        });
+      }
+    };
+
+    window.addEventListener('focus', validateOnReturn);
+    document.addEventListener('visibilitychange', validateOnReturn);
+    return () => {
+      window.removeEventListener('focus', validateOnReturn);
+      document.removeEventListener('visibilitychange', validateOnReturn);
+    };
+  }, [user?.token]);
 
   const sendLoginOtp = useCallback(async (email: string) => {
     setError(null);
+    if (Date.now() < resendAvailableAt) {
+      setError(`Please wait ${Math.ceil((resendAvailableAt - Date.now()) / 1000)}s before resending OTP.`);
+      return;
+    }
+
     setIsLoading(true);
     try {
       await sendOtp(email);
       setLoginEmail(email);
       setLoginStep('otp');
+      setOtpFailedAttempts(0);
+      setOtpAttemptCooldownUntil(0);
+      setResendAvailableAt(Date.now() + OTP_RESEND_SECONDS * 1000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to send OTP');
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [resendAvailableAt]);
 
   const verifyLoginOtp = useCallback(async (otp: string) => {
     setError(null);
+    if (Date.now() < otpAttemptCooldownUntil) {
+      setError(`Too many wrong OTP attempts. Try again in ${Math.ceil((otpAttemptCooldownUntil - Date.now()) / 1000)}s.`);
+      return;
+    }
+
     setIsLoading(true);
     try {
       const result = await verifyOtp(loginEmail, otp);
       const session: UserSession = {
         token: result.token,
         email: result.email,
+        expiresAt: result.expiresAt,
       };
       setUserSession(session);
       setUser(session);
       setLoginStep('email');
       setLoginEmail('');
+      setOtpFailedAttempts(0);
+      setOtpAttemptCooldownUntil(0);
+      setResendAvailableAt(0);
       const targetUrl = readPersistedReturnUrl();
       clearPersistedReturnUrl();
       setReturnUrlState(DEFAULT_RETURN_URL);
       window.location.href = targetUrl;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Invalid OTP');
+      const message = err instanceof Error ? err.message : 'Invalid OTP';
+      if (/too many wrong otp attempts/i.test(message)) {
+        const secondsMatch = message.match(/(\d+)\s*seconds?/i);
+        const cooldownSeconds = secondsMatch ? Number(secondsMatch[1]) : OTP_ATTEMPT_COOLDOWN_SECONDS;
+        setOtpFailedAttempts(0);
+        setOtpAttemptCooldownUntil(Date.now() + Math.max(1, cooldownSeconds) * 1000);
+        setError(message);
+      } else if (/invalid otp/i.test(message)) {
+        const nextAttempts = otpFailedAttempts + 1;
+        if (nextAttempts >= OTP_MAX_FAILED_ATTEMPTS) {
+          setOtpFailedAttempts(0);
+          setOtpAttemptCooldownUntil(Date.now() + OTP_ATTEMPT_COOLDOWN_SECONDS * 1000);
+          setError(`Too many wrong OTP attempts. Try again in ${OTP_ATTEMPT_COOLDOWN_SECONDS}s.`);
+        } else {
+          setOtpFailedAttempts(nextAttempts);
+          setError(`${message}. ${OTP_MAX_FAILED_ATTEMPTS - nextAttempts} attempt${OTP_MAX_FAILED_ATTEMPTS - nextAttempts === 1 ? '' : 's'} left.`);
+        }
+      } else {
+        setError(message);
+      }
     } finally {
       setIsLoading(false);
     }
-  }, [loginEmail]);
+  }, [loginEmail, otpAttemptCooldownUntil, otpFailedAttempts]);
 
   const completeEmailOtpLogin = useCallback(async (email: string, otp: string) => {
     setError(null);
@@ -139,11 +290,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const session: UserSession = {
         token: result.token,
         email: result.email,
+        expiresAt: result.expiresAt,
       };
       setUserSession(session);
       setUser(session);
       setLoginStep('email');
       setLoginEmail('');
+      setOtpFailedAttempts(0);
+      setOtpAttemptCooldownUntil(0);
+      setResendAvailableAt(0);
       clearPersistedReturnUrl();
       setReturnUrlState(DEFAULT_RETURN_URL);
       return session;
@@ -162,6 +317,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setLoginStep('email');
     setLoginEmail('');
+    setOtpFailedAttempts(0);
+    setOtpAttemptCooldownUntil(0);
+    setResendAvailableAt(0);
     setError(null);
     setReturnUrlState(DEFAULT_RETURN_URL);
     window.location.href = '/';
@@ -170,6 +328,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const resetLogin = useCallback(() => {
     setLoginStep('email');
     setLoginEmail('');
+    setOtpFailedAttempts(0);
+    setOtpAttemptCooldownUntil(0);
+    setResendAvailableAt(0);
     setError(null);
   }, []);
 
@@ -180,6 +341,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loginStep,
     loginEmail,
     error,
+    resendRemainingSeconds,
+    otpAttemptCooldownSeconds,
+    otpAttemptsLeft: Math.max(0, OTP_MAX_FAILED_ATTEMPTS - otpFailedAttempts),
     returnUrl: returnUrlState,
     setReturnUrl,
     sendLoginOtp,

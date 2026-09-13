@@ -75,7 +75,7 @@ export async function updateAdminProduct(productId: number, form: FormData) {
 }
 import type { Product } from '@/app/data/products';
 import { normalizeBackendProduct } from '@/app/lib/backendProducts';
-import { clearUserSession, getBackendBaseUrlCandidates, getCartId, getUserEmail, getUserToken, setCartId } from '@/app/lib/session';
+import { clearUserSession, getBackendBaseUrlCandidates, getCartId, getUserEmail, getUserSession, getUserToken, setCartId } from '@/app/lib/session';
 import { clearAdminSession, getAdminToken } from '@/app/lib/adminSession';
 
 type AnyRecord = Record<string, unknown>;
@@ -580,11 +580,9 @@ async function request(path: string, options: RequestInit = {}, auth = false) {
     if (!isFormData && !headers.has('Content-Type')) {
         headers.set('Content-Type', 'application/json');
     }
-    if (auth) {
-        const token = getUserToken();
-        if (token) {
-            headers.set('Authorization', `Bearer ${token}`);
-        }
+    const authToken = auth ? getUserToken() : '';
+    if (auth && authToken) {
+        headers.set('Authorization', `Bearer ${authToken}`);
     }
     const adminToken = getAdminToken();
     if (adminToken) {
@@ -634,19 +632,24 @@ async function request(path: string, options: RequestInit = {}, auth = false) {
                 window.location.replace('/admin/login');
             }
         }
-        if (
+        const messageText = String(message || '');
+        const isUserAuthFailure =
             auth &&
-            (response.status === 401 || response.status === 403) &&
-            /blocked|auth|unauthorized|forbidden/i.test(String(message || ''))
-        ) {
-            clearUserSession();
-            if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/user/auth')) {
-                const blocked = /blocked/i.test(String(message || ''));
-                const currentPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-                const authParams = new URLSearchParams();
-                authParams.set('returnTo', currentPath);
-                if (blocked) authParams.set('blocked', '1');
-                window.location.replace(`/user/auth?${authParams.toString()}`);
+            (response.status === 401 ||
+                (response.status === 403 && /blocked|token|session|auth|unauthorized|forbidden|mismatch/i.test(messageText)));
+
+        if (isUserAuthFailure) {
+            const currentToken = getUserSession()?.token || '';
+            if (!authToken || !currentToken || currentToken === authToken) {
+                clearUserSession();
+                if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/user/auth')) {
+                    const blocked = /blocked/i.test(messageText);
+                    const currentPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+                    const authParams = new URLSearchParams();
+                    authParams.set('returnTo', currentPath);
+                    if (blocked) authParams.set('blocked', '1');
+                    window.location.replace(`/user/auth?${authParams.toString()}`);
+                }
             }
         }
         throw new Error(message);
@@ -735,6 +738,7 @@ export async function verifyOtp(email: string, otp: string) {
     return {
         token: String(data.token || ''),
         email: String(data.email || email),
+        expiresAt: data.expiresAt ? String(data.expiresAt) : undefined,
         isNew: Boolean(data.isNew),
         profile: asRecord(data.profile),
     };

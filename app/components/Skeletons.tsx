@@ -82,7 +82,7 @@ export function AddressListSkeleton() {
 
 export function ProductPageSkeleton() {
   return (
-    <div className="pt-24 pb-12 px-2 sm:px-4 lg:px-12 max-w-screen-2xl mx-auto space-y-24">
+    <div className="pt-2 pb-12 px-2 sm:px-4 lg:px-12 max-w-screen-2xl mx-auto space-y-24">
       {/* Header Skeleton */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start mt-2 lg:mt-6 w-full max-w-7xl mx-auto px-4 md:px-6 outline-none">
         {/* Gallery */}

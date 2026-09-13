@@ -14,6 +14,9 @@ export default function UserAuthPage() {
     loginEmail,
     isLoading,
     error,
+    resendRemainingSeconds,
+    otpAttemptCooldownSeconds,
+    otpAttemptsLeft,
     sendLoginOtp,
     verifyLoginOtp,
     resetLogin,
@@ -36,6 +39,12 @@ export default function UserAuthPage() {
   const handleVerifyOtp = async (event: React.FormEvent) => {
     event.preventDefault();
     if (otp.trim()) await verifyLoginOtp(otp.trim());
+  };
+
+  const handleResendOtp = async () => {
+    if (!loginEmail) return;
+    setOtp('');
+    await sendLoginOtp(loginEmail);
   };
 
   return (
@@ -75,8 +84,12 @@ export default function UserAuthPage() {
                 otp={otp}
                 isLoading={isLoading}
                 error={error}
+                resendRemainingSeconds={resendRemainingSeconds}
+                otpAttemptCooldownSeconds={otpAttemptCooldownSeconds}
+                otpAttemptsLeft={otpAttemptsLeft}
                 onOtpChange={setOtp}
                 onSubmit={handleVerifyOtp}
+                onResend={handleResendOtp}
                 onBack={resetLogin}
               />
             )}

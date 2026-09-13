@@ -80,7 +80,7 @@ export default function ProductPageClient({ id, name }: { id: string; name?: str
   if (!product) return <ProductNotFound />;
 
   return (
-    <div className="pt-24 pb-12 px-2 sm:px-2 lg:px-12 max-w-screen-2xl mx-auto selection:bg-secondary-container selection:text-on-secondary-container">
+    <div className="pt-2 pb-12 px-2 sm:px-2 lg:px-2 max-w-screen-2xl mx-auto selection:bg-secondary-container selection:text-on-secondary-container">
       <ProductHeader
         product={product}
         onStickyInfoChange={setStickyInfo}

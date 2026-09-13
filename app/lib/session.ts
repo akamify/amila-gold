@@ -1,13 +1,16 @@
 export interface UserSession {
     token: string;
     email: string;
+    expiresAt?: string;
 }
 
 const TOKEN_KEY = 'streetriot_user_token';
 const EMAIL_KEY = 'streetriot_user_email';
+const EXPIRES_AT_KEY = 'streetriot_user_expires_at';
 const CART_ID_KEY = 'streetriot_cart_id';
 const CHECKOUT_PROMO_KEY = 'streetriot_checkout_promo';
 const BROWSER_PROXY_BASE = '/api/backend';
+export const USER_SESSION_CHANGED_EVENT = 'streetriot:user-session-changed';
 /** Optional extra API origin (e.g. staging). Do not point at another product’s backend. */
 const OPTIONAL_BACKEND_FALLBACK = String(
     process.env.NEXT_PUBLIC_BACKEND_FALLBACK || ''
@@ -34,6 +37,11 @@ function normalizeBackendUrl(input: string) {
 
 function isBrowser() {
     return typeof window !== 'undefined';
+}
+
+function notifyUserSessionChanged() {
+    if (!isBrowser()) return;
+    window.dispatchEvent(new Event(USER_SESSION_CHANGED_EVENT));
 }
 
 export function getBackendBaseUrl() {
@@ -69,20 +77,38 @@ export function getUserSession(): UserSession | null {
     if (!isBrowser()) return null;
     const token = window.localStorage.getItem(TOKEN_KEY) || '';
     const email = window.localStorage.getItem(EMAIL_KEY) || '';
+    const expiresAt = window.localStorage.getItem(EXPIRES_AT_KEY) || '';
     if (!token || !email) return null;
-    return { token, email };
+
+    if (expiresAt) {
+        const expiryMs = Date.parse(expiresAt);
+        if (Number.isFinite(expiryMs) && expiryMs <= Date.now()) {
+            clearUserSession();
+            return null;
+        }
+    }
+
+    return expiresAt ? { token, email, expiresAt } : { token, email };
 }
 
 export function setUserSession(session: UserSession) {
     if (!isBrowser()) return;
     window.localStorage.setItem(TOKEN_KEY, session.token);
     window.localStorage.setItem(EMAIL_KEY, session.email);
+    if (session.expiresAt) {
+        window.localStorage.setItem(EXPIRES_AT_KEY, session.expiresAt);
+    } else {
+        window.localStorage.removeItem(EXPIRES_AT_KEY);
+    }
+    notifyUserSessionChanged();
 }
 
 export function clearUserSession() {
     if (!isBrowser()) return;
     window.localStorage.removeItem(TOKEN_KEY);
     window.localStorage.removeItem(EMAIL_KEY);
+    window.localStorage.removeItem(EXPIRES_AT_KEY);
+    notifyUserSessionChanged();
 }
 
 export function getUserEmail() {
