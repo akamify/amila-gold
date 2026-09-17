@@ -159,14 +159,14 @@ function NewsletterSection() {
       setIsSubmitting(true);
       setStatusMessage("");
       setStatusType("");
-      await subscribeNewsletter(normalizedEmail, "homepage");
+      const result = await subscribeNewsletter(normalizedEmail, "homepage");
       const eventID = `subscribe-${Date.now()}`;
       trackMetaPixelEvent("Subscribe", {
         content_name: "Homepage newsletter",
-        status: "subscribed",
+        status: result.alreadySubscribed ? "already_subscribed" : "subscribed",
       }, "track", { eventID });
       setStatusType("success");
-      setStatusMessage("Welcome to the circle. Check your inbox.");
+      setStatusMessage(result.message || "Welcome to the circle. Check your email inbox.");
       setEmail("");
     } catch (subscribeError) {
       setStatusType("error");

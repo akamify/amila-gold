@@ -229,6 +229,14 @@ export interface NewsletterSubscriber {
     lastNotifiedType: string;
 }
 
+export interface SubscribeNewsletterResponse {
+    status: boolean;
+    message?: string;
+    alreadySubscribed?: boolean;
+    emailSent?: boolean;
+    subscriber?: NewsletterSubscriber;
+}
+
 export interface ContactSubmission {
     id: string;
     ticketCode: string;
@@ -664,11 +672,12 @@ export async function sendOtp(email: string) {
     });
 }
 
-export async function subscribeNewsletter(email: string, source = 'website') {
-    return request('/user/newsletter/subscribe', {
+export async function subscribeNewsletter(email: string, source = 'website'): Promise<SubscribeNewsletterResponse> {
+    const response = await request('/user/newsletter/subscribe', {
         method: 'POST',
         body: JSON.stringify({ email, source }),
     });
+    return response as unknown as SubscribeNewsletterResponse;
 }
 
 export async function submitContactForm(payload: {
