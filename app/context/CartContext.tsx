@@ -167,6 +167,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     // Add to local state immediately
     setItems((prev) => [...prev, safeItem]);
+    const eventID = `add-to-cart-${safeItem.id}-${safeItem.size || 'default'}-${Date.now()}`;
     trackMetaPixelEvent('AddToCart', {
       content_ids: [String(safeItem.id)],
       content_name: safeItem.name,
@@ -181,7 +182,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       ],
       currency: 'INR',
       value: safeItem.price * safeItem.qty,
-    });
+    }, 'track', { eventID });
 
     // Try to sync with backend, but don't fail if it doesn't work
     addCartItem({

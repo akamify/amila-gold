@@ -53,6 +53,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     const alreadyInWishlist = items.some((entry) => entry.id === item.id);
     setItems(prev => prev.find(i => i.id === item.id) ? prev : [...prev, item]);
     if (!alreadyInWishlist && item.id > 0) {
+      const eventID = `add-to-wishlist-${item.id}-${Date.now()}`;
       trackMetaPixelEvent('AddToWishlist', {
         content_ids: [String(item.id)],
         content_name: item.name,
@@ -65,7 +66,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
         ],
         currency: 'INR',
         value: Number(item.price || 0),
-      });
+      }, 'track', { eventID });
     }
     addWishlistProduct(item.id)
       .then((data) => {

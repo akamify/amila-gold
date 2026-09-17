@@ -10,6 +10,13 @@ type MetaPixelCommand = "track" | "trackCustom";
 type MetaPixelOptions = {
   eventID?: string;
 };
+type QueuedMetaPixelEvent = {
+  eventName: string;
+  parameters: MetaPixelPayload;
+  command: MetaPixelCommand;
+  options?: MetaPixelOptions;
+  attempts: number;
+};
 
 declare global {
   interface Window {
@@ -24,6 +31,10 @@ declare global {
 }
 
 const isBrowser = () => typeof window !== "undefined";
+const pendingEvents: QueuedMetaPixelEvent[] = [];
+let flushTimer: number | null = null;
+const MAX_FLUSH_ATTEMPTS = 20;
+const FLUSH_DELAY_MS = 250;
 
 function cleanMetaPixelValue(value: MetaPixelPayloadValue): MetaPixelPayloadValue {
   if (Array.isArray(value)) {
@@ -56,14 +67,54 @@ function cleanMetaPixelPayload(parameters: MetaPixelPayload) {
   );
 }
 
+function sendMetaPixelEvent({
+  eventName,
+  parameters,
+  command,
+  options,
+}: Omit<QueuedMetaPixelEvent, "attempts">) {
+  if (!isBrowser() || typeof window.fbq !== "function") return false;
+  window.fbq(command, eventName, cleanMetaPixelPayload(parameters), options);
+  return true;
+}
+
+function scheduleFlush() {
+  if (!isBrowser() || flushTimer) return;
+  flushTimer = window.setTimeout(() => {
+    flushTimer = null;
+    flushPendingEvents();
+  }, FLUSH_DELAY_MS);
+}
+
+function flushPendingEvents() {
+  if (!isBrowser() || !pendingEvents.length) return;
+
+  for (let index = pendingEvents.length - 1; index >= 0; index -= 1) {
+    const event = pendingEvents[index];
+    if (sendMetaPixelEvent(event)) {
+      pendingEvents.splice(index, 1);
+      continue;
+    }
+
+    event.attempts += 1;
+    if (event.attempts >= MAX_FLUSH_ATTEMPTS) {
+      pendingEvents.splice(index, 1);
+    }
+  }
+
+  if (pendingEvents.length) scheduleFlush();
+}
+
 export function trackMetaPixelEvent(
   eventName: string,
   parameters: MetaPixelPayload = {},
   command: MetaPixelCommand = "track",
   options?: MetaPixelOptions,
 ) {
-  if (!isBrowser() || typeof window.fbq !== "function") return;
-  window.fbq(command, eventName, cleanMetaPixelPayload(parameters), options);
+  if (!isBrowser()) return;
+  if (sendMetaPixelEvent({ eventName, parameters, command, options })) return;
+  pendingEvents.push({ eventName, parameters, command, options, attempts: 0 });
+  scheduleFlush();
 }
 
 export function trackMetaPixelPageView(path: string) {

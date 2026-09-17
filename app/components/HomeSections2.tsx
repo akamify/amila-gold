@@ -160,10 +160,11 @@ function NewsletterSection() {
       setStatusMessage("");
       setStatusType("");
       await subscribeNewsletter(normalizedEmail, "homepage");
+      const eventID = `subscribe-${Date.now()}`;
       trackMetaPixelEvent("Subscribe", {
         content_name: "Homepage newsletter",
         status: "subscribed",
-      });
+      }, "track", { eventID });
       setStatusType("success");
       setStatusMessage("Welcome to the circle. Check your inbox.");
       setEmail("");
