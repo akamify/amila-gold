@@ -4,6 +4,9 @@ import SymbolIcon from "@/app/components/icons/SymbolIcon";
 import React, { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { trackMetaPixelOnce } from '@/app/lib/metaPixel';
+
+const PENDING_PURCHASE_STORAGE_KEY = 'meta:pending-purchase';
 
 function OrderSuccessContent() {
   const searchParams = useSearchParams();
@@ -12,6 +15,35 @@ function OrderSuccessContent() {
   useEffect(() => {
     const oid = searchParams.get('order_id');
     setOrderId(oid);
+  }, [searchParams]);
+
+  useEffect(() => {
+    const oid = searchParams.get('order_id') || '';
+    try {
+      const raw = window.sessionStorage.getItem(PENDING_PURCHASE_STORAGE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as {
+        eventID?: string;
+        orderRef?: string;
+        payload?: Record<string, unknown>;
+      };
+      const eventID = String(parsed.eventID || parsed.orderRef || oid || '');
+      const payload = parsed.payload && typeof parsed.payload === 'object' ? parsed.payload : null;
+      if (!eventID || !payload) return;
+      const payloadOrderId = String(payload.order_id || parsed.orderRef || '');
+      if (oid && payloadOrderId && payloadOrderId !== oid) return;
+
+      trackMetaPixelOnce(
+        `meta:purchase-success:${eventID}`,
+        'Purchase',
+        payload as Parameters<typeof trackMetaPixelOnce>[2],
+        'track',
+        { eventID },
+      );
+      window.sessionStorage.removeItem(PENDING_PURCHASE_STORAGE_KEY);
+    } catch {
+      window.sessionStorage.removeItem(PENDING_PURCHASE_STORAGE_KEY);
+    }
   }, [searchParams]);
 
   return (

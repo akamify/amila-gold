@@ -40,6 +40,7 @@ declare global {
 
 const SHIPPING = 0;
 const SELECTED_ADDRESS_STORAGE_KEY = "checkout:selected-address-id";
+const PENDING_PURCHASE_STORAGE_KEY = "meta:pending-purchase";
 const checkoutItemKey = (id: number, size: string) =>
   `${id}-${String(size || "")
     .trim()
@@ -199,6 +200,30 @@ export default function CheckoutPage() {
         .join("|"),
     [checkoutItems],
   );
+
+  const queueMetaPixelPurchase = (orderRef: string, method: "COD" | "Razorpay") => {
+    const safeOrderRef = orderRef || metaPixelCheckoutKey || String(Date.now());
+    const eventID = `purchase-${safeOrderRef}`;
+    const payload = {
+      content_ids: metaPixelContentIds,
+      content_type: "product",
+      contents: metaPixelContents,
+      currency: "INR",
+      num_items: checkoutItemCount,
+      order_id: orderRef,
+      payment_method: method,
+      value: total,
+    };
+
+    try {
+      window.sessionStorage.setItem(
+        PENDING_PURCHASE_STORAGE_KEY,
+        JSON.stringify({ eventID, orderRef, payload }),
+      );
+    } catch {
+      trackMetaPixelOnce(`meta:purchase:${eventID}`, "Purchase", payload, "track", { eventID });
+    }
+  };
 
   useEffect(() => {
     const saved = window.localStorage.getItem("sr_buy_now_item");
@@ -642,16 +667,7 @@ export default function CheckoutPage() {
       )) as Record<string, unknown>;
       if (paymentMethod === "COD") {
         const orderRef = String(orderData.order_id || orderData.local_order_id || "");
-        trackMetaPixelOnce(`meta:purchase:${orderRef || metaPixelCheckoutKey}`, "Purchase", {
-          content_ids: metaPixelContentIds,
-          content_type: "product",
-          contents: metaPixelContents,
-          currency: "INR",
-          num_items: checkoutItemCount,
-          order_id: orderRef,
-          payment_method: "COD",
-          value: total,
-        });
+        queueMetaPixelPurchase(orderRef, "COD");
         window.localStorage.removeItem("sr_buy_now_item");
         if (!buyNowItem) clearCart();
         router.push(
@@ -696,16 +712,7 @@ export default function CheckoutPage() {
             })) as Record<string, unknown>;
             if (verified.status) {
               const orderRef = String(verified.order_id || localOrderId);
-              trackMetaPixelOnce(`meta:purchase:${orderRef || metaPixelCheckoutKey}`, "Purchase", {
-                content_ids: metaPixelContentIds,
-                content_type: "product",
-                contents: metaPixelContents,
-                currency: "INR",
-                num_items: checkoutItemCount,
-                order_id: orderRef,
-                payment_method: "Razorpay",
-                value: total,
-              });
+              queueMetaPixelPurchase(orderRef, "Razorpay");
               window.localStorage.removeItem("sr_buy_now_item");
               if (!buyNowItem) clearCart();
               router.push(

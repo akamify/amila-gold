@@ -7,6 +7,9 @@ type MetaPixelPayloadValue =
   | Array<MetaPixelScalar | Record<string, MetaPixelScalar>>;
 type MetaPixelPayload = Record<string, MetaPixelPayloadValue>;
 type MetaPixelCommand = "track" | "trackCustom";
+type MetaPixelOptions = {
+  eventID?: string;
+};
 
 declare global {
   interface Window {
@@ -14,6 +17,7 @@ declare global {
       command: "init" | MetaPixelCommand,
       eventName: string,
       parameters?: MetaPixelPayload,
+      options?: MetaPixelOptions,
     ) => void;
     _fbq?: Window["fbq"];
   }
@@ -21,13 +25,45 @@ declare global {
 
 const isBrowser = () => typeof window !== "undefined";
 
+function cleanMetaPixelValue(value: MetaPixelPayloadValue): MetaPixelPayloadValue {
+  if (Array.isArray(value)) {
+    return value
+      .map((entry) => {
+        if (entry && typeof entry === "object") {
+          return Object.fromEntries(
+            Object.entries(entry).filter(([, itemValue]) => typeof itemValue !== "undefined"),
+          );
+        }
+        return entry;
+      })
+      .filter((entry) => typeof entry !== "undefined");
+  }
+
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).filter(([, itemValue]) => typeof itemValue !== "undefined"),
+    );
+  }
+
+  return value;
+}
+
+function cleanMetaPixelPayload(parameters: MetaPixelPayload) {
+  return Object.fromEntries(
+    Object.entries(parameters)
+      .filter(([, value]) => typeof value !== "undefined")
+      .map(([key, value]) => [key, cleanMetaPixelValue(value)]),
+  );
+}
+
 export function trackMetaPixelEvent(
   eventName: string,
   parameters: MetaPixelPayload = {},
   command: MetaPixelCommand = "track",
+  options?: MetaPixelOptions,
 ) {
   if (!isBrowser() || typeof window.fbq !== "function") return;
-  window.fbq(command, eventName, parameters);
+  window.fbq(command, eventName, cleanMetaPixelPayload(parameters), options);
 }
 
 export function trackMetaPixelPageView(path: string) {
@@ -43,6 +79,7 @@ export function trackMetaPixelOnce(
   eventName: string,
   parameters: MetaPixelPayload = {},
   command: MetaPixelCommand = "track",
+  options?: MetaPixelOptions,
 ) {
   if (!isBrowser()) return;
   try {
@@ -51,5 +88,5 @@ export function trackMetaPixelOnce(
   } catch {
     // Ignore storage failures and still allow the event attempt.
   }
-  trackMetaPixelEvent(eventName, parameters, command);
+  trackMetaPixelEvent(eventName, parameters, command, options);
 }

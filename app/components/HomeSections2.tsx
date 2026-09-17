@@ -4,6 +4,7 @@ import Image from "next/image";
 import {
   subscribeNewsletter,
 } from "@/app/lib/apiClient";
+import { trackMetaPixelEvent } from "@/app/lib/metaPixel";
 
 
 
@@ -159,6 +160,10 @@ function NewsletterSection() {
       setStatusMessage("");
       setStatusType("");
       await subscribeNewsletter(normalizedEmail, "homepage");
+      trackMetaPixelEvent("Subscribe", {
+        content_name: "Homepage newsletter",
+        status: "subscribed",
+      });
       setStatusType("success");
       setStatusMessage("Welcome to the circle. Check your inbox.");
       setEmail("");
